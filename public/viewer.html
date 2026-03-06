@@ -8,7 +8,6 @@
   <script src="/socket.io/socket.io.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: #060608;
       min-height: 100vh;
@@ -17,87 +16,55 @@
       justify-content: center;
       overflow: hidden;
     }
-
-    /* Grid de fundo */
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       background-image:
         linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
       background-size: 60px 60px;
       pointer-events: none;
     }
-
     .glow-bg {
-      position: fixed;
-      inset: 0;
+      position: fixed; inset: 0;
       pointer-events: none;
       transition: background 1s ease;
     }
-
-    .timer-wrap {
+    .timer-display {
       position: relative;
       z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .timer-display {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(80px, 20vw, 220px);
+      font-size: clamp(100px, 22vw, 280px);
       letter-spacing: 0.04em;
       line-height: 1;
       user-select: none;
-      transition: color 0.5s, text-shadow 0.5s;
+      transition: color 0.5s, text-shadow 0.5s, opacity 0.3s;
       color: #e8e8f0;
     }
-
-    /* Fases de cor */
     .timer-display.green {
       color: #00f5a0;
-      text-shadow:
-        0 0 40px rgba(0,245,160,0.7),
-        0 0 100px rgba(0,245,160,0.3),
-        0 0 200px rgba(0,245,160,0.1);
+      text-shadow: 0 0 60px rgba(0,245,160,0.7), 0 0 120px rgba(0,245,160,0.3);
     }
     .timer-display.yellow {
       color: #ffb800;
-      text-shadow:
-        0 0 40px rgba(255,184,0,0.7),
-        0 0 100px rgba(255,184,0,0.3);
+      text-shadow: 0 0 60px rgba(255,184,0,0.7), 0 0 120px rgba(255,184,0,0.3);
     }
     .timer-display.red {
       color: #ff3e3e;
-      text-shadow:
-        0 0 40px rgba(255,62,62,0.8),
-        0 0 100px rgba(255,62,62,0.4);
+      text-shadow: 0 0 60px rgba(255,62,62,0.8), 0 0 120px rgba(255,62,62,0.4);
     }
     .timer-display.blink {
       color: #ff3e3e;
-      text-shadow:
-        0 0 40px rgba(255,62,62,0.8),
-        0 0 100px rgba(255,62,62,0.4);
+      text-shadow: 0 0 60px rgba(255,62,62,0.8), 0 0 120px rgba(255,62,62,0.4);
       animation: timerBlink 0.5s infinite;
     }
-    @keyframes timerBlink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.1; }
-    }
-
-    /* Paused */
-    .timer-display.paused-overlay {
-      opacity: 0.4;
-    }
+    .timer-display.paused { opacity: 0.4; }
+    @keyframes timerBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.08; } }
   </style>
 </head>
 <body>
   <div class="glow-bg" id="glow-bg"></div>
-  <div class="timer-wrap">
-    <div class="timer-display" id="timer-display">--:--:--</div>
-  </div>
+  <div class="timer-display" id="timer-display">--:--:--</div>
 
 <script>
   const socket = io();
@@ -108,27 +75,22 @@
 
     display.textContent = formatTime(remaining);
 
-    // Define fase de cor
     let phase = 'green';
     if (pct <= 0.10) phase = 'blink';
     else if (pct <= 0.20) phase = 'red';
     else if (pct <= 0.40) phase = 'yellow';
 
-    // Só aplica cores se estiver rodando ou pausado
-    if (status === 'running') {
-      display.className = 'timer-display ' + phase;
-    } else if (status === 'paused') {
-      display.className = 'timer-display ' + phase + ' paused-overlay';
-    } else {
-      display.className = 'timer-display green';
-    }
+    let cls = 'timer-display';
+    if (status === 'running') cls += ' ' + phase;
+    else if (status === 'paused') cls += ' ' + phase + ' paused';
+    else cls += ' green';
+    display.className = cls;
 
-    // Fundo com glow sutil da cor atual
     const glows = {
-      green: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,245,160,0.04) 0%, transparent 70%)',
-      yellow: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,184,0,0.06) 0%, transparent 70%)',
-      red: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.07) 0%, transparent 70%)',
-      blink: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.10) 0%, transparent 70%)',
+      green:  'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,245,160,0.05) 0%, transparent 70%)',
+      yellow: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,184,0,0.07) 0%, transparent 70%)',
+      red:    'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.08) 0%, transparent 70%)',
+      blink:  'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.12) 0%, transparent 70%)',
     };
     glowBg.style.background = status === 'running' ? (glows[phase] || glows.green) : 'none';
   });

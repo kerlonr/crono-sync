@@ -27,6 +27,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 24px;
     }
     body::before {
       content: '';
@@ -57,42 +58,19 @@
       gap: 20px;
       min-width: 360px;
     }
-    .login-box h2 {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
+    .login-box h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
     .login-box input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 18px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 16px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s;
-      text-align: center;
-      letter-spacing: 0.15em;
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 18px;
+      font-family: 'Share Tech Mono', monospace; font-size: 16px; color: var(--text);
+      outline: none; transition: border-color 0.2s; text-align: center; letter-spacing: 0.15em;
     }
     .login-box input:focus { border-color: var(--accent); }
     .btn-login {
-      width: 100%;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      padding: 14px;
-      font-family: 'Barlow', sans-serif;
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
+      width: 100%; background: var(--accent); color: #000; border: none;
+      border-radius: 8px; padding: 14px; font-family: 'Barlow', sans-serif;
+      font-size: 14px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; transition: opacity 0.2s, transform 0.1s;
     }
     .btn-login:hover { opacity: 0.85; }
     .btn-login:active { transform: scale(0.98); }
@@ -103,194 +81,109 @@
       display: none;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
-      padding: 40px 20px;
-      animation: fadeIn 0.4s ease;
+      gap: 24px;
       width: 100%;
-      max-width: 680px;
+      max-width: 640px;
+      animation: fadeIn 0.4s ease;
     }
     .badge {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--accent);
-      border: 1px solid rgba(0,245,160,0.3);
-      border-radius: 20px;
-      padding: 5px 16px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--accent); border: 1px solid rgba(0,245,160,0.3); border-radius: 20px; padding: 5px 16px;
     }
 
     /* TIME SETTER */
     .time-setter {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px 28px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 24px; width: 100%;
+      display: flex; flex-direction: column; gap: 16px;
     }
-    .time-setter-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .time-inputs {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .time-input-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-    .time-input-group label {
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
+    .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+    .time-inputs { display: flex; align-items: center; gap: 8px; }
+    .time-input-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .time-input-group label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
     .time-input-group input {
-      width: 72px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 8px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 22px;
-      color: var(--text);
-      outline: none;
-      text-align: center;
-      transition: border-color 0.2s;
+      width: 68px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 8px;
+      font-family: 'Share Tech Mono', monospace; font-size: 22px; color: var(--text);
+      outline: none; text-align: center; transition: border-color 0.2s;
     }
     .time-input-group input:focus { border-color: var(--accent); }
-    .time-sep {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 24px;
-      color: var(--muted);
-      margin-top: 14px;
-    }
-    .time-setter-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .time-sep { font-family: 'Share Tech Mono', monospace; font-size: 24px; color: var(--muted); margin-top: 14px; }
+
+    .setter-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .btn-set {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 24px;
-      font-family: 'Barlow', sans-serif;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: opacity 0.2s;
+      background: var(--accent); color: #000; border: none; border-radius: 8px;
+      padding: 10px 22px; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 900;
+      letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s;
     }
     .btn-set:hover { opacity: 0.85; }
-    .presets { display: flex; gap: 8px; flex-wrap: wrap; }
-    .preset {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 14px;
-      font-family: 'Barlow', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .preset:hover { border-color: var(--accent); color: var(--accent); }
-    .preset.saved-indicator {
-      border-color: var(--accent2);
-      color: var(--accent2);
-    }
+    .btn-set.secondary { background: var(--accent2); }
 
-    /* TIMER DISPLAY */
+    /* PRESETS */
+    .presets-section {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 24px; width: 100%;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .presets-header { display: flex; align-items: center; justify-content: space-between; }
+    .presets-list { display: flex; gap: 8px; flex-wrap: wrap; min-height: 36px; }
+    .preset-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 12px;
+      font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; color: var(--text);
+      cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    }
+    .preset-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .preset-chip .del {
+      color: var(--muted); font-size: 14px; line-height: 1;
+      transition: color 0.2s; cursor: pointer; padding: 0 2px;
+    }
+    .preset-chip .del:hover { color: var(--danger); }
+    .presets-empty { font-size: 12px; color: var(--muted); font-style: italic; }
+
+    /* ADD PRESET */
+    .add-preset-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .add-preset-row input {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--text);
+      outline: none; width: 140px; transition: border-color 0.2s;
+    }
+    .add-preset-row input:focus { border-color: var(--accent2); }
+    .btn-add-preset {
+      background: transparent; border: 1px solid var(--accent2); border-radius: 8px;
+      padding: 8px 16px; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--accent2); cursor: pointer; letter-spacing: 0.1em; transition: background 0.2s;
+    }
+    .btn-add-preset:hover { background: rgba(0,201,255,0.08); }
+
+    /* TIMER */
     .timer-display {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(64px, 12vw, 110px);
-      letter-spacing: 0.05em;
-      color: var(--text);
-      transition: color 0.3s, text-shadow 0.3s;
-      user-select: none;
+      font-size: clamp(60px, 11vw, 100px);
+      letter-spacing: 0.05em; color: var(--text);
+      transition: color 0.3s, text-shadow 0.3s; user-select: none;
     }
-    .timer-display.green {
-      color: var(--accent);
-      text-shadow: 0 0 40px rgba(0,245,160,0.5);
-    }
-    .timer-display.yellow {
-      color: var(--warn);
-      text-shadow: 0 0 40px rgba(255,184,0,0.5);
-    }
-    .timer-display.red {
-      color: var(--danger);
-      text-shadow: 0 0 40px rgba(255,62,62,0.5);
-    }
-    .timer-display.blink {
-      animation: timerBlink 0.5s infinite;
-    }
-    @keyframes timerBlink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.15; }
-    }
+    .timer-display.green { color: var(--accent); text-shadow: 0 0 40px rgba(0,245,160,0.5); }
+    .timer-display.yellow { color: var(--warn); text-shadow: 0 0 40px rgba(255,184,0,0.5); }
+    .timer-display.red { color: var(--danger); text-shadow: 0 0 40px rgba(255,62,62,0.5); }
+    .timer-display.blink { color: var(--danger); text-shadow: 0 0 40px rgba(255,62,62,0.5); animation: timerBlink 0.5s infinite; }
+    @keyframes timerBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
 
-    /* PROGRESS BAR */
-    .progress-bar-wrap {
-      width: 100%;
-      height: 6px;
-      background: var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.1s linear, background 0.5s;
-      background: var(--accent);
-    }
+    .progress-bar-wrap { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.1s linear, background 0.5s; background: var(--accent); }
 
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--muted);
-      transition: background 0.3s;
-    }
+    .status-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background 0.3s; }
     .status-dot.running { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 1.5s infinite; }
     .status-dot.paused { background: var(--warn); }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
     .controls { display: flex; gap: 16px; }
     .btn {
-      font-family: 'Barlow', sans-serif;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      border: none;
-      border-radius: 10px;
-      padding: 16px 36px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
+      font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 900;
+      letter-spacing: 0.2em; text-transform: uppercase; border: none;
+      border-radius: 10px; padding: 16px 36px; cursor: pointer; transition: opacity 0.2s, transform 0.1s;
     }
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.25; cursor: not-allowed; }
@@ -324,7 +217,7 @@
 
     <!-- TIME SETTER -->
     <div class="time-setter">
-      <div class="time-setter-label">⏱ Definir tempo do pitch</div>
+      <div class="section-label">⏱ Definir tempo do pitch</div>
       <div class="time-inputs">
         <div class="time-input-group">
           <label>horas</label>
@@ -332,29 +225,37 @@
         </div>
         <div class="time-sep">:</div>
         <div class="time-input-group">
-          <label>minutos</label>
+          <label>min</label>
           <input type="number" id="input-m" min="0" max="59" value="5" />
         </div>
         <div class="time-sep">:</div>
         <div class="time-input-group">
-          <label>segundos</label>
+          <label>seg</label>
           <input type="number" id="input-s" min="0" max="59" value="0" />
         </div>
       </div>
-      <div class="time-setter-actions">
+      <div class="setter-actions">
         <button class="btn-set" onclick="setTime()">✓ Definir</button>
-        <button class="btn-set" style="background:var(--accent2)" onclick="saveTime()">💾 Salvar</button>
-        <div class="presets" id="presets-row">
-          <button class="preset" onclick="applyPreset(60)">1 min</button>
-          <button class="preset" onclick="applyPreset(180)">3 min</button>
-          <button class="preset" onclick="applyPreset(300)">5 min</button>
-          <button class="preset" onclick="applyPreset(600)">10 min</button>
-        </div>
+        <button class="btn-set secondary" onclick="saveLastTime()">💾 Salvar como último</button>
+      </div>
+    </div>
+
+    <!-- PRESETS -->
+    <div class="presets-section">
+      <div class="presets-header">
+        <div class="section-label">📌 Presets salvos</div>
+      </div>
+      <div class="presets-list" id="presets-list">
+        <span class="presets-empty">Nenhum preset salvo ainda.</span>
+      </div>
+      <div class="add-preset-row">
+        <input type="text" id="preset-name" placeholder="Nome do preset (ex: Pitch 3min)" maxlength="30" />
+        <button class="btn-add-preset" onclick="addPreset()">+ Salvar preset atual</button>
       </div>
     </div>
 
     <div class="timer-display" id="timer-display">00:00:00</div>
-    <div class="progress-bar-wrap" style="width:100%;max-width:500px">
+    <div class="progress-bar-wrap">
       <div class="progress-bar-fill" id="progress-bar" style="width:100%"></div>
     </div>
 
@@ -376,28 +277,84 @@
 
 <script>
   const socket = io();
+  const PRESETS_KEY = 'pitch_timer_presets';
+  const LAST_KEY = 'pitch_timer_last';
 
-  // Carrega tempo salvo do localStorage
-  function loadSaved() {
-    const saved = localStorage.getItem('pitch_timer_saved');
+  // ── Presets ──────────────────────────────────────────────
+  function loadPresets() {
+    try { return JSON.parse(localStorage.getItem(PRESETS_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function savePresets(presets) {
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  }
+
+  function renderPresets() {
+    const list = document.getElementById('presets-list');
+    const presets = loadPresets();
+    if (presets.length === 0) {
+      list.innerHTML = '<span class="presets-empty">Nenhum preset salvo ainda.</span>';
+      return;
+    }
+    list.innerHTML = '';
+    presets.forEach((p, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'preset-chip';
+      chip.innerHTML = `<span onclick="applyPreset(${p.secs})">${p.name}</span><span class="del" onclick="deletePreset(${i})" title="Remover">✕</span>`;
+      list.appendChild(chip);
+    });
+  }
+
+  function addPreset() {
+    const name = document.getElementById('preset-name').value.trim();
+    if (!name) { document.getElementById('preset-name').focus(); return; }
+    const ms = getInputMs();
+    if (ms <= 0) return;
+    const secs = ms / 1000;
+    const presets = loadPresets();
+    presets.push({ name, secs });
+    savePresets(presets);
+    renderPresets();
+    document.getElementById('preset-name').value = '';
+  }
+
+  function deletePreset(i) {
+    const presets = loadPresets();
+    presets.splice(i, 1);
+    savePresets(presets);
+    renderPresets();
+  }
+
+  function applyPreset(secs) {
+    document.getElementById('input-h').value = Math.floor(secs / 3600);
+    document.getElementById('input-m').value = Math.floor((secs % 3600) / 60);
+    document.getElementById('input-s').value = secs % 60;
+    socket.emit('timer:setTime', secs * 1000);
+  }
+
+  // ── Último tempo salvo ────────────────────────────────────
+  function loadLast() {
+    const saved = localStorage.getItem(LAST_KEY);
     if (saved) {
       const secs = parseInt(saved);
       document.getElementById('input-h').value = Math.floor(secs / 3600);
       document.getElementById('input-m').value = Math.floor((secs % 3600) / 60);
       document.getElementById('input-s').value = secs % 60;
-      markSavedPreset(secs);
     }
   }
 
-  function markSavedPreset(totalSecs) {
-    document.querySelectorAll('.preset').forEach(b => b.classList.remove('saved-indicator'));
-    const presets = [60, 180, 300, 600];
-    const idx = presets.indexOf(totalSecs);
-    if (idx >= 0) {
-      document.querySelectorAll('.preset')[idx].classList.add('saved-indicator');
-    }
+  function saveLastTime() {
+    const ms = getInputMs();
+    if (ms <= 0) return;
+    localStorage.setItem(LAST_KEY, ms / 1000);
+    socket.emit('timer:setTime', ms);
+    const btn = event.target;
+    btn.textContent = '✓ Salvo!';
+    setTimeout(() => btn.textContent = '💾 Salvar como último', 1500);
   }
 
+  // ── Utils ─────────────────────────────────────────────────
   function getInputMs() {
     const h = parseInt(document.getElementById('input-h').value) || 0;
     const m = parseInt(document.getElementById('input-m').value) || 0;
@@ -411,26 +368,7 @@
     socket.emit('timer:setTime', ms);
   }
 
-  function saveTime() {
-    const ms = getInputMs();
-    if (ms <= 0) return;
-    const totalSecs = ms / 1000;
-    localStorage.setItem('pitch_timer_saved', totalSecs);
-    markSavedPreset(totalSecs);
-    socket.emit('timer:setTime', ms);
-    // Feedback visual
-    const btn = event.target;
-    btn.textContent = '✓ Salvo!';
-    setTimeout(() => btn.textContent = '💾 Salvar', 1500);
-  }
-
-  function applyPreset(secs) {
-    document.getElementById('input-h').value = Math.floor(secs / 3600);
-    document.getElementById('input-m').value = Math.floor((secs % 3600) / 60);
-    document.getElementById('input-s').value = secs % 60;
-    socket.emit('timer:setTime', secs * 1000);
-  }
-
+  // ── Socket ────────────────────────────────────────────────
   socket.on('timer:tick', ({ status, remaining, totalTime, pct }) => {
     updateDisplay(remaining, pct, status);
     updateUI(status);
@@ -442,16 +380,16 @@
       if (res.success) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'flex';
-        loadSaved();
+        loadLast();
+        renderPresets();
       } else {
         document.getElementById('login-error').textContent = 'Senha incorreta.';
       }
     });
   }
 
-  document.getElementById('password-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') doLogin();
-  });
+  document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('preset-name').addEventListener('keydown', e => { if (e.key === 'Enter') addPreset(); });
 
   function timerStart() { socket.emit('timer:start'); }
   function timerPause() { socket.emit('timer:pause'); }
@@ -476,24 +414,12 @@
   function updateDisplay(remaining, pct, status) {
     const display = document.getElementById('timer-display');
     const bar = document.getElementById('progress-bar');
-
     display.textContent = formatTime(remaining);
-
-    // Cor da barra
-    let barColor = '#00f5a0';
-    if (pct <= 0.10) barColor = '#ff3e3e';
-    else if (pct <= 0.20) barColor = '#ff3e3e';
-    else if (pct <= 0.40) barColor = '#ffb800';
+    const barColor = pct <= 0.20 ? '#ff3e3e' : pct <= 0.40 ? '#ffb800' : '#00f5a0';
     bar.style.width = (pct * 100) + '%';
     bar.style.background = barColor;
-
-    // Cor e animação do display
     const phase = getPhase(pct);
-    if (status === 'running' || status === 'paused') {
-      display.className = 'timer-display ' + phase;
-    } else {
-      display.className = 'timer-display green';
-    }
+    display.className = 'timer-display ' + ((status === 'running' || status === 'paused') ? phase : 'green');
   }
 
   function updateUI(status) {
@@ -501,23 +427,13 @@
     const statusText = document.getElementById('status-text');
     const btnStart = document.getElementById('btn-start');
     const btnPause = document.getElementById('btn-pause');
-
     dot.className = 'status-dot ' + status;
-
     if (status === 'running') {
-      statusText.textContent = 'RODANDO';
-      btnStart.disabled = true;
-      btnPause.disabled = false;
+      statusText.textContent = 'RODANDO'; btnStart.disabled = true; btnPause.disabled = false;
     } else if (status === 'paused') {
-      statusText.textContent = 'PAUSADO';
-      btnStart.disabled = false;
-      btnStart.textContent = '▶ Continuar';
-      btnPause.disabled = true;
+      statusText.textContent = 'PAUSADO'; btnStart.disabled = false; btnStart.textContent = '▶ Continuar'; btnPause.disabled = true;
     } else {
-      statusText.textContent = 'PARADO';
-      btnStart.disabled = false;
-      btnStart.textContent = '▶ Start';
-      btnPause.disabled = true;
+      statusText.textContent = 'PARADO'; btnStart.disabled = false; btnStart.textContent = '▶ Start'; btnPause.disabled = true;
     }
   }
 </script>
