@@ -14,6 +14,7 @@ const ADMIN_PASSWORD = 'admin123';
 let status = 'stopped';
 let elapsed = 0;
 let startTime = null;
+let totalTime = 5 * 60 * 1000; // padrão 5 minutos em ms
 let interval = null;
 
 function getElapsed() {
@@ -21,8 +22,21 @@ function getElapsed() {
   return elapsed;
 }
 
+function getRemaining() {
+  return Math.max(0, totalTime - getElapsed());
+}
+
 function broadcast() {
-  io.emit('timer:tick', { status, elapsed: getElapsed() });
+  const remaining = getRemaining();
+  const pct = totalTime > 0 ? remaining / totalTime : 1;
+  // Para automaticamente ao chegar em zero
+  if (status === 'running' && remaining <= 0) {
+    elapsed = totalTime;
+    startTime = null;
+    status = 'stopped';
+    stopBroadcast();
+  }
+  io.emit('timer:tick', { status, remaining: getRemaining(), totalTime, pct });
 }
 
 function startBroadcast() {
@@ -36,7 +50,9 @@ function stopBroadcast() {
 }
 
 io.on('connection', (socket) => {
-  socket.emit('timer:tick', { status, elapsed: getElapsed() });
+  const remaining = getRemaining();
+  const pct = totalTime > 0 ? remaining / totalTime : 1;
+  socket.emit('timer:tick', { status, remaining, totalTime, pct });
 
   socket.on('admin:login', (password, callback) => {
     if (password === ADMIN_PASSWORD) {
@@ -47,9 +63,20 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('timer:setTime', (ms) => {
+    if (!socket.rooms.has('admins')) return;
+    if (status === 'running') return;
+    totalTime = ms;
+    elapsed = 0;
+    startTime = null;
+    status = 'stopped';
+    broadcast();
+  });
+
   socket.on('timer:start', () => {
     if (!socket.rooms.has('admins')) return;
     if (status === 'running') return;
+    if (getRemaining() <= 0) return;
     startTime = Date.now();
     status = 'running';
     startBroadcast();
