@@ -1453,18 +1453,6 @@
       updateControls(status);
     });
 
-    function doLogin() {
-      const pw = document.getElementById('password-input').value;
-      socket.emit('admin:login', pw, (res) => {
-        if (res.success) {
-          document.getElementById('admin-panel').style.display = 'block';
-          renderAll();
-        } else {
-          document.getElementById('login-error').textContent = 'Senha incorreta.';
-        }
-      });
-    }
-    document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
     document.getElementById('d-preset-name').addEventListener('keydown', e => { if (e.key === 'Enter') dAddPreset(); });
     document.getElementById('m-preset-name').addEventListener('keydown', e => { if (e.key === 'Enter') mAddPreset(); });
 
