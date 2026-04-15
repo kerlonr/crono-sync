@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Cronômetro — Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;600;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;600;900&display=swap"
+    rel="stylesheet" />
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     :root {
       --bg: #0a0a0f;
       --panel: #13131c;
@@ -20,7 +29,11 @@
       --muted: #55556a;
     }
 
-    html, body { height: 100%; }
+    html,
+    body {
+      height: 100%;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -31,44 +44,98 @@
       justify-content: center;
       overflow-x: hidden;
     }
+
     body::before {
       content: '';
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       background:
-        radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0,245,160,0.06) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 50% at 80% 20%, rgba(0,201,255,0.05) 0%, transparent 70%);
+        radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0, 245, 160, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 80% 20%, rgba(0, 201, 255, 0.05) 0%, transparent 70%);
       pointer-events: none;
     }
 
     /* ── LOGIN ── */
     #login-screen {
-      display: flex; flex-direction: column; align-items: center; gap: 20px;
-      padding: 24px; width: 100%; max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
       animation: fadeIn 0.4s ease;
     }
+
     .login-box {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 20px; padding: 48px 40px;
-      display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
     }
-    .login-box h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
+
+    .login-box h2 {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .login-box input {
-      width: 100%; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px 18px;
-      font-family: 'Share Tech Mono', monospace; font-size: 18px; color: var(--text);
-      outline: none; transition: border-color 0.2s; text-align: center; letter-spacing: 0.2em;
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 18px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      text-align: center;
+      letter-spacing: 0.2em;
     }
-    .login-box input:focus { border-color: var(--accent); }
+
+    .login-box input:focus {
+      border-color: var(--accent);
+    }
+
     .btn-login {
-      width: 100%; background: var(--accent); color: #000; border: none;
-      border-radius: 12px; padding: 16px;
-      font-family: 'Barlow', sans-serif; font-size: 14px; font-weight: 900;
-      letter-spacing: 0.2em; text-transform: uppercase;
-      cursor: pointer; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent;
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .btn-login:hover { opacity: 0.85; }
-    .btn-login:active { opacity: 0.7; }
-    #login-error { font-size: 13px; color: var(--danger); height: 16px; }
+
+    .btn-login:hover {
+      opacity: 0.85;
+    }
+
+    .btn-login:active {
+      opacity: 0.7;
+    }
+
+    #login-error {
+      font-size: 13px;
+      color: var(--danger);
+      height: 16px;
+    }
 
     /* ── ADMIN PANEL ── */
     #admin-panel {
@@ -92,158 +159,482 @@
     }
 
     .badge {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
-      color: var(--accent); border: 1px solid rgba(0,245,160,0.3); border-radius: 20px; padding: 5px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(0, 245, 160, 0.3);
+      border-radius: 20px;
+      padding: 5px 16px;
     }
 
     /* Presets bar desktop */
     .desktop-presets-bar {
-      width: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
+
     .desktop-presets-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.3em;
-      text-transform: uppercase; color: var(--muted); white-space: nowrap;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
     }
-    .desktop-presets-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .desktop-presets-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .preset-chip-d {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 8px; padding: 8px 16px;
-      font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600; color: var(--text);
-      cursor: pointer; transition: border-color 0.2s, color 0.2s; white-space: nowrap;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      white-space: nowrap;
     }
-    .preset-chip-d:hover { border-color: var(--accent); color: var(--accent); }
-    .presets-empty-d { font-size: 12px; color: var(--muted); font-style: italic; }
+
+    .preset-chip-d:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .presets-empty-d {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+    }
 
     /* Settings panel desktop */
     .settings-panel-d {
       display: none;
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 16px; padding: 24px; width: 100%;
-      flex-direction: column; gap: 20px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      flex-direction: column;
+      gap: 20px;
       animation: fadeIn 0.25s ease;
     }
-    .settings-panel-d.open { display: flex; }
+
+    .settings-panel-d.open {
+      display: flex;
+    }
+
     .settings-header-d {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
+
     .settings-title-d {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.3em;
-      text-transform: uppercase; color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
+
     .btn-close-settings {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: var(--bg); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 16px; color: var(--muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--muted);
       transition: border-color 0.2s, color 0.2s;
     }
-    .btn-close-settings:hover { border-color: var(--danger); color: var(--danger); }
+
+    .btn-close-settings:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
 
     .settings-grid-d {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
     }
-    .settings-col-d { display: flex; flex-direction: column; gap: 12px; }
-    .section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
 
-    .time-inputs { display: flex; align-items: center; gap: 8px; }
-    .time-input-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .time-input-group label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .settings-col-d {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .time-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .time-input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .time-input-group label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .time-input-group input {
-      width: 68px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 8px;
-      font-family: 'Share Tech Mono', monospace; font-size: 22px; color: var(--text);
-      outline: none; text-align: center; transition: border-color 0.2s;
+      width: 68px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 22px;
+      color: var(--text);
+      outline: none;
+      text-align: center;
+      transition: border-color 0.2s;
     }
-    .time-input-group input:focus { border-color: var(--accent); }
-    .time-sep { font-family: 'Share Tech Mono', monospace; font-size: 24px; color: var(--muted); margin-top: 14px; }
 
-    .setter-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .time-input-group input:focus {
+      border-color: var(--accent);
+    }
+
+    .time-sep {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 24px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    .setter-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .btn-set {
-      background: var(--accent); color: #000; border: none; border-radius: 8px;
-      padding: 10px 20px; font-family: 'Barlow', sans-serif; font-size: 12px;
-      font-weight: 900; letter-spacing: 0.15em; text-transform: uppercase;
-      cursor: pointer; transition: opacity 0.2s;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
     }
-    .btn-set:hover { opacity: 0.85; }
-    .btn-set.secondary { background: var(--accent2); }
 
-    .presets-manage-list { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+    .btn-set:hover {
+      opacity: 0.85;
+    }
+
+    .btn-set.secondary {
+      background: var(--accent2);
+    }
+
+    .presets-manage-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
     .preset-manage-row {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
     }
-    .preset-manage-name { font-size: 13px; font-weight: 600; color: var(--text); }
-    .preset-manage-time { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); }
+
+    .preset-manage-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .preset-manage-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
     .preset-del-btn {
-      background: none; border: none; color: var(--muted); font-size: 14px;
-      cursor: pointer; padding: 2px 6px; transition: color 0.2s;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 6px;
+      transition: color 0.2s;
     }
-    .preset-del-btn:hover { color: var(--danger); }
-    .add-preset-row { display: flex; gap: 8px; }
+
+    .preset-del-btn:hover {
+      color: var(--danger);
+    }
+
+    .add-preset-row {
+      display: flex;
+      gap: 8px;
+    }
+
     .add-preset-row input {
-      flex: 1; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 12px;
-      font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--text);
-      outline: none; transition: border-color 0.2s;
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
     }
-    .add-preset-row input:focus { border-color: var(--accent2); }
+
+    .add-preset-row input:focus {
+      border-color: var(--accent2);
+    }
+
     .btn-add-preset {
-      background: transparent; border: 1px solid var(--accent2); border-radius: 8px;
-      padding: 10px 14px; font-family: 'Barlow', sans-serif; font-size: 12px;
-      font-weight: 700; color: var(--accent2); cursor: pointer; white-space: nowrap; transition: background 0.2s;
+      background: transparent;
+      border: 1px solid var(--accent2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent2);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
     }
-    .btn-add-preset:hover { background: rgba(0,201,255,0.08); }
-    .presets-empty { font-size: 12px; color: var(--muted); font-style: italic; }
+
+    .btn-add-preset:hover {
+      background: rgba(0, 201, 255, 0.08);
+    }
+
+    .presets-empty {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+    }
 
     /* Timer desktop */
     .timer-display {
       font-family: 'Share Tech Mono', monospace;
-      letter-spacing: 0.05em; color: var(--text);
-      transition: color 0.3s, text-shadow 0.3s; user-select: none;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      transition: color 0.3s, text-shadow 0.3s;
+      user-select: none;
     }
-    .timer-display.green { color: var(--accent); text-shadow: 0 0 40px rgba(0,245,160,0.5); }
-    .timer-display.yellow { color: var(--warn); text-shadow: 0 0 40px rgba(255,184,0,0.5); }
-    .timer-display.red { color: var(--danger); text-shadow: 0 0 40px rgba(255,62,62,0.5); }
-    .timer-display.blink { color: var(--danger); animation: timerBlink 0.5s infinite; }
-    @keyframes timerBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
 
-    .timer-display-d { font-size: clamp(64px, 10vw, 100px); }
+    .timer-display.green {
+      color: var(--accent);
+      text-shadow: 0 0 40px rgba(0, 245, 160, 0.5);
+    }
 
-    .progress-wrap { width: 100%; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 3px; transition: width 0.1s linear, background 0.5s; background: var(--accent); }
+    .timer-display.yellow {
+      color: var(--warn);
+      text-shadow: 0 0 40px rgba(255, 184, 0, 0.5);
+    }
+
+    .timer-display.red {
+      color: var(--danger);
+      text-shadow: 0 0 40px rgba(255, 62, 62, 0.5);
+    }
+
+    .timer-display.blink {
+      color: var(--danger);
+      animation: timerBlink 0.5s infinite;
+    }
+
+    @keyframes timerBlink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.1;
+      }
+    }
+
+    .timer-display-d {
+      font-size: clamp(64px, 10vw, 100px);
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 5px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.1s linear, background 0.5s;
+      background: var(--accent);
+    }
 
     .status-row {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 12px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background 0.3s; }
-    .status-dot.running { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: pulse 1.5s infinite; }
-    .status-dot.paused { background: var(--warn); }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    .controls-d { display: flex; gap: 14px; align-items: center; }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.3s;
+    }
+
+    .status-dot.running {
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-dot.paused {
+      background: var(--warn);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
+    }
+
+    .controls-d {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
     .btn-d {
-      font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 900;
-      letter-spacing: 0.2em; text-transform: uppercase; border: none;
-      border-radius: 10px; padding: 16px 36px; cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 10px;
+      padding: 16px 36px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
     }
-    .btn-d:active { transform: scale(0.97); }
-    .btn-d:disabled { opacity: 0.2; pointer-events: none; }
-    .btn-start-d { background: var(--accent); color: #000; }
-    .btn-pause-d { background: var(--warn); color: #000; }
-    .btn-reset-d { background: transparent; color: var(--danger); border: 1px solid rgba(255,62,62,0.3); }
-    .btn-reset-d:hover { border-color: var(--danger); background: rgba(255,62,62,0.05); }
-    .btn-gear-d {
-      width: 44px; height: 44px; border-radius: 10px;
-      background: var(--panel); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 18px; transition: border-color 0.2s;
-    }
-    .btn-gear-d:hover { border-color: var(--accent); }
 
-    .viewer-link-d { font-size: 13px; color: var(--muted); }
-    .viewer-link-d a { color: var(--accent2); text-decoration: none; font-family: 'Share Tech Mono', monospace; }
-    .viewer-link-d a:hover { text-decoration: underline; }
+    .btn-d:active {
+      transform: scale(0.97);
+    }
+
+    .btn-d:disabled {
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    .btn-start-d {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-pause-d {
+      background: var(--warn);
+      color: #000;
+    }
+
+    .btn-reset-d {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(255, 62, 62, 0.3);
+    }
+
+    .btn-reset-d:hover {
+      border-color: var(--danger);
+      background: rgba(255, 62, 62, 0.05);
+    }
+
+    .btn-gear-d {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: border-color 0.2s;
+    }
+
+    .btn-gear-d:hover {
+      border-color: var(--accent);
+    }
+
+    .viewer-link-d {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .viewer-link-d a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .viewer-link-d a:hover {
+      text-decoration: underline;
+    }
 
     /* ═══════════════════════════════
        MOBILE LAYOUT (< 768px)
@@ -258,602 +649,975 @@
     }
 
     .topbar {
-      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 16px 20px 14px;
-      background: var(--bg); border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; z-index: 50;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .topbar-title { font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); }
+
+    .topbar-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
     .btn-gear-m {
-      width: 42px; height: 42px; border-radius: 12px;
-      background: var(--panel); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 18px; -webkit-tap-highlight-color: transparent;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      -webkit-tap-highlight-color: transparent;
       transition: border-color 0.2s;
     }
-    .btn-gear-m:active { border-color: var(--accent); }
+
+    .btn-gear-m:active {
+      border-color: var(--accent);
+    }
 
     .mobile-main {
-      flex: 1; width: 100%;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 20px; padding: 28px 20px 36px;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 28px 20px 36px;
     }
 
     /* presets scroll mobile */
     .presets-scroll-m {
-      width: 100%; display: flex; gap: 10px;
-      overflow-x: auto; padding-bottom: 2px;
-      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
-    .presets-scroll-m::-webkit-scrollbar { display: none; }
+
+    .presets-scroll-m::-webkit-scrollbar {
+      display: none;
+    }
+
     .preset-chip-m {
-      flex-shrink: 0; background: var(--panel); border: 1px solid var(--border);
-      border-radius: 12px; padding: 12px 20px;
-      font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 700; color: var(--text);
-      cursor: pointer; -webkit-tap-highlight-color: transparent;
-      transition: border-color 0.2s; white-space: nowrap;
+      flex-shrink: 0;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s;
+      white-space: nowrap;
     }
-    .preset-chip-m:active { border-color: var(--accent); color: var(--accent); }
-    .presets-empty-m { font-size: 13px; color: var(--muted); font-style: italic; white-space: nowrap; }
 
-    .timer-display-m { font-size: clamp(58px, 17vw, 88px); line-height: 1; }
+    .preset-chip-m:active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
 
-    .controls-m { display: flex; gap: 12px; width: 100%; }
+    .presets-empty-m {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .timer-display-m {
+      font-size: clamp(58px, 17vw, 88px);
+      line-height: 1;
+    }
+
+    .controls-m {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
     .btn-m {
-      font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 900;
-      letter-spacing: 0.15em; text-transform: uppercase; border: none;
-      border-radius: 14px; cursor: pointer; padding: 20px 0; flex: 1; text-align: center;
-      -webkit-tap-highlight-color: transparent; transition: opacity 0.15s, transform 0.1s;
-    }
-    .btn-m:active { transform: scale(0.96); opacity: 0.75; }
-    .btn-m:disabled { opacity: 0.2; pointer-events: none; }
-    .btn-start-m { background: var(--accent); color: #000; }
-    .btn-pause-m { background: var(--warn); color: #000; }
-    .btn-reset-m {
-      flex: 0 0 64px; background: transparent; color: var(--danger);
-      border: 1px solid rgba(255,62,62,0.35); font-size: 22px; padding: 20px 0;
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      padding: 20px 0;
+      flex: 1;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s, transform 0.1s;
     }
 
-    .viewer-link-m { font-size: 12px; color: var(--muted); text-align: center; }
-    .viewer-link-m a { color: var(--accent2); text-decoration: none; font-family: 'Share Tech Mono', monospace; }
+    .btn-m:active {
+      transform: scale(0.96);
+      opacity: 0.75;
+    }
+
+    .btn-m:disabled {
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    .btn-start-m {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-pause-m {
+      background: var(--warn);
+      color: #000;
+    }
+
+    .btn-reset-m {
+      flex: 0 0 64px;
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(255, 62, 62, 0.35);
+      font-size: 22px;
+      padding: 20px 0;
+    }
+
+    .viewer-link-m {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .viewer-link-m a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-family: 'Share Tech Mono', monospace;
+    }
 
     /* ── SETTINGS DRAWER (mobile) ── */
     .drawer-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6); z-index: 100;
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 100;
     }
-    .drawer-overlay.open { display: block; animation: fadeIn 0.2s ease; }
+
+    .drawer-overlay.open {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
     .drawer {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--panel); border-top: 1px solid var(--border);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
       border-radius: 24px 24px 0 0;
       z-index: 101;
       transform: translateY(100%);
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-      max-height: 88dvh; overflow-y: auto;
+      max-height: 88dvh;
+      overflow-y: auto;
     }
-    .drawer.open { transform: translateY(0); }
-    .drawer-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 14px auto 0; }
+
+    .drawer.open {
+      transform: translateY(0);
+    }
+
+    .drawer-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 14px auto 0;
+    }
 
     .drawer-header {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 16px 24px 14px;
       border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; background: var(--panel); z-index: 2;
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+      z-index: 2;
     }
-    .drawer-title { font-size: 12px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+
+    .drawer-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .btn-close-drawer {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: var(--bg); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 18px; color: var(--muted);
-      -webkit-tap-highlight-color: transparent; transition: border-color 0.2s, color 0.2s;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--muted);
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s, color 0.2s;
     }
-    .btn-close-drawer:active { border-color: var(--danger); color: var(--danger); }
 
-    .drawer-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
-    .drawer-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .btn-close-drawer:active {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
 
-    .time-inputs-m { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .time-input-group-m { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .time-input-group-m label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .drawer-section {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .drawer-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .time-inputs-m {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .time-input-group-m {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .time-input-group-m label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .time-input-group-m input {
-      width: 74px; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px 8px;
-      font-family: 'Share Tech Mono', monospace; font-size: 26px; color: var(--text);
-      outline: none; text-align: center; transition: border-color 0.2s;
+      width: 74px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 26px;
+      color: var(--text);
+      outline: none;
+      text-align: center;
+      transition: border-color 0.2s;
       -webkit-appearance: none;
     }
-    .time-input-group-m input:focus { border-color: var(--accent); }
-    .time-sep-m { font-family: 'Share Tech Mono', monospace; font-size: 26px; color: var(--muted); margin-top: 18px; }
 
-    .drawer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .time-input-group-m input:focus {
+      border-color: var(--accent);
+    }
+
+    .time-sep-m {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 26px;
+      color: var(--muted);
+      margin-top: 18px;
+    }
+
+    .drawer-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .btn-drawer-action {
-      background: var(--accent); color: #000; border: none; border-radius: 10px;
-      padding: 13px 22px; font-family: 'Barlow', sans-serif; font-size: 13px;
-      font-weight: 900; letter-spacing: 0.15em; text-transform: uppercase;
-      cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
-    .btn-drawer-action:active { opacity: 0.75; }
-    .btn-drawer-action.sec { background: var(--accent2); }
-
-    .presets-list-m { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-    .preset-row-m {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
-    }
-    .preset-row-name { font-size: 15px; font-weight: 600; color: var(--text); }
-    .preset-row-time { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: var(--muted); }
-    .preset-row-del {
-      background: none; border: none; color: var(--muted); font-size: 18px;
-      cursor: pointer; padding: 4px 8px; -webkit-tap-highlight-color: transparent;
-    }
-    .preset-row-del:active { color: var(--danger); }
-
-    .add-preset-row-m { display: flex; gap: 8px; }
-    .add-preset-row-m input {
-      flex: 1; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 10px; padding: 13px 14px;
-      font-family: 'Barlow', sans-serif; font-size: 14px; color: var(--text);
-      outline: none; transition: border-color 0.2s;
-    }
-    .add-preset-row-m input:focus { border-color: var(--accent2); }
-    .btn-add-m {
-      background: transparent; border: 1px solid var(--accent2); border-radius: 10px;
-      padding: 13px 16px; font-family: 'Barlow', sans-serif; font-size: 13px;
-      font-weight: 700; color: var(--accent2); cursor: pointer; white-space: nowrap;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 22px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn-add-m:active { background: rgba(0,201,255,0.1); }
+
+    .btn-drawer-action:active {
+      opacity: 0.75;
+    }
+
+    .btn-drawer-action.sec {
+      background: var(--accent2);
+    }
+
+    .presets-list-m {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .preset-row-m {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .preset-row-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .preset-row-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .preset-row-del {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .preset-row-del:active {
+      color: var(--danger);
+    }
+
+    .add-preset-row-m {
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-preset-row-m input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 14px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-preset-row-m input:focus {
+      border-color: var(--accent2);
+    }
+
+    .btn-add-m {
+      background: transparent;
+      border: 1px solid var(--accent2);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent2);
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-add-m:active {
+      background: rgba(0, 201, 255, 0.1);
+    }
 
     /* ── DESKTOP SETTINGS MODAL ── */
     .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6); z-index: 200;
-      align-items: center; justify-content: center; padding: 24px;
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
     }
-    .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+
+    .modal-overlay.open {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
     .modal {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 20px; width: 100%; max-width: 560px;
-      padding: 28px; display: flex; flex-direction: column; gap: 24px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 560px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
       animation: slideUp 0.25s ease;
     }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    .modal-header { display: flex; align-items: center; justify-content: space-between; }
-    .modal-title { font-size: 12px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .btn-close-modal {
-      width: 34px; height: 34px; border-radius: 8px;
-      background: var(--bg); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 18px; color: var(--muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--muted);
       transition: border-color 0.2s, color 0.2s;
     }
-    .btn-close-modal:hover { border-color: var(--danger); color: var(--danger); }
-    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .modal-col { display: flex; flex-direction: column; gap: 12px; }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .btn-close-modal:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .modal-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
 
     /* ── RESPONSIVE SWITCH ── */
     @media (min-width: 768px) {
-      .desktop-layout { display: flex; }
-      .mobile-layout { display: none !important; }
-      .drawer-overlay, .drawer { display: none !important; }
+      .desktop-layout {
+        display: flex;
+      }
+
+      .mobile-layout {
+        display: none !important;
+      }
+
+      .drawer-overlay,
+      .drawer {
+        display: none !important;
+      }
     }
+
     @media (max-width: 767px) {
-      .desktop-layout { display: none !important; }
-      .mobile-layout { display: flex; }
-      .modal-overlay { display: none !important; }
-      body { align-items: flex-start; }
+      .desktop-layout {
+        display: none !important;
+      }
+
+      .mobile-layout {
+        display: flex;
+      }
+
+      .modal-overlay {
+        display: none !important;
+      }
+
+      body {
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-box">
-    <h2>⬡ Painel Admin</h2>
-    <input type="password" id="password-input" placeholder="senha" autocomplete="off" />
-    <div id="login-error"></div>
-    <button class="btn-login" onclick="doLogin()">Entrar</button>
-  </div>
-</div>
-
-<!-- ADMIN PANEL -->
-<div id="admin-panel">
-
-  <!-- ══ DESKTOP LAYOUT ══ -->
-  <div class="desktop-layout" id="desktop-layout">
-    <span class="badge">● Admin Control</span>
-
-    <!-- Presets bar + gear -->
-    <div class="desktop-presets-bar">
-      <span class="desktop-presets-label">Presets</span>
-      <div class="desktop-presets-chips" id="desktop-presets-chips">
-        <span class="presets-empty-d">Adicione nas configurações ⚙</span>
-      </div>
-      <div style="margin-left:auto">
-        <div class="btn-gear-d" onclick="openModal()" title="Configurações">⚙️</div>
-      </div>
-    </div>
-
-    <!-- Settings panel inline (desktop) -->
-    <div class="modal-overlay" id="modal-overlay" onclick="handleModalOverlayClick(event)">
-      <div class="modal" id="modal">
-        <div class="modal-header">
-          <div class="modal-title">⚙ Configurações</div>
-          <div class="btn-close-modal" onclick="closeModal()">✕</div>
-        </div>
-        <div class="modal-grid">
-          <div class="modal-col">
-            <div class="section-label">⏱ Definir tempo</div>
-            <div class="time-inputs">
-              <div class="time-input-group">
-                <label>h</label>
-                <input type="number" id="d-input-h" min="0" max="23" value="0"/>
-              </div>
-              <div class="time-sep">:</div>
-              <div class="time-input-group">
-                <label>min</label>
-                <input type="number" id="d-input-m" min="0" max="59" value="5"/>
-              </div>
-              <div class="time-sep">:</div>
-              <div class="time-input-group">
-                <label>seg</label>
-                <input type="number" id="d-input-s" min="0" max="59" value="0"/>
-              </div>
-            </div>
-            <div class="setter-actions">
-              <button class="btn-set" onclick="dSetTime()">✓ Aplicar</button>
-              <button class="btn-set secondary" onclick="dSaveAsPreset()">📌 Salvar preset</button>
-            </div>
-          </div>
-          <div class="modal-col">
-            <div class="section-label">📌 Gerenciar presets</div>
-            <div class="presets-manage-list" id="d-presets-manage"></div>
-            <div class="add-preset-row">
-              <input type="text" id="d-preset-name" placeholder="Nome do preset" maxlength="24"/>
-              <button class="btn-add-preset" onclick="dAddPreset()">+ Adicionar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="timer-display timer-display-d" id="d-timer">00:00:00</div>
-    <div class="progress-wrap" style="width:100%">
-      <div class="progress-fill" id="d-progress" style="width:100%"></div>
-    </div>
-    <div class="status-row">
-      <div class="status-dot" id="d-status-dot"></div>
-      <span id="d-status-text">PARADO</span>
-    </div>
-    <div class="controls-d">
-      <div class="btn-gear-d" onclick="openModal()" title="Configurações" style="display:none" id="d-gear-inline">⚙️</div>
-      <button class="btn-d btn-start-d" id="d-btn-start" onclick="timerStart()">▶ Start</button>
-      <button class="btn-d btn-pause-d" id="d-btn-pause" onclick="timerPause()" disabled>⏸ Pause</button>
-      <button class="btn-d btn-reset-d" onclick="timerReset()">↺ Reset</button>
-    </div>
-    <div class="viewer-link-d">
-      Viewer: <a href="/viewer.html" target="_blank">/viewer.html</a>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-box">
+      <h2>⬡ Painel Admin</h2>
+      <input type="password" id="password-input" placeholder="senha" autocomplete="off" />
+      <div id="login-error"></div>
+      <button class="btn-login" onclick="doLogin()">Entrar</button>
     </div>
   </div>
 
-  <!-- ══ MOBILE LAYOUT ══ -->
-  <div class="mobile-layout" id="mobile-layout">
-    <div class="topbar">
-      <div class="topbar-title">● Pitch Timer</div>
-      <div class="btn-gear-m" onclick="openDrawer()">⚙️</div>
-    </div>
-    <div class="mobile-main">
-      <div class="presets-scroll-m" id="m-presets-scroll">
-        <span class="presets-empty-m">Adicione presets nas configurações ⚙️</span>
+  <!-- ADMIN PANEL -->
+  <div id="admin-panel">
+
+    <!-- ══ DESKTOP LAYOUT ══ -->
+    <div class="desktop-layout" id="desktop-layout">
+      <span class="badge">● Admin Control</span>
+
+      <!-- Presets bar + gear -->
+      <div class="desktop-presets-bar">
+        <span class="desktop-presets-label">Presets</span>
+        <div class="desktop-presets-chips" id="desktop-presets-chips">
+          <span class="presets-empty-d">Adicione nas configurações ⚙</span>
+        </div>
+        <div style="margin-left:auto">
+          <div class="btn-gear-d" onclick="openModal()" title="Configurações">⚙️</div>
+        </div>
       </div>
-      <div class="timer-display timer-display-m" id="m-timer">00:00:00</div>
+
+      <!-- Settings panel inline (desktop) -->
+      <div class="modal-overlay" id="modal-overlay" onclick="handleModalOverlayClick(event)">
+        <div class="modal" id="modal">
+          <div class="modal-header">
+            <div class="modal-title">⚙ Configurações</div>
+            <div class="btn-close-modal" onclick="closeModal()">✕</div>
+          </div>
+          <div class="modal-grid">
+            <div class="modal-col">
+              <div class="section-label">⏱ Definir tempo</div>
+              <div class="time-inputs">
+                <div class="time-input-group">
+                  <label>h</label>
+                  <input type="number" id="d-input-h" min="0" max="23" value="0" />
+                </div>
+                <div class="time-sep">:</div>
+                <div class="time-input-group">
+                  <label>min</label>
+                  <input type="number" id="d-input-m" min="0" max="59" value="5" />
+                </div>
+                <div class="time-sep">:</div>
+                <div class="time-input-group">
+                  <label>seg</label>
+                  <input type="number" id="d-input-s" min="0" max="59" value="0" />
+                </div>
+              </div>
+              <div class="setter-actions">
+                <button class="btn-set" onclick="dSetTime()">✓ Aplicar</button>
+                <button class="btn-set secondary" onclick="dSaveAsPreset()">📌 Salvar preset</button>
+              </div>
+            </div>
+            <div class="modal-col">
+              <div class="section-label">📌 Gerenciar presets</div>
+              <div class="presets-manage-list" id="d-presets-manage"></div>
+              <div class="add-preset-row">
+                <input type="text" id="d-preset-name" placeholder="Nome do preset" maxlength="24" />
+                <button class="btn-add-preset" onclick="dAddPreset()">+ Adicionar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="timer-display timer-display-d" id="d-timer">00:00:00</div>
       <div class="progress-wrap" style="width:100%">
-        <div class="progress-fill" id="m-progress" style="width:100%"></div>
+        <div class="progress-fill" id="d-progress" style="width:100%"></div>
       </div>
       <div class="status-row">
-        <div class="status-dot" id="m-status-dot"></div>
-        <span id="m-status-text">PARADO</span>
+        <div class="status-dot" id="d-status-dot"></div>
+        <span id="d-status-text">PARADO</span>
       </div>
-      <div class="controls-m">
-        <button class="btn-m btn-start-m" id="m-btn-start" onclick="timerStart()">▶ Start</button>
-        <button class="btn-m btn-pause-m" id="m-btn-pause" onclick="timerPause()" disabled>⏸ Pause</button>
-        <button class="btn-m btn-reset-m" onclick="timerReset()">↺</button>
+      <div class="controls-d">
+        <div class="btn-gear-d" onclick="openModal()" title="Configurações" style="display:none" id="d-gear-inline">⚙️
+        </div>
+        <button class="btn-d btn-start-d" id="d-btn-start" onclick="timerStart()">▶ Start</button>
+        <button class="btn-d btn-pause-d" id="d-btn-pause" onclick="timerPause()" disabled>⏸ Pause</button>
+        <button class="btn-d btn-reset-d" onclick="timerReset()">↺ Reset</button>
       </div>
-      <div class="viewer-link-m">
+      <div class="viewer-link-d">
         Viewer: <a href="/viewer.html" target="_blank">/viewer.html</a>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- MOBILE DRAWER -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-header">
-    <div class="drawer-title">⚙ Configurações</div>
-    <div class="btn-close-drawer" onclick="closeDrawer()">✕</div>
-  </div>
-
-  <div class="drawer-section">
-    <div class="drawer-section-label">⏱ Definir tempo</div>
-    <div class="time-inputs-m">
-      <div class="time-input-group-m">
-        <label>h</label>
-        <input type="number" id="m-input-h" min="0" max="23" value="0" inputmode="numeric"/>
+    <!-- ══ MOBILE LAYOUT ══ -->
+    <div class="mobile-layout" id="mobile-layout">
+      <div class="topbar">
+        <div class="topbar-title">● Pitch Timer</div>
+        <div class="btn-gear-m" onclick="openDrawer()">⚙️</div>
       </div>
-      <div class="time-sep-m">:</div>
-      <div class="time-input-group-m">
-        <label>min</label>
-        <input type="number" id="m-input-m" min="0" max="59" value="5" inputmode="numeric"/>
+      <div class="mobile-main">
+        <div class="presets-scroll-m" id="m-presets-scroll">
+          <span class="presets-empty-m">Adicione presets nas configurações ⚙️</span>
+        </div>
+        <div class="timer-display timer-display-m" id="m-timer">00:00:00</div>
+        <div class="progress-wrap" style="width:100%">
+          <div class="progress-fill" id="m-progress" style="width:100%"></div>
+        </div>
+        <div class="status-row">
+          <div class="status-dot" id="m-status-dot"></div>
+          <span id="m-status-text">PARADO</span>
+        </div>
+        <div class="controls-m">
+          <button class="btn-m btn-start-m" id="m-btn-start" onclick="timerStart()">▶ Start</button>
+          <button class="btn-m btn-pause-m" id="m-btn-pause" onclick="timerPause()" disabled>⏸ Pause</button>
+          <button class="btn-m btn-reset-m" onclick="timerReset()">↺</button>
+        </div>
+        <div class="viewer-link-m">
+          Viewer: <a href="/viewer.html" target="_blank">/viewer.html</a>
+        </div>
       </div>
-      <div class="time-sep-m">:</div>
-      <div class="time-input-group-m">
-        <label>seg</label>
-        <input type="number" id="m-input-s" min="0" max="59" value="0" inputmode="numeric"/>
-      </div>
-    </div>
-    <div class="drawer-actions">
-      <button class="btn-drawer-action" onclick="mSetTimeAndClose()">✓ Aplicar</button>
-      <button class="btn-drawer-action sec" onclick="mSaveAsPreset()">📌 Salvar preset</button>
     </div>
   </div>
 
-  <div class="drawer-section">
-    <div class="drawer-section-label">📌 Gerenciar presets</div>
-    <div class="presets-list-m" id="m-presets-manage"></div>
-    <div class="add-preset-row-m">
-      <input type="text" id="m-preset-name" placeholder="Nome do preset" maxlength="24"/>
-      <button class="btn-add-m" onclick="mAddPreset()">+ Adicionar</button>
+  <!-- MOBILE DRAWER -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-handle"></div>
+    <div class="drawer-header">
+      <div class="drawer-title">⚙ Configurações</div>
+      <div class="btn-close-drawer" onclick="closeDrawer()">✕</div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-label">⏱ Definir tempo</div>
+      <div class="time-inputs-m">
+        <div class="time-input-group-m">
+          <label>h</label>
+          <input type="number" id="m-input-h" min="0" max="23" value="0" inputmode="numeric" />
+        </div>
+        <div class="time-sep-m">:</div>
+        <div class="time-input-group-m">
+          <label>min</label>
+          <input type="number" id="m-input-m" min="0" max="59" value="5" inputmode="numeric" />
+        </div>
+        <div class="time-sep-m">:</div>
+        <div class="time-input-group-m">
+          <label>seg</label>
+          <input type="number" id="m-input-s" min="0" max="59" value="0" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="drawer-actions">
+        <button class="btn-drawer-action" onclick="mSetTimeAndClose()">✓ Aplicar</button>
+        <button class="btn-drawer-action sec" onclick="mSaveAsPreset()">📌 Salvar preset</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-label">📌 Gerenciar presets</div>
+      <div class="presets-list-m" id="m-presets-manage"></div>
+      <div class="add-preset-row-m">
+        <input type="text" id="m-preset-name" placeholder="Nome do preset" maxlength="24" />
+        <button class="btn-add-m" onclick="mAddPreset()">+ Adicionar</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-  const socket = io();
-  const PRESETS_KEY = 'pitch_timer_presets';
+  <script>
+    const socket = io();
+    const sessionId = window.location.pathname.split('/').pop(); // pega "abc123" de /admin/abc123
 
-  // ── Presets storage ──────────────────────────────────────
-  function loadPresets() {
-    try { return JSON.parse(localStorage.getItem(PRESETS_KEY)) || []; }
-    catch { return []; }
-  }
-  function savePresets(p) { localStorage.setItem(PRESETS_KEY, JSON.stringify(p)); }
-
-  function fmtPresetTime(secs) {
-    const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
-    if (h > 0) return `${h}h${m > 0 ? ' ' + m + 'm' : ''}`;
-    if (m > 0 && s > 0) return `${m}m ${s}s`;
-    if (m > 0) return `${m} min`;
-    return `${s}s`;
-  }
-
-  function applyPreset(secs) {
-    // Sync inputs on both layouts
-    ['d-input-h','m-input-h'].forEach(id => { const el = document.getElementById(id); if(el) el.value = Math.floor(secs/3600); });
-    ['d-input-m','m-input-m'].forEach(id => { const el = document.getElementById(id); if(el) el.value = Math.floor((secs%3600)/60); });
-    ['d-input-s','m-input-s'].forEach(id => { const el = document.getElementById(id); if(el) el.value = secs%60; });
-    socket.emit('timer:setTime', secs * 1000);
-  }
-
-  function deletePreset(i) {
-    const p = loadPresets(); p.splice(i,1); savePresets(p);
-    renderAll();
-  }
-
-  function renderAll() {
-    renderDesktopPresets();
-    renderMobilePresets();
-    renderDesktopManage();
-    renderMobileManage();
-  }
-
-  // ── Desktop presets ──────────────────────────────────────
-  function renderDesktopPresets() {
-    const el = document.getElementById('desktop-presets-chips');
-    const presets = loadPresets();
-    if (!presets.length) { el.innerHTML = '<span class="presets-empty-d">Adicione nas configurações ⚙</span>'; return; }
-    el.innerHTML = '';
-    presets.forEach(p => {
-      const btn = document.createElement('div');
-      btn.className = 'preset-chip-d';
-      btn.textContent = p.name;
-      btn.onclick = () => applyPreset(p.secs);
-      el.appendChild(btn);
-    });
-  }
-
-  function renderDesktopManage() {
-    const el = document.getElementById('d-presets-manage');
-    const presets = loadPresets();
-    if (!presets.length) { el.innerHTML = '<div class="presets-empty">Nenhum preset ainda.</div>'; return; }
-    el.innerHTML = '';
-    presets.forEach((p,i) => {
-      const row = document.createElement('div');
-      row.className = 'preset-manage-row';
-      row.innerHTML = `<div><div class="preset-manage-name">${p.name}</div><div class="preset-manage-time">${fmtPresetTime(p.secs)}</div></div><button class="preset-del-btn" onclick="deletePreset(${i})">✕</button>`;
-      el.appendChild(row);
-    });
-  }
-
-  function dGetMs() {
-    const h = parseInt(document.getElementById('d-input-h').value)||0;
-    const m = parseInt(document.getElementById('d-input-m').value)||0;
-    const s = parseInt(document.getElementById('d-input-s').value)||0;
-    return (h*3600+m*60+s)*1000;
-  }
-
-  function dSetTime() { const ms=dGetMs(); if(ms<=0) return; socket.emit('timer:setTime',ms); closeModal(); }
-
-  function dSaveAsPreset() {
-    const ms = dGetMs(); if(ms<=0) return;
-    const name = prompt('Nome para este preset:');
-    if(!name||!name.trim()) return;
-    const p = loadPresets(); p.push({name:name.trim(), secs:ms/1000}); savePresets(p); renderAll();
-  }
-
-  function dAddPreset() {
-    const name = document.getElementById('d-preset-name').value.trim();
-    if(!name) { document.getElementById('d-preset-name').focus(); return; }
-    const ms = dGetMs(); if(ms<=0) return;
-    const p = loadPresets(); p.push({name, secs:ms/1000}); savePresets(p); renderAll();
-    document.getElementById('d-preset-name').value = '';
-  }
-
-  // ── Mobile presets ───────────────────────────────────────
-  function renderMobilePresets() {
-    const el = document.getElementById('m-presets-scroll');
-    const presets = loadPresets();
-    if (!presets.length) { el.innerHTML = '<span class="presets-empty-m">Adicione presets nas configurações ⚙️</span>'; return; }
-    el.innerHTML = '';
-    presets.forEach(p => {
-      const btn = document.createElement('button');
-      btn.className = 'preset-chip-m';
-      btn.textContent = p.name;
-      btn.onclick = () => applyPreset(p.secs);
-      el.appendChild(btn);
-    });
-  }
-
-  function renderMobileManage() {
-    const el = document.getElementById('m-presets-manage');
-    const presets = loadPresets();
-    if (!presets.length) { el.innerHTML = '<div class="presets-empty" style="font-size:13px;color:var(--muted);font-style:italic">Nenhum preset ainda.</div>'; return; }
-    el.innerHTML = '';
-    presets.forEach((p,i) => {
-      const row = document.createElement('div');
-      row.className = 'preset-row-m';
-      row.innerHTML = `<div><div class="preset-row-name">${p.name}</div><div class="preset-row-time">${fmtPresetTime(p.secs)}</div></div><button class="preset-row-del" onclick="deletePreset(${i})">✕</button>`;
-      el.appendChild(row);
-    });
-  }
-
-  function mGetMs() {
-    const h = parseInt(document.getElementById('m-input-h').value)||0;
-    const m = parseInt(document.getElementById('m-input-m').value)||0;
-    const s = parseInt(document.getElementById('m-input-s').value)||0;
-    return (h*3600+m*60+s)*1000;
-  }
-
-  function mSetTimeAndClose() { const ms=mGetMs(); if(ms<=0) return; socket.emit('timer:setTime',ms); closeDrawer(); }
-
-  function mSaveAsPreset() {
-    const ms = mGetMs(); if(ms<=0) return;
-    const name = prompt('Nome para este preset:');
-    if(!name||!name.trim()) return;
-    const p = loadPresets(); p.push({name:name.trim(), secs:ms/1000}); savePresets(p); renderAll();
-  }
-
-  function mAddPreset() {
-    const name = document.getElementById('m-preset-name').value.trim();
-    if(!name) { document.getElementById('m-preset-name').focus(); return; }
-    const ms = mGetMs(); if(ms<=0) return;
-    const p = loadPresets(); p.push({name, secs:ms/1000}); savePresets(p); renderAll();
-    document.getElementById('m-preset-name').value = '';
-  }
-
-  // ── Desktop modal ────────────────────────────────────────
-  function openModal() { document.getElementById('modal-overlay').classList.add('open'); renderDesktopManage(); }
-  function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
-  function handleModalOverlayClick(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
-
-  // ── Mobile drawer ────────────────────────────────────────
-  function openDrawer() {
-    document.getElementById('drawer-overlay').classList.add('open');
-    document.getElementById('drawer').classList.add('open');
-    renderMobileManage();
-  }
-  function closeDrawer() {
-    document.getElementById('drawer-overlay').classList.remove('open');
-    document.getElementById('drawer').classList.remove('open');
-  }
-  let touchStartY = 0;
-  document.getElementById('drawer').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
-  document.getElementById('drawer').addEventListener('touchend', e => { if(e.changedTouches[0].clientY - touchStartY > 80) closeDrawer(); });
-
-  // ── Socket + Timer ───────────────────────────────────────
-  socket.on('timer:tick', ({ status, remaining, totalTime, pct }) => {
-    updateTimers(remaining, pct, status);
-    updateControls(status);
-  });
-
-  function doLogin() {
-    const pw = document.getElementById('password-input').value;
-    socket.emit('admin:login', pw, (res) => {
-      if (res.success) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-panel').style.display = 'block';
-        renderAll();
-      } else {
-        document.getElementById('login-error').textContent = 'Senha incorreta.';
+    socket.emit('session:join', sessionId, 'admin', (res) => {
+      if (!res.success) {
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;color:#ff3e3e">Sessão não encontrada.</div>';
+        return;
       }
+      document.getElementById('admin-panel').style.display = 'block';
+      // Atualiza o link do viewer
+      const viewerUrl = `/view/${sessionId}`;
+      document.querySelectorAll('.viewer-link-d a, .viewer-link-m a')
+        .forEach(a => { a.href = viewerUrl; a.textContent = window.location.origin + viewerUrl; });
+      renderAll();
     });
-  }
-  document.getElementById('password-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-  document.getElementById('d-preset-name').addEventListener('keydown', e => { if(e.key==='Enter') dAddPreset(); });
-  document.getElementById('m-preset-name').addEventListener('keydown', e => { if(e.key==='Enter') mAddPreset(); });
 
-  function timerStart() { socket.emit('timer:start'); }
-  function timerPause() { socket.emit('timer:pause'); }
-  function timerReset() { socket.emit('timer:reset'); }
+    // ── Presets storage ──────────────────────────────────────
+    function loadPresets() {
+      try { return JSON.parse(localStorage.getItem(PRESETS_KEY)) || []; }
+      catch { return []; }
+    }
+    function savePresets(p) { localStorage.setItem(PRESETS_KEY, JSON.stringify(p)); }
 
-  function formatTime(ms) {
-    if(ms<0) ms=0;
-    const totalSec = Math.ceil(ms/1000);
-    const s = totalSec%60, m = Math.floor(totalSec/60)%60, h = Math.floor(totalSec/3600);
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  }
+    function fmtPresetTime(secs) {
+      const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+      if (h > 0) return `${h}h${m > 0 ? ' ' + m + 'm' : ''}`;
+      if (m > 0 && s > 0) return `${m}m ${s}s`;
+      if (m > 0) return `${m} min`;
+      return `${s}s`;
+    }
 
-  function getPhase(pct) {
-    if(pct<=0.10) return 'blink';
-    if(pct<=0.20) return 'red';
-    if(pct<=0.40) return 'yellow';
-    return 'green';
-  }
+    function applyPreset(secs) {
+      // Sync inputs on both layouts
+      ['d-input-h', 'm-input-h'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.floor(secs / 3600); });
+      ['d-input-m', 'm-input-m'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.floor((secs % 3600) / 60); });
+      ['d-input-s', 'm-input-s'].forEach(id => { const el = document.getElementById(id); if (el) el.value = secs % 60; });
+      socket.emit('timer:setTime', secs * 1000);
+    }
 
-  function updateTimers(remaining, pct, status) {
-    const time = formatTime(remaining);
-    const phase = getPhase(pct);
-    const cls = 'timer-display ' + ((status==='running'||status==='paused') ? phase : 'green');
-    const barColor = pct<=0.20 ? '#ff3e3e' : pct<=0.40 ? '#ffb800' : '#00f5a0';
+    function deletePreset(i) {
+      const p = loadPresets(); p.splice(i, 1); savePresets(p);
+      renderAll();
+    }
 
-    // Desktop
-    const dt = document.getElementById('d-timer');
-    if(dt) { dt.textContent=time; dt.className=cls+' timer-display-d'; }
-    const dp = document.getElementById('d-progress');
-    if(dp) { dp.style.width=(pct*100)+'%'; dp.style.background=barColor; }
+    function renderAll() {
+      renderDesktopPresets();
+      renderMobilePresets();
+      renderDesktopManage();
+      renderMobileManage();
+    }
 
-    // Mobile
-    const mt = document.getElementById('m-timer');
-    if(mt) { mt.textContent=time; mt.className=cls+' timer-display-m'; }
-    const mp = document.getElementById('m-progress');
-    if(mp) { mp.style.width=(pct*100)+'%'; mp.style.background=barColor; }
-  }
+    // ── Desktop presets ──────────────────────────────────────
+    function renderDesktopPresets() {
+      const el = document.getElementById('desktop-presets-chips');
+      const presets = loadPresets();
+      if (!presets.length) { el.innerHTML = '<span class="presets-empty-d">Adicione nas configurações ⚙</span>'; return; }
+      el.innerHTML = '';
+      presets.forEach(p => {
+        const btn = document.createElement('div');
+        btn.className = 'preset-chip-d';
+        btn.textContent = p.name;
+        btn.onclick = () => applyPreset(p.secs);
+        el.appendChild(btn);
+      });
+    }
 
-  function updateControls(status) {
-    const sets = [
-      { dot:'d-status-dot', text:'d-status-text', start:'d-btn-start', pause:'d-btn-pause' },
-      { dot:'m-status-dot', text:'m-status-text', start:'m-btn-start', pause:'m-btn-pause' },
-    ];
-    sets.forEach(({ dot, text, start, pause }) => {
-      const dotEl=document.getElementById(dot), textEl=document.getElementById(text);
-      const startEl=document.getElementById(start), pauseEl=document.getElementById(pause);
-      if(!dotEl) return;
-      dotEl.className='status-dot '+status;
-      if(status==='running') {
-        textEl.textContent='RODANDO'; startEl.disabled=true; pauseEl.disabled=false;
-      } else if(status==='paused') {
-        textEl.textContent='PAUSADO'; startEl.disabled=false; startEl.textContent='▶ Continuar'; pauseEl.disabled=true;
-      } else {
-        textEl.textContent='PARADO'; startEl.disabled=false; startEl.textContent='▶ Start'; pauseEl.disabled=true;
-      }
+    function renderDesktopManage() {
+      const el = document.getElementById('d-presets-manage');
+      const presets = loadPresets();
+      if (!presets.length) { el.innerHTML = '<div class="presets-empty">Nenhum preset ainda.</div>'; return; }
+      el.innerHTML = '';
+      presets.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'preset-manage-row';
+        row.innerHTML = `<div><div class="preset-manage-name">${p.name}</div><div class="preset-manage-time">${fmtPresetTime(p.secs)}</div></div><button class="preset-del-btn" onclick="deletePreset(${i})">✕</button>`;
+        el.appendChild(row);
+      });
+    }
+
+    function dGetMs() {
+      const h = parseInt(document.getElementById('d-input-h').value) || 0;
+      const m = parseInt(document.getElementById('d-input-m').value) || 0;
+      const s = parseInt(document.getElementById('d-input-s').value) || 0;
+      return (h * 3600 + m * 60 + s) * 1000;
+    }
+
+    function dSetTime() { const ms = dGetMs(); if (ms <= 0) return; socket.emit('timer:setTime', ms); closeModal(); }
+
+    function dSaveAsPreset() {
+      const ms = dGetMs(); if (ms <= 0) return;
+      const name = prompt('Nome para este preset:');
+      if (!name || !name.trim()) return;
+      const p = loadPresets(); p.push({ name: name.trim(), secs: ms / 1000 }); savePresets(p); renderAll();
+    }
+
+    function dAddPreset() {
+      const name = document.getElementById('d-preset-name').value.trim();
+      if (!name) { document.getElementById('d-preset-name').focus(); return; }
+      const ms = dGetMs(); if (ms <= 0) return;
+      const p = loadPresets(); p.push({ name, secs: ms / 1000 }); savePresets(p); renderAll();
+      document.getElementById('d-preset-name').value = '';
+    }
+
+    // ── Mobile presets ───────────────────────────────────────
+    function renderMobilePresets() {
+      const el = document.getElementById('m-presets-scroll');
+      const presets = loadPresets();
+      if (!presets.length) { el.innerHTML = '<span class="presets-empty-m">Adicione presets nas configurações ⚙️</span>'; return; }
+      el.innerHTML = '';
+      presets.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'preset-chip-m';
+        btn.textContent = p.name;
+        btn.onclick = () => applyPreset(p.secs);
+        el.appendChild(btn);
+      });
+    }
+
+    function renderMobileManage() {
+      const el = document.getElementById('m-presets-manage');
+      const presets = loadPresets();
+      if (!presets.length) { el.innerHTML = '<div class="presets-empty" style="font-size:13px;color:var(--muted);font-style:italic">Nenhum preset ainda.</div>'; return; }
+      el.innerHTML = '';
+      presets.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'preset-row-m';
+        row.innerHTML = `<div><div class="preset-row-name">${p.name}</div><div class="preset-row-time">${fmtPresetTime(p.secs)}</div></div><button class="preset-row-del" onclick="deletePreset(${i})">✕</button>`;
+        el.appendChild(row);
+      });
+    }
+
+    function mGetMs() {
+      const h = parseInt(document.getElementById('m-input-h').value) || 0;
+      const m = parseInt(document.getElementById('m-input-m').value) || 0;
+      const s = parseInt(document.getElementById('m-input-s').value) || 0;
+      return (h * 3600 + m * 60 + s) * 1000;
+    }
+
+    function mSetTimeAndClose() { const ms = mGetMs(); if (ms <= 0) return; socket.emit('timer:setTime', ms); closeDrawer(); }
+
+    function mSaveAsPreset() {
+      const ms = mGetMs(); if (ms <= 0) return;
+      const name = prompt('Nome para este preset:');
+      if (!name || !name.trim()) return;
+      const p = loadPresets(); p.push({ name: name.trim(), secs: ms / 1000 }); savePresets(p); renderAll();
+    }
+
+    function mAddPreset() {
+      const name = document.getElementById('m-preset-name').value.trim();
+      if (!name) { document.getElementById('m-preset-name').focus(); return; }
+      const ms = mGetMs(); if (ms <= 0) return;
+      const p = loadPresets(); p.push({ name, secs: ms / 1000 }); savePresets(p); renderAll();
+      document.getElementById('m-preset-name').value = '';
+    }
+
+    // ── Desktop modal ────────────────────────────────────────
+    function openModal() { document.getElementById('modal-overlay').classList.add('open'); renderDesktopManage(); }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+    function handleModalOverlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+
+    // ── Mobile drawer ────────────────────────────────────────
+    function openDrawer() {
+      document.getElementById('drawer-overlay').classList.add('open');
+      document.getElementById('drawer').classList.add('open');
+      renderMobileManage();
+    }
+    function closeDrawer() {
+      document.getElementById('drawer-overlay').classList.remove('open');
+      document.getElementById('drawer').classList.remove('open');
+    }
+    let touchStartY = 0;
+    document.getElementById('drawer').addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
+    document.getElementById('drawer').addEventListener('touchend', e => { if (e.changedTouches[0].clientY - touchStartY > 80) closeDrawer(); });
+
+    // ── Socket + Timer ───────────────────────────────────────
+    socket.on('timer:tick', ({ status, remaining, totalTime, pct }) => {
+      updateTimers(remaining, pct, status);
+      updateControls(status);
     });
-  }
-</script>
+
+    function doLogin() {
+      const pw = document.getElementById('password-input').value;
+      socket.emit('admin:login', pw, (res) => {
+        if (res.success) {
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('admin-panel').style.display = 'block';
+          renderAll();
+        } else {
+          document.getElementById('login-error').textContent = 'Senha incorreta.';
+        }
+      });
+    }
+    document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('d-preset-name').addEventListener('keydown', e => { if (e.key === 'Enter') dAddPreset(); });
+    document.getElementById('m-preset-name').addEventListener('keydown', e => { if (e.key === 'Enter') mAddPreset(); });
+
+    function timerStart() { socket.emit('timer:start'); }
+    function timerPause() { socket.emit('timer:pause'); }
+    function timerReset() { socket.emit('timer:reset'); }
+
+    function formatTime(ms) {
+      if (ms < 0) ms = 0;
+      const totalSec = Math.ceil(ms / 1000);
+      const s = totalSec % 60, m = Math.floor(totalSec / 60) % 60, h = Math.floor(totalSec / 3600);
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function getPhase(pct) {
+      if (pct <= 0.10) return 'blink';
+      if (pct <= 0.20) return 'red';
+      if (pct <= 0.40) return 'yellow';
+      return 'green';
+    }
+
+    function updateTimers(remaining, pct, status) {
+      const time = formatTime(remaining);
+      const phase = getPhase(pct);
+      const cls = 'timer-display ' + ((status === 'running' || status === 'paused') ? phase : 'green');
+      const barColor = pct <= 0.20 ? '#ff3e3e' : pct <= 0.40 ? '#ffb800' : '#00f5a0';
+
+      // Desktop
+      const dt = document.getElementById('d-timer');
+      if (dt) { dt.textContent = time; dt.className = cls + ' timer-display-d'; }
+      const dp = document.getElementById('d-progress');
+      if (dp) { dp.style.width = (pct * 100) + '%'; dp.style.background = barColor; }
+
+      // Mobile
+      const mt = document.getElementById('m-timer');
+      if (mt) { mt.textContent = time; mt.className = cls + ' timer-display-m'; }
+      const mp = document.getElementById('m-progress');
+      if (mp) { mp.style.width = (pct * 100) + '%'; mp.style.background = barColor; }
+    }
+
+    function updateControls(status) {
+      const sets = [
+        { dot: 'd-status-dot', text: 'd-status-text', start: 'd-btn-start', pause: 'd-btn-pause' },
+        { dot: 'm-status-dot', text: 'm-status-text', start: 'm-btn-start', pause: 'm-btn-pause' },
+      ];
+      sets.forEach(({ dot, text, start, pause }) => {
+        const dotEl = document.getElementById(dot), textEl = document.getElementById(text);
+        const startEl = document.getElementById(start), pauseEl = document.getElementById(pause);
+        if (!dotEl) return;
+        dotEl.className = 'status-dot ' + status;
+        if (status === 'running') {
+          textEl.textContent = 'RODANDO'; startEl.disabled = true; pauseEl.disabled = false;
+        } else if (status === 'paused') {
+          textEl.textContent = 'PAUSADO'; startEl.disabled = false; startEl.textContent = '▶ Continuar'; pauseEl.disabled = true;
+        } else {
+          textEl.textContent = 'PARADO'; startEl.disabled = false; startEl.textContent = '▶ Start'; pauseEl.disabled = true;
+        }
+      });
+    }
+  </script>
 </body>
+
 </html>

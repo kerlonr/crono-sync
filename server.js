@@ -1,104 +1,137 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
+const { randomBytes } = require("crypto");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { cors: { origin: "*" } });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
-const ADMIN_PASSWORD = 'admin123';
+const sessions = new Map();
 
-let status = 'stopped';
-let elapsed = 0;
-let startTime = null;
-let totalTime = 5 * 60 * 1000; // padrão 5 minutos em ms
-let interval = null;
-
-function getElapsed() {
-  if (status === 'running') return elapsed + (Date.now() - startTime);
-  return elapsed;
+function createSession() {
+  const id = randomBytes(4).toString("hex");
+  sessions.set(id, {
+    status: "stopped",
+    elapsed: 0,
+    startTime: null,
+    totalTime: 5 * 60 * 1000,
+    interval: null,
+  });
+  return id;
 }
 
-function getRemaining() {
-  return Math.max(0, totalTime - getElapsed());
+function getRemaining(s) {
+  const elapsed =
+    s.status === "running" ? s.elapsed + (Date.now() - s.startTime) : s.elapsed;
+  return Math.max(0, s.totalTime - elapsed);
 }
 
-function broadcast() {
-  const remaining = getRemaining();
-  const pct = totalTime > 0 ? remaining / totalTime : 1;
-  // Para automaticamente ao chegar em zero
-  if (status === 'running' && remaining <= 0) {
-    elapsed = totalTime;
-    startTime = null;
-    status = 'stopped';
-    stopBroadcast();
+function broadcastSession(id) {
+  const s = sessions.get(id);
+  if (!s) return;
+  const remaining = getRemaining(s);
+  const pct = s.totalTime > 0 ? remaining / s.totalTime : 1;
+
+  if (s.status === "running" && remaining <= 0) {
+    s.elapsed = s.totalTime;
+    s.startTime = null;
+    s.status = "stopped";
+    clearInterval(s.interval);
+    s.interval = null;
   }
-  io.emit('timer:tick', { status, remaining: getRemaining(), totalTime, pct });
+
+  io.to(id).emit("timer:tick", {
+    status: s.status,
+    remaining: getRemaining(s),
+    totalTime: s.totalTime,
+    pct,
+  });
 }
 
-function startBroadcast() {
-  if (interval) return;
-  interval = setInterval(broadcast, 100);
-}
+// Criar nova sessão
+app.post("/api/session/new", (req, res) => {
+  const id = createSession();
+  res.json({ id });
+});
 
-function stopBroadcast() {
-  clearInterval(interval);
-  interval = null;
-}
+// SPA fallback — admin e viewer são servidos pelo HTML estático
+app.get("/admin/:id", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+app.get("/view/:id", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "viewer.html"));
+});
 
-io.on('connection', (socket) => {
-  const remaining = getRemaining();
-  const pct = totalTime > 0 ? remaining / totalTime : 1;
-  socket.emit('timer:tick', { status, remaining, totalTime, pct });
-
-  socket.on('admin:login', (password, callback) => {
-    if (password === ADMIN_PASSWORD) {
-      socket.join('admins');
-      callback({ success: true });
-    } else {
-      callback({ success: false });
+io.on("connection", (socket) => {
+  socket.on("session:join", (sessionId, role, callback) => {
+    const s = sessions.get(sessionId);
+    if (!s) {
+      if (callback) callback({ success: false });
+      return;
     }
+    socket.join(sessionId);
+    socket.currentSession = sessionId;
+    socket.isAdmin = role === "admin";
+    const remaining = getRemaining(s);
+    socket.emit("timer:tick", {
+      status: s.status,
+      remaining,
+      totalTime: s.totalTime,
+      pct: s.totalTime > 0 ? remaining / s.totalTime : 1,
+    });
+    if (callback) callback({ success: true });
   });
 
-  socket.on('timer:setTime', (ms) => {
-    if (!socket.rooms.has('admins')) return;
-    if (status === 'running') return;
-    totalTime = ms;
-    elapsed = 0;
-    startTime = null;
-    status = 'stopped';
-    broadcast();
+  socket.on("timer:setTime", (ms) => {
+    if (!socket.isAdmin) return;
+    const s = sessions.get(socket.currentSession);
+    if (!s || s.status === "running") return;
+    s.totalTime = ms;
+    s.elapsed = 0;
+    s.startTime = null;
+    s.status = "stopped";
+    broadcastSession(socket.currentSession);
   });
 
-  socket.on('timer:start', () => {
-    if (!socket.rooms.has('admins')) return;
-    if (status === 'running') return;
-    if (getRemaining() <= 0) return;
-    startTime = Date.now();
-    status = 'running';
-    startBroadcast();
+  socket.on("timer:start", () => {
+    if (!socket.isAdmin) return;
+    const id = socket.currentSession;
+    const s = sessions.get(id);
+    if (!s || s.status === "running" || getRemaining(s) <= 0) return;
+    s.startTime = Date.now();
+    s.status = "running";
+    if (!s.interval) s.interval = setInterval(() => broadcastSession(id), 100);
   });
 
-  socket.on('timer:pause', () => {
-    if (!socket.rooms.has('admins')) return;
-    if (status !== 'running') return;
-    elapsed += Date.now() - startTime;
-    startTime = null;
-    status = 'paused';
-    stopBroadcast();
-    broadcast();
+  socket.on("timer:pause", () => {
+    if (!socket.isAdmin) return;
+    const id = socket.currentSession;
+    const s = sessions.get(id);
+    if (!s || s.status !== "running") return;
+    s.elapsed += Date.now() - s.startTime;
+    s.startTime = null;
+    s.status = "paused";
+    clearInterval(s.interval);
+    s.interval = null;
+    broadcastSession(id);
   });
 
-  socket.on('timer:reset', () => {
-    if (!socket.rooms.has('admins')) return;
-    elapsed = 0;
-    startTime = null;
-    status = 'stopped';
-    stopBroadcast();
-    broadcast();
+  socket.on("timer:reset", () => {
+    if (!socket.isAdmin) return;
+    const id = socket.currentSession;
+    const s = sessions.get(id);
+    if (!s) return;
+    s.elapsed = 0;
+    s.startTime = null;
+    s.status = "stopped";
+    clearInterval(s.interval);
+    s.interval = null;
+    broadcastSession(id);
   });
 });
 
