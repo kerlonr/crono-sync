@@ -3,6 +3,8 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const { randomBytes } = require("crypto");
+const { exec } = require("child_process");
+const crypto = require("crypto");
 
 const app = express();
 const server = http.createServer(app);
@@ -133,6 +135,32 @@ io.on("connection", (socket) => {
     s.interval = null;
     broadcastSession(id);
   });
+});
+
+app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+  const sig =
+    "sha256=" +
+    crypto
+      .createHmac("sha256", process.env.WEBHOOK_SECRET)
+      .update(req.body)
+      .digest("hex");
+
+  if (req.headers["x-hub-signature-256"] !== sig) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  res.status(200).send("OK");
+  console.log("Push detectado! Atualizando...");
+
+  setTimeout(() => {
+    exec(
+      "cd /app && git pull && docker compose up -d --build",
+      (err, stdout, stderr) => {
+        if (err) console.error(stderr);
+        else console.log(stdout);
+      },
+    );
+  }, 100);
 });
 
 const PORT = process.env.PORT || 3000;

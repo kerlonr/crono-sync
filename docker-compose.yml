@@ -4,14 +4,3 @@ services:
     ports:
       - "0.0.0.0:3000:3000"
     restart: unless-stopped
-
-  webhook:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - .:/app
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: node webhook.js
-    ports:
-      - "0.0.0.0:9000:9000"
-    restart: unless-stopped
