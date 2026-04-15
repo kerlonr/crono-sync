@@ -26,13 +26,15 @@ app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
   console.log("Push detectado! Atualizando...");
 
   setTimeout(() => {
-    exec(
-      "cd /app && git pull && docker compose up -d --build",
-      (err, stdout, stderr) => {
-        if (err) console.error(stderr);
-        else console.log(stdout);
-      },
-    );
+    exec("cd /app && git pull origin main", (err, stdout, stderr) => {
+      if (err) {
+        console.error(stderr);
+        return;
+      }
+      console.log(stdout);
+      console.log("Reiniciando...");
+      process.exit(0);
+    });
   }, 100);
 });
 
