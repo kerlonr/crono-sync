@@ -55,88 +55,6 @@
       pointer-events: none;
     }
 
-    /* ── LOGIN ── */
-    #login-screen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      padding: 24px;
-      width: 100%;
-      max-width: 420px;
-      animation: fadeIn 0.4s ease;
-    }
-
-    .login-box {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 48px 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-      width: 100%;
-    }
-
-    .login-box h2 {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .login-box input {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 18px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s;
-      text-align: center;
-      letter-spacing: 0.2em;
-    }
-
-    .login-box input:focus {
-      border-color: var(--accent);
-    }
-
-    .btn-login {
-      width: 100%;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 12px;
-      padding: 16px;
-      font-family: 'Barlow', sans-serif;
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: opacity 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .btn-login:hover {
-      opacity: 0.85;
-    }
-
-    .btn-login:active {
-      opacity: 0.7;
-    }
-
-    #login-error {
-      font-size: 13px;
-      color: var(--danger);
-      height: 16px;
-    }
-
     /* ── ADMIN PANEL ── */
     #admin-panel {
       display: none;
@@ -1200,16 +1118,6 @@
 
 <body>
 
-  <!-- LOGIN -->
-  <div id="login-screen">
-    <div class="login-box">
-      <h2>⬡ Painel Admin</h2>
-      <input type="password" id="password-input" placeholder="senha" autocomplete="off" />
-      <div id="login-error"></div>
-      <button class="btn-login" onclick="doLogin()">Entrar</button>
-    </div>
-  </div>
-
   <!-- ADMIN PANEL -->
   <div id="admin-panel">
 
@@ -1549,7 +1457,6 @@
       const pw = document.getElementById('password-input').value;
       socket.emit('admin:login', pw, (res) => {
         if (res.success) {
-          document.getElementById('login-screen').style.display = 'none';
           document.getElementById('admin-panel').style.display = 'block';
           renderAll();
         } else {
