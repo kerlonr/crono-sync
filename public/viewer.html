@@ -5,8 +5,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cronômetro</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <script src="/socket.io/socket.io.js"></script>
+
   <style>
     *,
     *::before,
@@ -23,6 +25,29 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    /* 🔴 PISCAR */
+    body.flash-red {
+      animation: flashBg 0.4s infinite;
+    }
+
+    @keyframes flashBg {
+
+      0%,
+      100% {
+        background: #060608;
+      }
+
+      50% {
+        background: #3a0000;
+      }
+    }
+
+    /* 🔴 FIXO */
+    body.finished {
+      background: #2a0000 !important;
     }
 
     body::before {
@@ -57,27 +82,22 @@
 
     .timer-display.green {
       color: #00f5a0;
-      text-shadow: 0 0 60px rgba(0, 245, 160, 0.7), 0 0 120px rgba(0, 245, 160, 0.3);
+      text-shadow: 0 0 60px rgba(0, 245, 160, 0.7);
     }
 
     .timer-display.yellow {
       color: #ffb800;
-      text-shadow: 0 0 60px rgba(255, 184, 0, 0.7), 0 0 120px rgba(255, 184, 0, 0.3);
+      text-shadow: 0 0 60px rgba(255, 184, 0, 0.7);
     }
 
     .timer-display.red {
       color: #ff3e3e;
-      text-shadow: 0 0 60px rgba(255, 62, 62, 0.8), 0 0 120px rgba(255, 62, 62, 0.4);
+      text-shadow: 0 0 80px rgba(255, 62, 62, 1);
     }
 
     .timer-display.blink {
       color: #ff3e3e;
-      text-shadow: 0 0 60px rgba(255, 62, 62, 0.8), 0 0 120px rgba(255, 62, 62, 0.4);
       animation: timerBlink 0.5s infinite;
-    }
-
-    .timer-display.paused {
-      opacity: 0.4;
     }
 
     @keyframes timerBlink {
@@ -88,8 +108,12 @@
       }
 
       50% {
-        opacity: 0.08;
+        opacity: 0.05;
       }
+    }
+
+    .timer-display.paused {
+      opacity: 0.4;
     }
   </style>
 </head>
@@ -107,8 +131,26 @@
     socket.on('timer:tick', ({ status, remaining, totalTime, pct }) => {
       const display = document.getElementById('timer-display');
       const glowBg = document.getElementById('glow-bg');
+      const body = document.body;
 
       display.textContent = formatTime(remaining);
+
+      // 🔴 QUANDO ZERA
+      if (remaining <= 0) {
+        display.className = 'timer-display red';
+
+        body.classList.add('flash-red');
+        body.classList.add('finished');
+
+        glowBg.style.background =
+          'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.25) 0%, transparent 70%)';
+
+        return;
+      }
+
+      // Remove estado final se resetar
+      body.classList.remove('flash-red');
+      body.classList.remove('finished');
 
       let phase = 'green';
       if (pct <= 0.10) phase = 'blink';
@@ -119,6 +161,7 @@
       if (status === 'running') cls += ' ' + phase;
       else if (status === 'paused') cls += ' ' + phase + ' paused';
       else cls += ' green';
+
       display.className = cls;
 
       const glows = {
@@ -127,7 +170,9 @@
         red: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.08) 0%, transparent 70%)',
         blink: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.12) 0%, transparent 70%)',
       };
-      glowBg.style.background = status === 'running' ? (glows[phase] || glows.green) : 'none';
+
+      glowBg.style.background =
+        status === 'running' ? (glows[phase] || glows.green) : 'none';
     });
 
     function formatTime(ms) {
