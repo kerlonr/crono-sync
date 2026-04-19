@@ -156,11 +156,22 @@ app.get("/view/:id", (request, response) => {
   return response.sendFile(path.join(publicDir, "viewer.html"));
 });
 
+app.get("/overview", (_request, response) => {
+  return response.sendFile(path.join(publicDir, "overview.html"));
+});
+
 app.post("/api/session/new", createSessionLimiter, (_request, response) => {
   const session = createSession();
   response.status(201).json({
     id: session.id,
     adminToken: session.adminToken,
+  });
+});
+
+app.get("/api/sessions/active", (_request, response) => {
+  cleanupExpiredSessions();
+  response.json({
+    sessions: listActiveSessions(),
   });
 });
 
@@ -322,6 +333,31 @@ function clearSessionInterval(session) {
   session.interval = null;
 }
 
+function listActiveSessions() {
+  return Array.from(sessions.values())
+    .filter((session) => !isSessionExpired(session))
+    .map((session) => {
+      const remaining = getRemaining(session);
+      return {
+        id: session.id,
+        status: session.status,
+        remaining,
+        totalTime: session.totalTime,
+        pct: session.totalTime > 0 ? remaining / session.totalTime : 1,
+        createdAt: session.createdAt,
+        lastAccessAt: session.lastAccessAt,
+      };
+    })
+    .sort((left, right) => {
+      const statusRank = getStatusRank(left.status) - getStatusRank(right.status);
+      if (statusRank !== 0) {
+        return statusRank;
+      }
+
+      return right.createdAt - left.createdAt;
+    });
+}
+
 function broadcastSession(sessionId) {
   const session = sessions.get(sessionId);
   if (!session) return;
@@ -398,6 +434,21 @@ function isValidAdminToken(value) {
 
 function isValidRole(value) {
   return value === "admin" || value === "viewer";
+}
+
+function getStatusRank(status) {
+  switch (status) {
+    case "running":
+      return 0;
+    case "paused":
+      return 1;
+    case "stopped":
+      return 2;
+    case "finished":
+      return 3;
+    default:
+      return 4;
+  }
 }
 
 function tokensMatch(expected, received) {

@@ -104,6 +104,21 @@ p {
     pointer-events: none;
 }
 
+.btn-secondary-link {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--accent2);
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.btn-secondary-link:hover {
+    opacity: 0.85;
+    color: var(--accent);
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

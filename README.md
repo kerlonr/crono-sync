@@ -10,6 +10,7 @@ O projeto permite:
 - controlar o tempo por uma tela de admin
 - compartilhar um link de viewer para acompanhar a contagem em tempo real
 - salvar presets localmente no navegador do admin
+- acompanhar todas as sessoes ativas do servidor em um painel somente-viewer
 
 ## Stack
 
@@ -27,15 +28,18 @@ O projeto permite:
 |-- public/
 |   |-- index.html
 |   |-- admin.html
+|   |-- overview.html
 |   |-- viewer.html
 |   `-- assets/
 |       |-- css/
 |       |   |-- index.css
 |       |   |-- admin.css
+|       |   |-- overview.css
 |       |   `-- viewer.css
 |       `-- js/
 |           |-- index.js
 |           |-- admin.js
+|           |-- overview.js
 |           `-- viewer.js
 |-- server.js
 |-- Dockerfile
@@ -110,6 +114,7 @@ http://127.0.0.1:3000
 2. Clique em `Criar cronometro`.
 3. Voce sera redirecionado para a URL de admin da sessao.
 4. Use o link de viewer exibido no painel para compartilhar a visualizacao.
+5. Abra `/overview` para ver todas as sessoes ativas do servidor em modo viewer.
 
 Observacao:
 
@@ -138,6 +143,7 @@ As variaveis atuais sao:
 | `GET` | `/` | Pagina inicial |
 | `POST` | `/api/session/new` | Cria uma nova sessao |
 | `GET` | `/admin/:id` | Painel de admin |
+| `GET` | `/overview` | Painel com todos os cronometros ativos em modo viewer |
 | `GET` | `/view/:id` | Tela de viewer |
 | `GET` | `/health` | Healthcheck simples |
 | `POST` | `/webhook` | Endpoint opcional de webhook |
@@ -183,4 +189,3 @@ Alguns pontos importantes para considerar antes de producao mais seria:
 - adicionar testes para regras de sessao e sockets
 - criar pipeline de deploy fora da aplicacao
 - adicionar observabilidade e logs estruturados
-

@@ -60,10 +60,17 @@
               </div>
             </div>
             <div class="modal-col modal-col-manage">
-              <div class="section-label">📌 Gerenciar presets</div>
+              <div class="presets-panel-head">
+                <div class="section-label">📌 Gerenciar presets</div>
+                <div class="presets-panel-copy">Salve o tempo atual com um nome direto nesta tela.</div>
+              </div>
               <div class="presets-manage-list" id="d-presets-manage"></div>
               <div class="add-preset-row">
-                <input type="text" id="d-preset-name" placeholder="Nome do preset" maxlength="24" />
+                <div class="preset-name-stack">
+                  <input type="text" id="d-preset-name" placeholder="Nome do preset" maxlength="24"
+                    aria-describedby="d-preset-feedback" />
+                  <div class="preset-inline-feedback" id="d-preset-feedback" aria-live="polite"></div>
+                </div>
                 <button class="btn-add-preset" id="btn-d-add-preset" type="button">+ Adicionar</button>
               </div>
             </div>
@@ -86,6 +93,7 @@
       </div>
       <div class="viewer-link-d">
         Viewer: <a href="/viewer.html" target="_blank" rel="noopener noreferrer">/viewer.html</a>
+        <span class="overview-link-inline">Painel de todos: <a href="/overview">/overview</a></span>
       </div>
     </div>
 
@@ -117,6 +125,7 @@
         </div>
         <div class="viewer-link-m">
           Viewer: <a href="/viewer.html" target="_blank" rel="noopener noreferrer">/viewer.html</a>
+          <span class="overview-link-inline">Painel de todos: <a href="/overview">/overview</a></span>
         </div>
       </div>
     </div>
@@ -158,7 +167,11 @@
       <div class="drawer-section-label">📌 Gerenciar presets</div>
       <div class="presets-list-m" id="m-presets-manage"></div>
       <div class="add-preset-row-m">
-        <input type="text" id="m-preset-name" placeholder="Nome do preset" maxlength="24" />
+        <div class="preset-name-stack">
+          <input type="text" id="m-preset-name" placeholder="Nome do preset" maxlength="24"
+            aria-describedby="m-preset-feedback" />
+          <div class="preset-inline-feedback" id="m-preset-feedback" aria-live="polite"></div>
+        </div>
         <button class="btn-add-m" id="btn-m-add-preset" type="button">+ Adicionar</button>
       </div>
     </div>

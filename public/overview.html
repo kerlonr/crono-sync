@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cronômetros Online</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;600;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/overview.css" />
+</head>
+
+<body>
+  <main class="overview-shell">
+    <header class="overview-hero">
+      <div class="hero-copy">
+        <span class="hero-badge">● Monitoramento</span>
+        <h1>Cronômetros online</h1>
+        <p>Veja todas as sessões ativas do servidor em modo viewer, sem controles de administração.</p>
+      </div>
+      <div class="hero-actions">
+        <a class="hero-link ghost" href="/">Criar novo cronômetro</a>
+      </div>
+    </header>
+
+    <section class="overview-stats" aria-label="Resumo">
+      <article class="stat-card">
+        <span class="stat-label">Online</span>
+        <strong class="stat-value" id="stat-online">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Rodando</span>
+        <strong class="stat-value" id="stat-running">0</strong>
+      </article>
+    </section>
+
+    <section class="overview-grid" id="overview-grid" aria-live="polite"></section>
+
+    <section class="overview-empty" id="overview-empty">
+      <div class="empty-badge">Sem cronômetros online</div>
+      <h2>Nenhum cronômetro online agora.</h2>
+      <p>Quando uma nova sessão for criada no servidor, ela vai aparecer aqui automaticamente.</p>
+      <a class="hero-link" href="/">Criar cronômetro</a>
+    </section>
+  </main>
+
+  <script src="/assets/js/overview.js"></script>
+</body>
+
+</html>

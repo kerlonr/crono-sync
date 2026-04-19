@@ -12,6 +12,7 @@
     desktopPresetsChips: document.getElementById("desktop-presets-chips"),
     desktopManage: document.getElementById("d-presets-manage"),
     desktopPresetName: document.getElementById("d-preset-name"),
+    desktopPresetFeedback: document.getElementById("d-preset-feedback"),
     desktopTimer: document.getElementById("d-timer"),
     desktopProgress: document.getElementById("d-progress"),
     desktopStatusDot: document.getElementById("d-status-dot"),
@@ -29,6 +30,7 @@
     mobilePresetsScroll: document.getElementById("m-presets-scroll"),
     mobileManage: document.getElementById("m-presets-manage"),
     mobilePresetName: document.getElementById("m-preset-name"),
+    mobilePresetFeedback: document.getElementById("m-preset-feedback"),
     mobileTimer: document.getElementById("m-timer"),
     mobileProgress: document.getElementById("m-progress"),
     mobileStatusDot: document.getElementById("m-status-dot"),
@@ -54,6 +56,7 @@
   };
 
   let touchStartY = 0;
+  const presetFeedbackTimers = { desktop: 0, mobile: 0 };
 
   if (!elements.adminPanel || !elements.drawer || !isValidSessionId(sessionId)) {
     showError("Sessão não encontrada.");
@@ -78,8 +81,8 @@
     elements.drawerOverlay?.addEventListener("click", closeDrawer);
     elements.desktopApply?.addEventListener("click", applyDesktopTime);
     elements.mobileApply?.addEventListener("click", applyMobileTimeAndClose);
-    elements.desktopSavePreset?.addEventListener("click", saveDesktopPresetWithPrompt);
-    elements.mobileSavePreset?.addEventListener("click", saveMobilePresetWithPrompt);
+    elements.desktopSavePreset?.addEventListener("click", saveDesktopPresetFromField);
+    elements.mobileSavePreset?.addEventListener("click", saveMobilePresetFromField);
     elements.desktopAddPreset?.addEventListener("click", addDesktopPreset);
     elements.mobileAddPreset?.addEventListener("click", addMobilePreset);
     elements.desktopStart?.addEventListener("click", timerStart);
@@ -90,6 +93,8 @@
     elements.mobileReset?.addEventListener("click", timerReset);
     elements.desktopPresetName?.addEventListener("keydown", onPresetNameKeydown(addDesktopPreset));
     elements.mobilePresetName?.addEventListener("keydown", onPresetNameKeydown(addMobilePreset));
+    elements.desktopPresetName?.addEventListener("input", () => clearPresetFeedback("desktop"));
+    elements.mobilePresetName?.addEventListener("input", () => clearPresetFeedback("mobile"));
     elements.modalOverlay?.addEventListener("click", (event) => {
       if (event.target === elements.modalOverlay) {
         closeModal();
@@ -445,49 +450,43 @@
     closeDrawer();
   }
 
-  function saveDesktopPresetWithPrompt() {
-    savePresetWithPrompt(getDesktopMs());
+  function saveDesktopPresetFromField() {
+    savePresetFromField("desktop", getDesktopMs());
   }
 
-  function saveMobilePresetWithPrompt() {
-    savePresetWithPrompt(getMobileMs());
+  function saveMobilePresetFromField() {
+    savePresetFromField("mobile", getMobileMs());
   }
 
-  function savePresetWithPrompt(ms) {
-    if (ms <= 0) return;
-    const name = normalizePresetName(window.prompt("Nome para este preset:") || "");
-    if (!name) return;
+  function savePresetFromField(mode, ms) {
+    const input = mode === "desktop" ? elements.desktopPresetName : elements.mobilePresetName;
+    const name = normalizePresetName(input?.value || "");
+
+    if (ms <= 0) {
+      showPresetFeedback(mode, "Defina um tempo válido antes de salvar.", "error");
+      input?.focus();
+      return;
+    }
+
+    if (!name) {
+      showPresetFeedback(mode, "Digite um nome para o preset.", "error");
+      input?.focus();
+      return;
+    }
+
     upsertPreset(name, ms);
+    if (input) {
+      input.value = "";
+    }
+    showPresetFeedback(mode, "Preset salvo com sucesso.", "success");
   }
 
   function addDesktopPreset() {
-    const name = normalizePresetName(elements.desktopPresetName?.value || "");
-    const ms = getDesktopMs();
-    if (!name) {
-      elements.desktopPresetName?.focus();
-      return;
-    }
-    if (ms <= 0) return;
-
-    upsertPreset(name, ms);
-    if (elements.desktopPresetName) {
-      elements.desktopPresetName.value = "";
-    }
+    savePresetFromField("desktop", getDesktopMs());
   }
 
   function addMobilePreset() {
-    const name = normalizePresetName(elements.mobilePresetName?.value || "");
-    const ms = getMobileMs();
-    if (!name) {
-      elements.mobilePresetName?.focus();
-      return;
-    }
-    if (ms <= 0) return;
-
-    upsertPreset(name, ms);
-    if (elements.mobilePresetName) {
-      elements.mobilePresetName.value = "";
-    }
+    savePresetFromField("mobile", getMobileMs());
   }
 
   function upsertPreset(name, ms) {
@@ -498,6 +497,38 @@
     presets.push({ name, secs });
     savePresets(presets.slice(-MAX_PRESETS));
     renderAll();
+  }
+
+  function showPresetFeedback(mode, message, state) {
+    const feedback = mode === "desktop" ? elements.desktopPresetFeedback : elements.mobilePresetFeedback;
+    const input = mode === "desktop" ? elements.desktopPresetName : elements.mobilePresetName;
+
+    if (presetFeedbackTimers[mode]) {
+      window.clearTimeout(presetFeedbackTimers[mode]);
+      presetFeedbackTimers[mode] = 0;
+    }
+
+    if (!feedback || !input) return;
+
+    feedback.textContent = message;
+
+    if (message) {
+      feedback.dataset.state = state;
+      input.dataset.state = state;
+    } else {
+      delete feedback.dataset.state;
+      delete input.dataset.state;
+    }
+
+    if (state === "success" && message) {
+      presetFeedbackTimers[mode] = window.setTimeout(() => {
+        clearPresetFeedback(mode);
+      }, 2200);
+    }
+  }
+
+  function clearPresetFeedback(mode) {
+    showPresetFeedback(mode, "", "");
   }
 
   function openModal() {
@@ -661,4 +692,5 @@
     element.textContent = message;
     return element;
   }
+
 })();
