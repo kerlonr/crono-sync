@@ -1517,3 +1517,59 @@ body::before {
     padding: 16px;
   }
 }
+
+.shortcut-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 201, 255, 0.22);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.16) 0%,
+    rgba(0, 245, 160, 0.14) 100%
+  );
+  color: var(--accent2);
+  font-family: "Barlow", sans-serif;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.shortcut-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 245, 160, 0.26);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.24) 0%,
+    rgba(0, 245, 160, 0.18) 100%
+  );
+}
+
+.shortcut-link.mobile {
+  width: 100%;
+  min-height: 48px;
+}
+
+.settings-link {
+  align-self: flex-start;
+}
+
+.viewer-link-d,
+.viewer-link-m {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
