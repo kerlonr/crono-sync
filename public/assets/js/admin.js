@@ -58,7 +58,11 @@
   let touchStartY = 0;
   const presetFeedbackTimers = { desktop: 0, mobile: 0 };
 
-  if (!elements.adminPanel || !elements.drawer || !isValidSessionId(sessionId)) {
+  if (
+    !elements.adminPanel ||
+    !elements.drawer ||
+    !isValidSessionId(sessionId)
+  ) {
     showError("Sessão não encontrada.");
     return;
   }
@@ -81,8 +85,14 @@
     elements.drawerOverlay?.addEventListener("click", closeDrawer);
     elements.desktopApply?.addEventListener("click", applyDesktopTime);
     elements.mobileApply?.addEventListener("click", applyMobileTimeAndClose);
-    elements.desktopSavePreset?.addEventListener("click", saveDesktopPresetFromField);
-    elements.mobileSavePreset?.addEventListener("click", saveMobilePresetFromField);
+    elements.desktopSavePreset?.addEventListener(
+      "click",
+      saveDesktopPresetFromField,
+    );
+    elements.mobileSavePreset?.addEventListener(
+      "click",
+      saveMobilePresetFromField,
+    );
     elements.desktopAddPreset?.addEventListener("click", addDesktopPreset);
     elements.mobileAddPreset?.addEventListener("click", addMobilePreset);
     elements.desktopStart?.addEventListener("click", timerStart);
@@ -91,10 +101,20 @@
     elements.mobilePause?.addEventListener("click", timerPause);
     elements.desktopReset?.addEventListener("click", timerReset);
     elements.mobileReset?.addEventListener("click", timerReset);
-    elements.desktopPresetName?.addEventListener("keydown", onPresetNameKeydown(addDesktopPreset));
-    elements.mobilePresetName?.addEventListener("keydown", onPresetNameKeydown(addMobilePreset));
-    elements.desktopPresetName?.addEventListener("input", () => clearPresetFeedback("desktop"));
-    elements.mobilePresetName?.addEventListener("input", () => clearPresetFeedback("mobile"));
+    elements.desktopPresetName?.addEventListener(
+      "keydown",
+      onPresetNameKeydown(addDesktopPreset),
+    );
+    elements.mobilePresetName?.addEventListener(
+      "keydown",
+      onPresetNameKeydown(addMobilePreset),
+    );
+    elements.desktopPresetName?.addEventListener("input", () =>
+      clearPresetFeedback("desktop"),
+    );
+    elements.mobilePresetName?.addEventListener("input", () =>
+      clearPresetFeedback("mobile"),
+    );
     elements.modalOverlay?.addEventListener("click", (event) => {
       if (event.target === elements.modalOverlay) {
         closeModal();
@@ -127,7 +147,7 @@
         showError(
           response?.reason === "unauthorized"
             ? "Acesso de admin inválido ou expirado."
-            : "Sessão não encontrada."
+            : "Sessão não encontrada.",
         );
         return;
       }
@@ -136,7 +156,7 @@
       const viewerUrl = `/view/${sessionId}`;
       if (elements.viewerLink) {
         elements.viewerLink.href = viewerUrl;
-        elements.viewerLink.textContent = `${window.location.origin}${viewerUrl}`;
+        elements.viewerLink.textContent = "Abrir viewer";
       }
 
       renderAll();
@@ -284,7 +304,9 @@
     container.replaceChildren();
 
     if (!presets.length) {
-      container.appendChild(createEmptyState("presets-empty-d", "Adicione nas configurações ⚙"));
+      container.appendChild(
+        createEmptyState("presets-empty-d", "Adicione nas configurações ⚙"),
+      );
       return;
     }
 
@@ -307,7 +329,10 @@
 
     if (!presets.length) {
       container.appendChild(
-        createEmptyState("presets-empty-m", "Adicione presets nas configurações ⚙️")
+        createEmptyState(
+          "presets-empty-m",
+          "Adicione presets nas configurações ⚙️",
+        ),
       );
       return;
     }
@@ -330,7 +355,9 @@
     container.replaceChildren();
 
     if (!presets.length) {
-      container.appendChild(createEmptyState("presets-empty", "Nenhum preset ainda."));
+      container.appendChild(
+        createEmptyState("presets-empty", "Nenhum preset ainda."),
+      );
       return;
     }
 
@@ -369,7 +396,9 @@
     container.replaceChildren();
 
     if (!presets.length) {
-      container.appendChild(createEmptyState("presets-empty", "Nenhum preset ainda."));
+      container.appendChild(
+        createEmptyState("presets-empty", "Nenhum preset ainda."),
+      );
       return;
     }
 
@@ -416,11 +445,19 @@
   }
 
   function getDesktopMs() {
-    return getTimeFromInputs(elements.desktopInputH, elements.desktopInputM, elements.desktopInputS);
+    return getTimeFromInputs(
+      elements.desktopInputH,
+      elements.desktopInputM,
+      elements.desktopInputS,
+    );
   }
 
   function getMobileMs() {
-    return getTimeFromInputs(elements.mobileInputH, elements.mobileInputM, elements.mobileInputS);
+    return getTimeFromInputs(
+      elements.mobileInputH,
+      elements.mobileInputM,
+      elements.mobileInputS,
+    );
   }
 
   function getTimeFromInputs(hoursInput, minutesInput, secondsInput) {
@@ -459,11 +496,18 @@
   }
 
   function savePresetFromField(mode, ms) {
-    const input = mode === "desktop" ? elements.desktopPresetName : elements.mobilePresetName;
+    const input =
+      mode === "desktop"
+        ? elements.desktopPresetName
+        : elements.mobilePresetName;
     const name = normalizePresetName(input?.value || "");
 
     if (ms <= 0) {
-      showPresetFeedback(mode, "Defina um tempo válido antes de salvar.", "error");
+      showPresetFeedback(
+        mode,
+        "Defina um tempo válido antes de salvar.",
+        "error",
+      );
       input?.focus();
       return;
     }
@@ -500,8 +544,14 @@
   }
 
   function showPresetFeedback(mode, message, state) {
-    const feedback = mode === "desktop" ? elements.desktopPresetFeedback : elements.mobilePresetFeedback;
-    const input = mode === "desktop" ? elements.desktopPresetName : elements.mobilePresetName;
+    const feedback =
+      mode === "desktop"
+        ? elements.desktopPresetFeedback
+        : elements.mobilePresetFeedback;
+    const input =
+      mode === "desktop"
+        ? elements.desktopPresetName
+        : elements.mobilePresetName;
 
     if (presetFeedbackTimers[mode]) {
       window.clearTimeout(presetFeedbackTimers[mode]);
@@ -570,7 +620,7 @@
     const hours = Math.floor(totalSeconds / 3600);
 
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-      seconds
+      seconds,
     ).padStart(2, "0")}`;
   }
 
@@ -692,5 +742,4 @@
     element.textContent = message;
     return element;
   }
-
 })();
