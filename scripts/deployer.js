@@ -25,7 +25,7 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(PORT, () => {
-  log("deployer_started", { port: PORT, file: getLogFile() });
+  logEvent("deployer_started", { port: PORT, file: getLogFile() });
 });
 
 function handleDeploy(request, response) {
@@ -53,7 +53,7 @@ function handleDeploy(request, response) {
         stdio: ["ignore", "pipe", "pipe"],
       });
 
-      log("deploy_started", {
+      logEvent("deploy_started", {
         branch,
         repository,
         script: DEPLOY_SCRIPT,
@@ -61,23 +61,15 @@ function handleDeploy(request, response) {
       });
 
       activeProcess.stdout.on("data", (chunk) => {
-        for (const line of chunk.toString("utf8").split(/\r?\n/)) {
-          if (line.trim()) {
-            log("deploy_stdout", { line: line.trim() });
-          }
-        }
+        logOutputLines("deploy_stdout", chunk);
       });
 
       activeProcess.stderr.on("data", (chunk) => {
-        for (const line of chunk.toString("utf8").split(/\r?\n/)) {
-          if (line.trim()) {
-            log("deploy_stderr", { line: line.trim() });
-          }
-        }
+        logOutputLines("deploy_stderr", chunk);
       });
 
       activeProcess.on("close", (code, signal) => {
-        log("deploy_finished", {
+        logEvent("deploy_finished", {
           code: code ?? "null",
           signal: signal || "none",
         });
@@ -85,7 +77,7 @@ function handleDeploy(request, response) {
       });
 
       activeProcess.on("error", (error) => {
-        log("deploy_error", {
+        logEvent("deploy_error", {
           message: error.message,
         });
         activeProcess = null;
@@ -129,6 +121,11 @@ function readJsonBody(request) {
   });
 }
 
-function log(event, details) {
-  logEvent(event, details);
+function logOutputLines(event, chunk) {
+  for (const line of chunk.toString("utf8").split(/\r?\n/)) {
+    const text = line.trim();
+    if (text) {
+      logEvent(event, { line: text });
+    }
+  }
 }

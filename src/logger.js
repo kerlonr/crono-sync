@@ -6,6 +6,93 @@ const LOG_FILE = process.env.LOG_FILE || path.join(process.cwd(), "logs", "app.l
 
 let fileLoggingReady = false;
 let fileLoggingDisabled = false;
+const KNOWN_EVENTS = {
+  deploy_error: {
+    section: "DEPLOY",
+    action: "error",
+    consoleKeys: ["message"],
+  },
+  deploy_finished: {
+    section: "DEPLOY",
+    action: "finished",
+    consoleKeys: ["code", "signal"],
+  },
+  deploy_started: {
+    section: "DEPLOY",
+    action: "started",
+    consoleKeys: ["branch", "repository"],
+  },
+  deploy_stderr: {
+    section: "DEPLOY",
+    action: "stderr",
+    consoleKeys: ["line"],
+  },
+  deploy_stdout: {
+    section: "DEPLOY",
+    action: "stdout",
+    consoleKeys: ["line"],
+  },
+  deploy_trigger_error: {
+    section: "DEPLOY",
+    action: "trigger_error",
+    consoleKeys: ["branch", "message"],
+  },
+  deploy_trigger_failed: {
+    section: "DEPLOY",
+    action: "trigger_failed",
+    consoleKeys: ["branch", "status"],
+  },
+  deploy_triggered: {
+    section: "DEPLOY",
+    action: "triggered",
+    consoleKeys: ["branch"],
+  },
+  deployer_started: {
+    section: "SYSTEM",
+    action: "ready",
+    consoleKeys: ["port", "file"],
+  },
+  http_access: {
+    section: "HTTP",
+    action: "request",
+    consoleKeys: ["method", "path", "status"],
+  },
+  page_visit: {
+    section: "ACCESS",
+    action: "visit",
+    consoleKeys: ["page", "ip"],
+  },
+  server_started: {
+    section: "SYSTEM",
+    action: "ready",
+    consoleKeys: ["url", "file"],
+  },
+  session_created: {
+    section: "SESSION",
+    action: "created",
+    consoleKeys: ["sessionId", "totalTime", "ip"],
+  },
+  session_join_denied: {
+    section: "SESSION",
+    action: "denied",
+    consoleKeys: ["role", "sessionId", "reason", "ip"],
+  },
+  session_joined: {
+    section: "SESSION",
+    action: "joined",
+    consoleKeys: ["role", "sessionId", "ip"],
+  },
+  webhook_accepted: {
+    section: "WEBHOOK",
+    action: "accepted",
+    consoleKeys: ["branch", "repository"],
+  },
+  webhook_ignored: {
+    section: "WEBHOOK",
+    action: "ignored",
+    consoleKeys: ["branch", "expectedBranch"],
+  },
+};
 
 module.exports = {
   formatTimerMs,
@@ -95,98 +182,10 @@ function getPageName(requestPath) {
 }
 
 function getEventMeta(event) {
-  const knownEvents = {
-    deploy_error: {
-      section: "DEPLOY",
-      action: "error",
-      consoleKeys: ["message"],
-    },
-    deploy_finished: {
-      section: "DEPLOY",
-      action: "finished",
-      consoleKeys: ["code", "signal"],
-    },
-    deploy_started: {
-      section: "DEPLOY",
-      action: "started",
-      consoleKeys: ["branch", "repository"],
-    },
-    deploy_stderr: {
-      section: "DEPLOY",
-      action: "stderr",
-      consoleKeys: ["line"],
-    },
-    deploy_stdout: {
-      section: "DEPLOY",
-      action: "stdout",
-      consoleKeys: ["line"],
-    },
-    deploy_trigger_error: {
-      section: "DEPLOY",
-      action: "trigger_error",
-      consoleKeys: ["branch", "message"],
-    },
-    deploy_trigger_failed: {
-      section: "DEPLOY",
-      action: "trigger_failed",
-      consoleKeys: ["branch", "status"],
-    },
-    deploy_triggered: {
-      section: "DEPLOY",
-      action: "triggered",
-      consoleKeys: ["branch"],
-    },
-    deployer_started: {
-      section: "SYSTEM",
-      action: "ready",
-      consoleKeys: ["port", "file"],
-    },
-    http_access: {
-      section: "HTTP",
-      action: "request",
-      consoleKeys: ["method", "path", "status"],
-    },
-    page_visit: {
-      section: "ACCESS",
-      action: "visit",
-      consoleKeys: ["page", "ip"],
-    },
-    server_started: {
-      section: "SYSTEM",
-      action: "ready",
-      consoleKeys: ["url", "file"],
-    },
-    session_created: {
-      section: "SESSION",
-      action: "created",
-      consoleKeys: ["sessionId", "totalTime", "ip"],
-    },
-    session_join_denied: {
-      section: "SESSION",
-      action: "denied",
-      consoleKeys: ["role", "sessionId", "reason", "ip"],
-    },
-    session_joined: {
-      section: "SESSION",
-      action: "joined",
-      consoleKeys: ["role", "sessionId", "ip"],
-    },
-    webhook_accepted: {
-      section: "WEBHOOK",
-      action: "accepted",
-      consoleKeys: ["branch", "repository"],
-    },
-    webhook_ignored: {
-      section: "WEBHOOK",
-      action: "ignored",
-      consoleKeys: ["branch", "expectedBranch"],
-    },
-  };
-
   return (
-    knownEvents[event] || {
+    KNOWN_EVENTS[event] || {
       section: "APP",
-      action: humanizeEventName(event),
+      action: String(event).trim() || "event",
       consoleKeys: [],
     }
   );
@@ -272,11 +271,4 @@ function formatTimerMs(value) {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
     seconds,
   ).padStart(2, "0")}`;
-}
-
-function humanizeEventName(value) {
-  return String(value)
-    .split("_")
-    .filter(Boolean)
-    .join("_");
 }

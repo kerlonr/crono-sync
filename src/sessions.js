@@ -117,13 +117,9 @@ function createSessionStore({
     return Array.from(sessions.values())
       .filter((session) => !isSessionExpired(session))
       .map((session) => {
-        const remaining = getRemaining(session);
         return {
           id: session.id,
-          status: session.status,
-          remaining,
-          totalTime: session.totalTime,
-          pct: session.totalTime > 0 ? remaining / session.totalTime : 1,
+          ...buildSessionState(session),
           createdAt: session.createdAt,
           lastAccessAt: session.lastAccessAt,
         };
@@ -163,7 +159,6 @@ function createSessionStore({
     }
 
     const remaining = getRemaining(session);
-    const pct = session.totalTime > 0 ? remaining / session.totalTime : 1;
 
     if (session.status === "running" && remaining <= 0) {
       session.elapsed = session.totalTime;
@@ -173,23 +168,12 @@ function createSessionStore({
     }
 
     touchSession(session);
-    io.to(sessionId).emit("timer:tick", {
-      status: session.status,
-      remaining: getRemaining(session),
-      totalTime: session.totalTime,
-      pct,
-    });
+    io.to(sessionId).emit("timer:tick", buildSessionState(session));
   }
 
   function emitSessionState(target, session) {
     touchSession(session);
-    const remaining = getRemaining(session);
-    target.emit("timer:tick", {
-      status: session.status,
-      remaining,
-      totalTime: session.totalTime,
-      pct: session.totalTime > 0 ? remaining / session.totalTime : 1,
-    });
+    target.emit("timer:tick", buildSessionState(session));
   }
 
   function getAdminSession(socket) {
@@ -229,5 +213,16 @@ function createSessionStore({
 
   function isValidRole(value) {
     return value === "admin" || value === "viewer";
+  }
+
+  function buildSessionState(session) {
+    const remaining = getRemaining(session);
+
+    return {
+      status: session.status,
+      remaining,
+      totalTime: session.totalTime,
+      pct: session.totalTime > 0 ? remaining / session.totalTime : 1,
+    };
   }
 }

@@ -2,6 +2,7 @@
   const MAX_PRESET_NAME_LENGTH = 24;
   const MAX_PRESETS = 20;
   const MAX_TIMER_SECONDS = 12 * 60 * 60;
+  const VIEWER_LINK_TEXT = "Abrir viewer";
   const socket = io();
   const sessionId = window.location.pathname.split("/").pop();
   const adminToken = window.location.hash.slice(1);
@@ -156,7 +157,7 @@
       const viewerUrl = `/view/${sessionId}`;
       for (const link of elements.viewerLinks) {
         link.href = viewerUrl;
-        link.textContent = "Abrir viewer";
+        link.textContent = VIEWER_LINK_TEXT;
       }
 
       renderAll();
