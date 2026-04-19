@@ -461,6 +461,11 @@
       background: var(--warn);
     }
 
+    .status-dot.finished {
+      background: var(--danger);
+      box-shadow: 0 0 6px var(--danger);
+    }
+
     @keyframes pulse {
 
       0%,
@@ -1296,13 +1301,17 @@
   <script>
     const socket = io();
     const sessionId = window.location.pathname.split('/').pop();
+    const adminToken = window.location.hash.slice(1);
 
     // ── PRESETS KEY — CORRIGIDO ──────────────────────────────
     const PRESETS_KEY = 'crono_sw_presets_' + sessionId;
 
-    socket.emit('session:join', sessionId, 'admin', (res) => {
+    socket.emit('session:join', sessionId, 'admin', adminToken, (res) => {
       if (!res.success) {
-        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;color:#ff3e3e">Sessão não encontrada.</div>';
+        const msg = res.reason === 'unauthorized'
+          ? 'Acesso de admin inválido ou expirado.'
+          : 'Sessão não encontrada.';
+        document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;color:#ff3e3e">${msg}</div>`;
         return;
       }
       document.getElementById('admin-panel').style.display = 'block';
@@ -1387,7 +1396,22 @@
       presets.forEach((p, i) => {
         const row = document.createElement('div');
         row.className = 'preset-manage-row';
-        row.innerHTML = `<div><div class="preset-manage-name">${p.name}</div><div class="preset-manage-time">${fmtPresetTime(p.secs)}</div></div><button class="preset-del-btn" onclick="deletePreset(${i})">✕</button>`;
+        const info = document.createElement('div');
+        const name = document.createElement('div');
+        name.className = 'preset-manage-name';
+        name.textContent = p.name;
+        const time = document.createElement('div');
+        time.className = 'preset-manage-time';
+        time.textContent = fmtPresetTime(p.secs);
+        info.append(name, time);
+
+        const btn = document.createElement('button');
+        btn.className = 'preset-del-btn';
+        btn.type = 'button';
+        btn.textContent = '✕';
+        btn.addEventListener('click', () => deletePreset(i));
+
+        row.append(info, btn);
         el.appendChild(row);
       });
     }
@@ -1439,7 +1463,22 @@
       presets.forEach((p, i) => {
         const row = document.createElement('div');
         row.className = 'preset-row-m';
-        row.innerHTML = `<div><div class="preset-row-name">${p.name}</div><div class="preset-row-time">${fmtPresetTime(p.secs)}</div></div><button class="preset-row-del" onclick="deletePreset(${i})">✕</button>`;
+        const info = document.createElement('div');
+        const name = document.createElement('div');
+        name.className = 'preset-row-name';
+        name.textContent = p.name;
+        const time = document.createElement('div');
+        time.className = 'preset-row-time';
+        time.textContent = fmtPresetTime(p.secs);
+        info.append(name, time);
+
+        const btn = document.createElement('button');
+        btn.className = 'preset-row-del';
+        btn.type = 'button';
+        btn.textContent = '✕';
+        btn.addEventListener('click', () => deletePreset(i));
+
+        row.append(info, btn);
         el.appendChild(row);
       });
     }
@@ -1517,7 +1556,8 @@
     function updateTimers(remaining, pct, status) {
       const time = formatTime(remaining);
       const phase = getPhase(pct);
-      const cls = 'timer-display ' + ((status === 'running' || status === 'paused') ? phase : 'green');
+      const isActiveOrFinished = status === 'running' || status === 'paused' || status === 'finished';
+      const cls = 'timer-display ' + (isActiveOrFinished ? phase : 'green');
       const barColor = pct <= 0.20 ? '#ff3e3e' : pct <= 0.40 ? '#ffb800' : '#00f5a0';
 
       const dt = document.getElementById('d-timer');
@@ -1542,9 +1582,11 @@
         if (!dotEl) return;
         dotEl.className = 'status-dot ' + status;
         if (status === 'running') {
-          textEl.textContent = 'RODANDO'; startEl.disabled = true; pauseEl.disabled = false;
+          textEl.textContent = 'RODANDO'; startEl.disabled = true; startEl.textContent = '▶ Start'; pauseEl.disabled = false;
         } else if (status === 'paused') {
           textEl.textContent = 'PAUSADO'; startEl.disabled = false; startEl.textContent = '▶ Continuar'; pauseEl.disabled = true;
+        } else if (status === 'finished') {
+          textEl.textContent = 'FINALIZADO'; startEl.disabled = true; startEl.textContent = '▶ Start'; pauseEl.disabled = true;
         } else {
           textEl.textContent = 'PARADO'; startEl.disabled = false; startEl.textContent = '▶ Start'; pauseEl.disabled = true;
         }

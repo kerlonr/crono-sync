@@ -140,8 +140,8 @@
             const btn = document.getElementById('btn-criar');
             btn.disabled = true; btn.textContent = 'Criando...';
             const res = await fetch('/api/session/new', { method: 'POST' });
-            const { id } = await res.json();
-            window.location.href = `/admin/${id}`;
+            const { id, adminToken } = await res.json();
+            window.location.href = `/admin/${id}#${adminToken}`;
         }
     </script>
 </body>

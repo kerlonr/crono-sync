@@ -2,13 +2,13 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
-const { randomBytes } = require("crypto");
+const { randomBytes, timingSafeEqual } = require("crypto");
 const { exec } = require("child_process");
 const crypto = require("crypto");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server);
 
 app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
   const sig =
@@ -45,20 +45,30 @@ const sessions = new Map();
 
 function createSession() {
   const id = randomBytes(4).toString("hex");
+  const adminToken = randomBytes(18).toString("hex");
   sessions.set(id, {
+    adminToken,
     status: "stopped",
     elapsed: 0,
     startTime: null,
     totalTime: 5 * 60 * 1000,
     interval: null,
   });
-  return id;
+  return { id, adminToken };
 }
 
 function getRemaining(s) {
   const elapsed =
     s.status === "running" ? s.elapsed + (Date.now() - s.startTime) : s.elapsed;
   return Math.max(0, s.totalTime - elapsed);
+}
+
+function tokensMatch(expected, received) {
+  if (!expected || !received) return false;
+  const expectedBuffer = Buffer.from(expected);
+  const receivedBuffer = Buffer.from(received);
+  if (expectedBuffer.length !== receivedBuffer.length) return false;
+  return timingSafeEqual(expectedBuffer, receivedBuffer);
 }
 
 function broadcastSession(id) {
@@ -70,7 +80,7 @@ function broadcastSession(id) {
   if (s.status === "running" && remaining <= 0) {
     s.elapsed = s.totalTime;
     s.startTime = null;
-    s.status = "stopped";
+    s.status = "finished";
     clearInterval(s.interval);
     s.interval = null;
   }
@@ -85,8 +95,8 @@ function broadcastSession(id) {
 
 // Criar nova sessão
 app.post("/api/session/new", (req, res) => {
-  const id = createSession();
-  res.json({ id });
+  const { id, adminToken } = createSession();
+  res.json({ id, adminToken });
 });
 
 // SPA fallback — admin e viewer são servidos pelo HTML estático
@@ -98,15 +108,23 @@ app.get("/view/:id", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  socket.on("session:join", (sessionId, role, callback) => {
+  socket.on("session:join", (sessionId, role, tokenOrCallback, maybeCallback) => {
+    const callback =
+      typeof tokenOrCallback === "function" ? tokenOrCallback : maybeCallback;
+    const adminToken = typeof tokenOrCallback === "string" ? tokenOrCallback : null;
     const s = sessions.get(sessionId);
     if (!s) {
-      if (callback) callback({ success: false });
+      if (callback) callback({ success: false, reason: "not_found" });
+      return;
+    }
+    const wantsAdmin = role === "admin";
+    if (wantsAdmin && !tokensMatch(s.adminToken, adminToken)) {
+      if (callback) callback({ success: false, reason: "unauthorized" });
       return;
     }
     socket.join(sessionId);
     socket.currentSession = sessionId;
-    socket.isAdmin = role === "admin";
+    socket.isAdmin = wantsAdmin;
     const remaining = getRemaining(s);
     socket.emit("timer:tick", {
       status: s.status,

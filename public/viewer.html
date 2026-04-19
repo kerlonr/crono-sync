@@ -126,7 +126,11 @@
     const socket = io();
     const sessionId = window.location.pathname.split('/').pop();
 
-    socket.emit('session:join', sessionId, 'viewer');
+    socket.emit('session:join', sessionId, 'viewer', (res) => {
+      if (!res.success) {
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace;color:#ff3e3e">Sessão não encontrada.</div>';
+      }
+    });
 
     socket.on('timer:tick', ({ status, remaining, totalTime, pct }) => {
       const display = document.getElementById('timer-display');
