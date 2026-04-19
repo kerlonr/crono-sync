@@ -1,15 +1,18 @@
 FROM node:20-alpine
 
-RUN apk add --no-cache git
+ENV NODE_ENV=production
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 
-RUN npm install --production
+RUN npm ci --omit=dev && npm cache clean --force
 
-COPY . .
+COPY --chown=node:node public ./public
+COPY --chown=node:node server.js ./server.js
+
+USER node
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

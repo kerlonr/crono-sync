@@ -1,0 +1,123 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #060608;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+
+body.message-mode {
+  padding: 24px;
+}
+
+body.flash-red {
+  animation: flashBg 0.4s infinite;
+}
+
+@keyframes flashBg {
+
+  0%,
+  100% {
+    background: #060608;
+  }
+
+  50% {
+    background: #3a0000;
+  }
+}
+
+body.finished {
+  background: #2a0000 !important;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+.glow-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  transition: background 1s ease;
+}
+
+.screen-message {
+  position: relative;
+  z-index: 10;
+  width: min(100%, 560px);
+  border: 1px solid rgba(255, 62, 62, 0.35);
+  border-radius: 18px;
+  background: rgba(19, 19, 28, 0.92);
+  color: #ff6c6c;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 28px 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.timer-display {
+  position: relative;
+  z-index: 10;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(100px, 22vw, 280px);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  user-select: none;
+  transition: color 0.5s, text-shadow 0.5s, opacity 0.3s;
+  color: #e8e8f0;
+}
+
+.timer-display.green {
+  color: #00f5a0;
+  text-shadow: 0 0 60px rgba(0, 245, 160, 0.7);
+}
+
+.timer-display.yellow {
+  color: #ffb800;
+  text-shadow: 0 0 60px rgba(255, 184, 0, 0.7);
+}
+
+.timer-display.red {
+  color: #ff3e3e;
+  text-shadow: 0 0 80px rgba(255, 62, 62, 1);
+}
+
+.timer-display.blink {
+  color: #ff3e3e;
+  animation: timerBlink 0.5s infinite;
+}
+
+@keyframes timerBlink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.05;
+  }
+}
+
+.timer-display.paused {
+  opacity: 0.4;
+}

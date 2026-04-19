@@ -1,187 +1,470 @@
+const crypto = require("crypto");
 const express = require("express");
+const helmet = require("helmet");
 const http = require("http");
+const rateLimit = require("express-rate-limit");
 const { Server } = require("socket.io");
 const path = require("path");
 const { randomBytes, timingSafeEqual } = require("crypto");
-const { exec } = require("child_process");
-const crypto = require("crypto");
+
+const PORT = parsePositiveInt(process.env.PORT, 3000);
+const ENABLE_WEBHOOK = process.env.ENABLE_WEBHOOK === "true";
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
+const SESSION_TTL_MS = parsePositiveInt(process.env.SESSION_TTL_MINUTES, 180) * 60 * 1000;
+const SESSION_CLEANUP_MS =
+  parsePositiveInt(process.env.SESSION_CLEANUP_MINUTES, 5) * 60 * 1000;
+const MAX_TIMER_MS = 12 * 60 * 60 * 1000;
+const DEFAULT_TIMER_MS = 5 * 60 * 1000;
+const SESSION_ID_PATTERN = /^[a-f0-9]{8}$/i;
+const ADMIN_TOKEN_PATTERN = /^[a-f0-9]{36}$/i;
+const ALLOWED_ORIGIN = normalizeOrigin(process.env.APP_ORIGIN);
+
+if (ENABLE_WEBHOOK && !WEBHOOK_SECRET) {
+  throw new Error("ENABLE_WEBHOOK=true requires WEBHOOK_SECRET.");
+}
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
-
-app.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
-  const sig =
-    "sha256=" +
-    crypto
-      .createHmac("sha256", process.env.WEBHOOK_SECRET)
-      .update(req.body)
-      .digest("hex");
-
-  if (req.headers["x-hub-signature-256"] !== sig) {
-    return res.status(401).send("Unauthorized");
-  }
-
-  res.status(200).send("OK");
-  console.log("Push detectado! Atualizando...");
-
-  setTimeout(() => {
-    exec("cd /app && git pull origin main", (err, stdout, stderr) => {
-      if (err) {
-        console.error(stderr);
-        return;
-      }
-      console.log(stdout);
-      console.log("Reiniciando...");
-      process.exit(0);
-    });
-  }, 100);
+const io = new Server(server, {
+  maxHttpBufferSize: 10 * 1024,
+  transports: ["websocket", "polling"],
+  allowRequest(request, callback) {
+    callback(null, isAllowedOrigin(request.headers.origin, request.headers.host));
+  },
 });
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
+const publicDir = path.join(__dirname, "public");
 const sessions = new Map();
+const cspDirectives = {
+  defaultSrc: ["'self'"],
+  scriptSrc: ["'self'"],
+  styleSrc: ["'self'", "https://fonts.googleapis.com"],
+  fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+  connectSrc: ["'self'", "ws:", "wss:"],
+  imgSrc: ["'self'", "data:"],
+  objectSrc: ["'none'"],
+  baseUri: ["'self'"],
+  formAction: ["'self'"],
+  frameAncestors: ["'none'"],
+};
 
-function createSession() {
-  const id = randomBytes(4).toString("hex");
-  const adminToken = randomBytes(18).toString("hex");
-  sessions.set(id, {
-    adminToken,
-    status: "stopped",
-    elapsed: 0,
-    startTime: null,
-    totalTime: 5 * 60 * 1000,
-    interval: null,
-  });
-  return { id, adminToken };
+if (process.env.NODE_ENV === "production") {
+  cspDirectives.upgradeInsecureRequests = [];
 }
 
-function getRemaining(s) {
-  const elapsed =
-    s.status === "running" ? s.elapsed + (Date.now() - s.startTime) : s.elapsed;
-  return Math.max(0, s.totalTime - elapsed);
+app.disable("x-powered-by");
+
+if (process.env.TRUST_PROXY === "true") {
+  app.set("trust proxy", 1);
 }
 
-function tokensMatch(expected, received) {
-  if (!expected || !received) return false;
-  const expectedBuffer = Buffer.from(expected);
-  const receivedBuffer = Buffer.from(received);
-  if (expectedBuffer.length !== receivedBuffer.length) return false;
-  return timingSafeEqual(expectedBuffer, receivedBuffer);
-}
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: {
+      directives: cspDirectives,
+    },
+    hsts: process.env.NODE_ENV === "production",
+    referrerPolicy: { policy: "no-referrer" },
+  })
+);
 
-function broadcastSession(id) {
-  const s = sessions.get(id);
-  if (!s) return;
-  const remaining = getRemaining(s);
-  const pct = s.totalTime > 0 ? remaining / s.totalTime : 1;
+app.use((request, response, next) => {
+  response.setHeader("Permissions-Policy", "fullscreen=(self)");
+  next();
+});
 
-  if (s.status === "running" && remaining <= 0) {
-    s.elapsed = s.totalTime;
-    s.startTime = null;
-    s.status = "finished";
-    clearInterval(s.interval);
-    s.interval = null;
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 250,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+
+const createSessionLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+
+const webhookLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+
+app.use(globalLimiter);
+app.use(express.json({ limit: "16kb" }));
+
+app.post(
+  "/webhook",
+  webhookLimiter,
+  express.raw({ type: "application/json", limit: "32kb" }),
+  (request, response) => {
+    if (!ENABLE_WEBHOOK) {
+      return response.status(404).send("Not Found");
+    }
+
+    const signature = request.headers["x-hub-signature-256"];
+    if (!isValidWebhookSignature(signature, request.body)) {
+      return response.status(401).send("Unauthorized");
+    }
+
+    const eventName = request.headers["x-github-event"];
+    if (eventName && eventName !== "push") {
+      return response.status(202).send("Ignored");
+    }
+
+    console.log("Webhook validado com sucesso.");
+    return response.status(202).send("Accepted");
+  }
+);
+
+app.use(
+  "/assets",
+  express.static(path.join(publicDir, "assets"), {
+    fallthrough: false,
+    immutable: true,
+    maxAge: "7d",
+  })
+);
+
+app.use(
+  express.static(publicDir, {
+    fallthrough: true,
+    index: "index.html",
+    maxAge: 0,
+  })
+);
+
+app.get("/admin/:id", (request, response) => {
+  if (!isValidSessionId(request.params.id)) {
+    return response.status(404).send("Not Found");
   }
 
-  io.to(id).emit("timer:tick", {
-    status: s.status,
-    remaining: getRemaining(s),
-    totalTime: s.totalTime,
-    pct,
+  return response.sendFile(path.join(publicDir, "admin.html"));
+});
+
+app.get("/view/:id", (request, response) => {
+  if (!isValidSessionId(request.params.id)) {
+    return response.status(404).send("Not Found");
+  }
+
+  return response.sendFile(path.join(publicDir, "viewer.html"));
+});
+
+app.post("/api/session/new", createSessionLimiter, (_request, response) => {
+  const session = createSession();
+  response.status(201).json({
+    id: session.id,
+    adminToken: session.adminToken,
   });
-}
-
-// Criar nova sessão
-app.post("/api/session/new", (req, res) => {
-  const { id, adminToken } = createSession();
-  res.json({ id, adminToken });
 });
 
-// SPA fallback — admin e viewer são servidos pelo HTML estático
-app.get("/admin/:id", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
-app.get("/view/:id", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "viewer.html"));
+app.get("/health", (_request, response) => {
+  response.json({ ok: true });
 });
 
 io.on("connection", (socket) => {
+  socket.currentSession = null;
+  socket.isAdmin = false;
+
   socket.on("session:join", (sessionId, role, tokenOrCallback, maybeCallback) => {
     const callback =
       typeof tokenOrCallback === "function" ? tokenOrCallback : maybeCallback;
     const adminToken = typeof tokenOrCallback === "string" ? tokenOrCallback : null;
-    const s = sessions.get(sessionId);
-    if (!s) {
+
+    if (!isValidSessionId(sessionId) || !isValidRole(role)) {
+      if (callback) callback({ success: false, reason: "invalid_request" });
+      return;
+    }
+
+    const session = sessions.get(sessionId);
+    if (!session || isSessionExpired(session)) {
+      deleteSession(sessionId);
       if (callback) callback({ success: false, reason: "not_found" });
       return;
     }
+
     const wantsAdmin = role === "admin";
-    if (wantsAdmin && !tokensMatch(s.adminToken, adminToken)) {
+    if (wantsAdmin && !tokensMatch(session.adminToken, adminToken)) {
       if (callback) callback({ success: false, reason: "unauthorized" });
       return;
     }
+
+    touchSession(session);
     socket.join(sessionId);
     socket.currentSession = sessionId;
     socket.isAdmin = wantsAdmin;
-    const remaining = getRemaining(s);
-    socket.emit("timer:tick", {
-      status: s.status,
-      remaining,
-      totalTime: s.totalTime,
-      pct: s.totalTime > 0 ? remaining / s.totalTime : 1,
-    });
+
+    emitSessionState(socket, sessionId, session);
+
     if (callback) callback({ success: true });
   });
 
   socket.on("timer:setTime", (ms) => {
-    if (!socket.isAdmin) return;
-    const s = sessions.get(socket.currentSession);
-    if (!s || s.status === "running") return;
-    s.totalTime = ms;
-    s.elapsed = 0;
-    s.startTime = null;
-    s.status = "stopped";
+    const session = getAdminSession(socket);
+    const safeMs = sanitizeTimerMs(ms);
+    if (!session || safeMs === null || session.status === "running") return;
+
+    session.totalTime = safeMs;
+    session.elapsed = 0;
+    session.startTime = null;
+    session.status = "stopped";
     broadcastSession(socket.currentSession);
   });
 
   socket.on("timer:start", () => {
-    if (!socket.isAdmin) return;
-    const id = socket.currentSession;
-    const s = sessions.get(id);
-    if (!s || s.status === "running" || getRemaining(s) <= 0) return;
-    s.startTime = Date.now();
-    s.status = "running";
-    if (!s.interval) s.interval = setInterval(() => broadcastSession(id), 100);
+    const session = getAdminSession(socket);
+    if (!session || session.status === "running" || getRemaining(session) <= 0) return;
+
+    session.startTime = Date.now();
+    session.status = "running";
+    touchSession(session);
+
+    if (!session.interval) {
+      const sessionId = socket.currentSession;
+      session.interval = setInterval(() => broadcastSession(sessionId), 250);
+    }
+
+    broadcastSession(socket.currentSession);
   });
 
   socket.on("timer:pause", () => {
-    if (!socket.isAdmin) return;
-    const id = socket.currentSession;
-    const s = sessions.get(id);
-    if (!s || s.status !== "running") return;
-    s.elapsed += Date.now() - s.startTime;
-    s.startTime = null;
-    s.status = "paused";
-    clearInterval(s.interval);
-    s.interval = null;
-    broadcastSession(id);
+    const session = getAdminSession(socket);
+    if (!session || session.status !== "running") return;
+
+    session.elapsed += Date.now() - session.startTime;
+    session.startTime = null;
+    session.status = "paused";
+    clearSessionInterval(session);
+    broadcastSession(socket.currentSession);
   });
 
   socket.on("timer:reset", () => {
-    if (!socket.isAdmin) return;
-    const id = socket.currentSession;
-    const s = sessions.get(id);
-    if (!s) return;
-    s.elapsed = 0;
-    s.startTime = null;
-    s.status = "stopped";
-    clearInterval(s.interval);
-    s.interval = null;
-    broadcastSession(id);
+    const session = getAdminSession(socket);
+    if (!session) return;
+
+    session.elapsed = 0;
+    session.startTime = null;
+    session.status = "stopped";
+    clearSessionInterval(session);
+    broadcastSession(socket.currentSession);
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Servidor em http://localhost:${PORT}`));
+setInterval(cleanupExpiredSessions, SESSION_CLEANUP_MS).unref();
+
+server.listen(PORT, () => {
+  console.log(`Servidor em http://localhost:${PORT}`);
+});
+
+function createSession() {
+  const now = Date.now();
+  const id = randomBytes(4).toString("hex");
+  const adminToken = randomBytes(18).toString("hex");
+
+  const session = {
+    id,
+    adminToken,
+    status: "stopped",
+    elapsed: 0,
+    startTime: null,
+    totalTime: DEFAULT_TIMER_MS,
+    interval: null,
+    createdAt: now,
+    lastAccessAt: now,
+  };
+
+  sessions.set(id, session);
+  return session;
+}
+
+function getRemaining(session) {
+  const elapsed =
+    session.status === "running"
+      ? session.elapsed + (Date.now() - session.startTime)
+      : session.elapsed;
+
+  return Math.max(0, session.totalTime - elapsed);
+}
+
+function touchSession(session) {
+  session.lastAccessAt = Date.now();
+}
+
+function isSessionExpired(session) {
+  return Date.now() - session.lastAccessAt > SESSION_TTL_MS;
+}
+
+function cleanupExpiredSessions() {
+  for (const [sessionId, session] of sessions.entries()) {
+    if (isSessionExpired(session)) {
+      deleteSession(sessionId);
+    }
+  }
+}
+
+function deleteSession(sessionId) {
+  const session = sessions.get(sessionId);
+  if (!session) return;
+
+  clearSessionInterval(session);
+  sessions.delete(sessionId);
+}
+
+function clearSessionInterval(session) {
+  if (!session.interval) return;
+  clearInterval(session.interval);
+  session.interval = null;
+}
+
+function broadcastSession(sessionId) {
+  const session = sessions.get(sessionId);
+  if (!session) return;
+
+  if (isSessionExpired(session)) {
+    deleteSession(sessionId);
+    return;
+  }
+
+  const remaining = getRemaining(session);
+  const pct = session.totalTime > 0 ? remaining / session.totalTime : 1;
+
+  if (session.status === "running" && remaining <= 0) {
+    session.elapsed = session.totalTime;
+    session.startTime = null;
+    session.status = "finished";
+    clearSessionInterval(session);
+  }
+
+  touchSession(session);
+  io.to(sessionId).emit("timer:tick", {
+    status: session.status,
+    remaining: getRemaining(session),
+    totalTime: session.totalTime,
+    pct,
+  });
+}
+
+function emitSessionState(target, sessionId, session) {
+  touchSession(session);
+  const remaining = getRemaining(session);
+  target.emit("timer:tick", {
+    status: session.status,
+    remaining,
+    totalTime: session.totalTime,
+    pct: session.totalTime > 0 ? remaining / session.totalTime : 1,
+  });
+}
+
+function getAdminSession(socket) {
+  if (!socket.isAdmin || !isValidSessionId(socket.currentSession)) {
+    return null;
+  }
+
+  const session = sessions.get(socket.currentSession);
+  if (!session || isSessionExpired(session)) {
+    deleteSession(socket.currentSession);
+    return null;
+  }
+
+  touchSession(session);
+  return session;
+}
+
+function sanitizeTimerMs(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+
+  const safeValue = Math.trunc(parsed);
+  if (safeValue < 1000 || safeValue > MAX_TIMER_MS) {
+    return null;
+  }
+
+  return safeValue;
+}
+
+function isValidSessionId(value) {
+  return typeof value === "string" && SESSION_ID_PATTERN.test(value);
+}
+
+function isValidAdminToken(value) {
+  return typeof value === "string" && ADMIN_TOKEN_PATTERN.test(value);
+}
+
+function isValidRole(value) {
+  return value === "admin" || value === "viewer";
+}
+
+function tokensMatch(expected, received) {
+  if (!isValidAdminToken(expected) || !isValidAdminToken(received)) {
+    return false;
+  }
+
+  const expectedBuffer = Buffer.from(expected);
+  const receivedBuffer = Buffer.from(received);
+
+  if (expectedBuffer.length !== receivedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(expectedBuffer, receivedBuffer);
+}
+
+function isValidWebhookSignature(signature, payload) {
+  if (typeof signature !== "string" || !Buffer.isBuffer(payload)) {
+    return false;
+  }
+
+  const digest =
+    "sha256=" + crypto.createHmac("sha256", WEBHOOK_SECRET).update(payload).digest("hex");
+  return timingSafeCompareString(signature, digest);
+}
+
+function timingSafeCompareString(left, right) {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+
+  if (leftBuffer.length !== rightBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function parsePositiveInt(value, fallback) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function normalizeOrigin(value) {
+  if (!value) return null;
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+function isAllowedOrigin(originHeader, requestHost) {
+  if (!originHeader) {
+    return true;
+  }
+
+  try {
+    const requestOrigin = new URL(originHeader).origin;
+
+    if (ALLOWED_ORIGIN) {
+      return requestOrigin === ALLOWED_ORIGIN;
+    }
+
+    return new URL(`http://${requestHost}`).host === new URL(requestOrigin).host;
+  } catch {
+    return false;
+  }
+}
