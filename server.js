@@ -1,30 +1,21 @@
-const crypto = require("crypto");
 const express = require("express");
 const helmet = require("helmet");
 const http = require("http");
+const path = require("path");
 const rateLimit = require("express-rate-limit");
 const { Server } = require("socket.io");
-const path = require("path");
-const { randomBytes, timingSafeEqual } = require("crypto");
 
-const PORT = parsePositiveInt(process.env.PORT, 3000);
-const ENABLE_WEBHOOK = process.env.ENABLE_WEBHOOK === "true";
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
-const WEBHOOK_DEPLOY_BRANCH = process.env.WEBHOOK_DEPLOY_BRANCH || "main";
-const DEPLOYER_URL = process.env.DEPLOYER_URL || "http://deployer:8081/deploy";
-const DEPLOYER_SECRET = process.env.DEPLOYER_SECRET || "";
-const SESSION_TTL_MS = parsePositiveInt(process.env.SESSION_TTL_MINUTES, 180) * 60 * 1000;
-const SESSION_CLEANUP_MS =
-  parsePositiveInt(process.env.SESSION_CLEANUP_MINUTES, 5) * 60 * 1000;
-const MAX_TIMER_MS = 12 * 60 * 60 * 1000;
-const DEFAULT_TIMER_MS = 5 * 60 * 1000;
-const SESSION_ID_PATTERN = /^[a-f0-9]{8}$/i;
-const ADMIN_TOKEN_PATTERN = /^[a-f0-9]{36}$/i;
-const ALLOWED_ORIGIN = normalizeOrigin(process.env.APP_ORIGIN);
-
-if (ENABLE_WEBHOOK && !WEBHOOK_SECRET) {
-  throw new Error("ENABLE_WEBHOOK=true requires WEBHOOK_SECRET.");
-}
+const config = require("./src/config");
+const { triggerDeploy } = require("./src/deploy-client");
+const { getRequestIp, logAccess, logEvent } = require("./src/logger");
+const {
+  getBranchFromRef,
+  isAllowedOrigin,
+  isValidWebhookSignature,
+  parseWebhookPayload,
+  tokensMatch,
+} = require("./src/security");
+const { createSessionStore } = require("./src/sessions");
 
 const app = express();
 const server = http.createServer(app);
@@ -32,42 +23,36 @@ const io = new Server(server, {
   maxHttpBufferSize: 10 * 1024,
   transports: ["websocket", "polling"],
   allowRequest(request, callback) {
-    callback(null, isAllowedOrigin(request.headers.origin, request.headers.host));
+    callback(null, isAllowedOrigin(request.headers.origin, request.headers.host, config.ALLOWED_ORIGIN));
   },
 });
 
-const publicDir = path.join(__dirname, "public");
-const sessions = new Map();
-const cspDirectives = {
-  defaultSrc: ["'self'"],
-  scriptSrc: ["'self'"],
-  styleSrc: ["'self'", "https://fonts.googleapis.com"],
-  fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-  connectSrc: ["'self'", "ws:", "wss:"],
-  imgSrc: ["'self'", "data:"],
-  objectSrc: ["'none'"],
-  baseUri: ["'self'"],
-  formAction: ["'self'"],
-  frameAncestors: ["'none'"],
-};
+const sessionStore = createSessionStore({
+  adminTokenPattern: config.ADMIN_TOKEN_PATTERN,
+  defaultTimerMs: config.DEFAULT_TIMER_MS,
+  io,
+  maxTimerMs: config.MAX_TIMER_MS,
+  sessionIdPattern: config.SESSION_ID_PATTERN,
+  sessionTtlMs: config.SESSION_TTL_MS,
+});
 
-if (process.env.NODE_ENV === "production") {
-  cspDirectives.upgradeInsecureRequests = [];
-}
+const cspDirectives = buildCspDirectives(process.env.NODE_ENV);
+const globalLimiter = createLimiter(15 * 60 * 1000, 250);
+const createSessionLimiter = createLimiter(10 * 60 * 1000, 30);
+const activeSessionsLimiter = createLimiter(60 * 1000, 120);
+const webhookLimiter = createLimiter(15 * 60 * 1000, 20);
 
 app.disable("x-powered-by");
 
-if (process.env.TRUST_PROXY === "true") {
+if (config.TRUST_PROXY) {
   app.set("trust proxy", 1);
 }
 
 app.use((request, response, next) => {
   const startedAt = process.hrtime.bigint();
-
   response.on("finish", () => {
     logAccess(request, response, startedAt);
   });
-
   next();
 });
 
@@ -80,33 +65,12 @@ app.use(
     },
     hsts: process.env.NODE_ENV === "production",
     referrerPolicy: { policy: "no-referrer" },
-  })
+  }),
 );
 
 app.use((request, response, next) => {
   response.setHeader("Permissions-Policy", "fullscreen=(self)");
   next();
-});
-
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 250,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-});
-
-const createSessionLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 30,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-});
-
-const webhookLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
 });
 
 app.use(globalLimiter);
@@ -116,12 +80,12 @@ app.post(
   webhookLimiter,
   express.raw({ type: "application/json", limit: "32kb" }),
   async (request, response) => {
-    if (!ENABLE_WEBHOOK) {
+    if (!config.ENABLE_WEBHOOK) {
       return response.status(404).send("Not Found");
     }
 
     const signature = request.headers["x-hub-signature-256"];
-    if (!isValidWebhookSignature(signature, request.body)) {
+    if (!isValidWebhookSignature(signature, request.body, config.WEBHOOK_SECRET)) {
       return response.status(401).send("Unauthorized");
     }
 
@@ -136,22 +100,26 @@ app.post(
     }
 
     const pushedBranch = getBranchFromRef(payload.ref);
-    if (!pushedBranch || pushedBranch !== WEBHOOK_DEPLOY_BRANCH) {
+    if (!pushedBranch || pushedBranch !== config.WEBHOOK_DEPLOY_BRANCH) {
       logEvent("webhook_ignored", {
         branch: pushedBranch || "unknown",
-        expectedBranch: WEBHOOK_DEPLOY_BRANCH,
+        expectedBranch: config.WEBHOOK_DEPLOY_BRANCH,
       });
       return response.status(202).send("Ignored");
     }
 
+    const repository = payload.repository?.full_name || "unknown";
     logEvent("webhook_accepted", {
       branch: pushedBranch,
-      repository: payload.repository?.full_name || "unknown",
+      repository,
     });
 
     const deployStarted = await triggerDeploy({
       branch: pushedBranch,
-      repository: payload.repository?.full_name || "unknown",
+      deployerUrl: config.DEPLOYER_URL,
+      logEvent,
+      repository,
+      timeoutMs: config.DEPLOYER_TIMEOUT_MS,
     });
 
     if (!deployStarted) {
@@ -159,65 +127,66 @@ app.post(
     }
 
     return response.status(202).send("Accepted");
-  }
+  },
 );
 
 app.use(express.json({ limit: "16kb" }));
 
 app.use(
   "/assets",
-  express.static(path.join(publicDir, "assets"), {
+  express.static(path.join(config.PUBLIC_DIR, "assets"), {
     fallthrough: false,
     immutable: true,
     maxAge: "7d",
-  })
+  }),
 );
 
 app.use(
-  express.static(publicDir, {
+  express.static(config.PUBLIC_DIR, {
     fallthrough: true,
     index: "index.html",
     maxAge: 0,
-  })
+  }),
 );
 
 app.get("/admin/:id", (request, response) => {
-  if (!isValidSessionId(request.params.id)) {
+  if (!sessionStore.isValidSessionId(request.params.id)) {
     return response.status(404).send("Not Found");
   }
 
-  return response.sendFile(path.join(publicDir, "admin.html"));
+  return response.sendFile(path.join(config.PUBLIC_DIR, "admin.html"));
 });
 
 app.get("/view/:id", (request, response) => {
-  if (!isValidSessionId(request.params.id)) {
+  if (!sessionStore.isValidSessionId(request.params.id)) {
     return response.status(404).send("Not Found");
   }
 
-  return response.sendFile(path.join(publicDir, "viewer.html"));
+  return response.sendFile(path.join(config.PUBLIC_DIR, "viewer.html"));
 });
 
 app.get("/overview", (_request, response) => {
-  return response.sendFile(path.join(publicDir, "overview.html"));
+  response.sendFile(path.join(config.PUBLIC_DIR, "overview.html"));
 });
 
 app.post("/api/session/new", createSessionLimiter, (request, response) => {
-  const session = createSession();
+  const session = sessionStore.createSession();
   logEvent("session_created", {
     sessionId: session.id,
     ip: getRequestIp(request),
     userAgent: request.get("user-agent") || "unknown",
   });
+
   response.status(201).json({
     id: session.id,
     adminToken: session.adminToken,
   });
 });
 
-app.get("/api/sessions/active", (_request, response) => {
-  cleanupExpiredSessions();
+app.get("/api/sessions/active", activeSessionsLimiter, (_request, response) => {
+  sessionStore.cleanupExpiredSessions();
   response.json({
-    sessions: listActiveSessions(),
+    sessions: sessionStore.listActiveSessions(),
   });
 });
 
@@ -234,417 +203,128 @@ io.on("connection", (socket) => {
       typeof tokenOrCallback === "function" ? tokenOrCallback : maybeCallback;
     const adminToken = typeof tokenOrCallback === "string" ? tokenOrCallback : null;
 
-    if (!isValidSessionId(sessionId) || !isValidRole(role)) {
+    if (!sessionStore.isValidSessionId(sessionId) || !sessionStore.isValidRole(role)) {
       if (callback) callback({ success: false, reason: "invalid_request" });
       return;
     }
 
-    const session = sessions.get(sessionId);
-    if (!session || isSessionExpired(session)) {
-      deleteSession(sessionId);
+    const currentSession = sessionStore.getSession(sessionId);
+    if (!currentSession) {
+      sessionStore.deleteSession(sessionId);
       if (callback) callback({ success: false, reason: "not_found" });
       return;
     }
 
     const wantsAdmin = role === "admin";
-    if (wantsAdmin && !tokensMatch(session.adminToken, adminToken)) {
+    if (
+      wantsAdmin &&
+      !tokensMatch(
+        currentSession.adminToken,
+        adminToken,
+        sessionStore.isValidAdminToken,
+      )
+    ) {
       if (callback) callback({ success: false, reason: "unauthorized" });
       return;
     }
 
-    touchSession(session);
+    if (socket.currentSession && socket.currentSession !== sessionId) {
+      socket.leave(socket.currentSession);
+    }
+
+    sessionStore.touchSession(currentSession);
     socket.join(sessionId);
     socket.currentSession = sessionId;
     socket.isAdmin = wantsAdmin;
 
-    emitSessionState(socket, sessionId, session);
+    sessionStore.emitSessionState(socket, currentSession);
 
     if (callback) callback({ success: true });
   });
 
   socket.on("timer:setTime", (ms) => {
-    const session = getAdminSession(socket);
-    const safeMs = sanitizeTimerMs(ms);
+    const session = sessionStore.getAdminSession(socket);
+    const safeMs = sessionStore.sanitizeTimerMs(ms);
     if (!session || safeMs === null || session.status === "running") return;
 
     session.totalTime = safeMs;
     session.elapsed = 0;
     session.startTime = null;
     session.status = "stopped";
-    broadcastSession(socket.currentSession);
+    sessionStore.broadcastSession(socket.currentSession);
   });
 
   socket.on("timer:start", () => {
-    const session = getAdminSession(socket);
-    if (!session || session.status === "running" || getRemaining(session) <= 0) return;
+    const session = sessionStore.getAdminSession(socket);
+    if (!session || session.status === "running" || sessionStore.getRemaining(session) <= 0) return;
 
     session.startTime = Date.now();
     session.status = "running";
-    touchSession(session);
+    sessionStore.touchSession(session);
 
     if (!session.interval) {
       const sessionId = socket.currentSession;
-      session.interval = setInterval(() => broadcastSession(sessionId), 250);
+      session.interval = setInterval(() => sessionStore.broadcastSession(sessionId), 250);
     }
 
-    broadcastSession(socket.currentSession);
+    sessionStore.broadcastSession(socket.currentSession);
   });
 
   socket.on("timer:pause", () => {
-    const session = getAdminSession(socket);
+    const session = sessionStore.getAdminSession(socket);
     if (!session || session.status !== "running") return;
 
     session.elapsed += Date.now() - session.startTime;
     session.startTime = null;
     session.status = "paused";
-    clearSessionInterval(session);
-    broadcastSession(socket.currentSession);
+    sessionStore.clearSessionInterval(session);
+    sessionStore.broadcastSession(socket.currentSession);
   });
 
   socket.on("timer:reset", () => {
-    const session = getAdminSession(socket);
+    const session = sessionStore.getAdminSession(socket);
     if (!session) return;
 
     session.elapsed = 0;
     session.startTime = null;
     session.status = "stopped";
-    clearSessionInterval(session);
-    broadcastSession(socket.currentSession);
+    sessionStore.clearSessionInterval(session);
+    sessionStore.broadcastSession(socket.currentSession);
   });
 });
 
-setInterval(cleanupExpiredSessions, SESSION_CLEANUP_MS).unref();
+setInterval(sessionStore.cleanupExpiredSessions, config.SESSION_CLEANUP_MS).unref();
 
-server.listen(PORT, () => {
-  console.log(`Servidor em http://localhost:${PORT}`);
+server.listen(config.PORT, () => {
+  console.log(`Servidor em http://localhost:${config.PORT}`);
 });
 
-function createSession() {
-  const now = Date.now();
-  const id = randomBytes(4).toString("hex");
-  const adminToken = randomBytes(18).toString("hex");
-
-  const session = {
-    id,
-    adminToken,
-    status: "stopped",
-    elapsed: 0,
-    startTime: null,
-    totalTime: DEFAULT_TIMER_MS,
-    interval: null,
-    createdAt: now,
-    lastAccessAt: now,
+function buildCspDirectives(nodeEnv) {
+  const directives = {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'", "https://fonts.googleapis.com"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+    connectSrc: ["'self'", "ws:", "wss:"],
+    imgSrc: ["'self'", "data:"],
+    objectSrc: ["'none'"],
+    baseUri: ["'self'"],
+    formAction: ["'self'"],
+    frameAncestors: ["'none'"],
   };
 
-  sessions.set(id, session);
-  return session;
-}
-
-function getRemaining(session) {
-  const elapsed =
-    session.status === "running"
-      ? session.elapsed + (Date.now() - session.startTime)
-      : session.elapsed;
-
-  return Math.max(0, session.totalTime - elapsed);
-}
-
-function touchSession(session) {
-  session.lastAccessAt = Date.now();
-}
-
-function isSessionExpired(session) {
-  return Date.now() - session.lastAccessAt > SESSION_TTL_MS;
-}
-
-function cleanupExpiredSessions() {
-  for (const [sessionId, session] of sessions.entries()) {
-    if (isSessionExpired(session)) {
-      deleteSession(sessionId);
-    }
-  }
-}
-
-function deleteSession(sessionId) {
-  const session = sessions.get(sessionId);
-  if (!session) return;
-
-  clearSessionInterval(session);
-  sessions.delete(sessionId);
-}
-
-function clearSessionInterval(session) {
-  if (!session.interval) return;
-  clearInterval(session.interval);
-  session.interval = null;
-}
-
-function listActiveSessions() {
-  return Array.from(sessions.values())
-    .filter((session) => !isSessionExpired(session))
-    .map((session) => {
-      const remaining = getRemaining(session);
-      return {
-        id: session.id,
-        status: session.status,
-        remaining,
-        totalTime: session.totalTime,
-        pct: session.totalTime > 0 ? remaining / session.totalTime : 1,
-        createdAt: session.createdAt,
-        lastAccessAt: session.lastAccessAt,
-      };
-    })
-    .sort((left, right) => {
-      const statusRank = getStatusRank(left.status) - getStatusRank(right.status);
-      if (statusRank !== 0) {
-        return statusRank;
-      }
-
-      return right.createdAt - left.createdAt;
-    });
-}
-
-function broadcastSession(sessionId) {
-  const session = sessions.get(sessionId);
-  if (!session) return;
-
-  if (isSessionExpired(session)) {
-    deleteSession(sessionId);
-    return;
+  if (nodeEnv === "production") {
+    directives.upgradeInsecureRequests = [];
   }
 
-  const remaining = getRemaining(session);
-  const pct = session.totalTime > 0 ? remaining / session.totalTime : 1;
+  return directives;
+}
 
-  if (session.status === "running" && remaining <= 0) {
-    session.elapsed = session.totalTime;
-    session.startTime = null;
-    session.status = "finished";
-    clearSessionInterval(session);
-  }
-
-  touchSession(session);
-  io.to(sessionId).emit("timer:tick", {
-    status: session.status,
-    remaining: getRemaining(session),
-    totalTime: session.totalTime,
-    pct,
+function createLimiter(windowMs, max) {
+  return rateLimit({
+    windowMs,
+    max,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
   });
-}
-
-function emitSessionState(target, sessionId, session) {
-  touchSession(session);
-  const remaining = getRemaining(session);
-  target.emit("timer:tick", {
-    status: session.status,
-    remaining,
-    totalTime: session.totalTime,
-    pct: session.totalTime > 0 ? remaining / session.totalTime : 1,
-  });
-}
-
-function getAdminSession(socket) {
-  if (!socket.isAdmin || !isValidSessionId(socket.currentSession)) {
-    return null;
-  }
-
-  const session = sessions.get(socket.currentSession);
-  if (!session || isSessionExpired(session)) {
-    deleteSession(socket.currentSession);
-    return null;
-  }
-
-  touchSession(session);
-  return session;
-}
-
-function sanitizeTimerMs(value) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return null;
-
-  const safeValue = Math.trunc(parsed);
-  if (safeValue < 1000 || safeValue > MAX_TIMER_MS) {
-    return null;
-  }
-
-  return safeValue;
-}
-
-function isValidSessionId(value) {
-  return typeof value === "string" && SESSION_ID_PATTERN.test(value);
-}
-
-function isValidAdminToken(value) {
-  return typeof value === "string" && ADMIN_TOKEN_PATTERN.test(value);
-}
-
-function isValidRole(value) {
-  return value === "admin" || value === "viewer";
-}
-
-function getStatusRank(status) {
-  switch (status) {
-    case "running":
-      return 0;
-    case "paused":
-      return 1;
-    case "stopped":
-      return 2;
-    case "finished":
-      return 3;
-    default:
-      return 4;
-  }
-}
-
-function tokensMatch(expected, received) {
-  if (!isValidAdminToken(expected) || !isValidAdminToken(received)) {
-    return false;
-  }
-
-  const expectedBuffer = Buffer.from(expected);
-  const receivedBuffer = Buffer.from(received);
-
-  if (expectedBuffer.length !== receivedBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(expectedBuffer, receivedBuffer);
-}
-
-function isValidWebhookSignature(signature, payload) {
-  if (typeof signature !== "string" || !Buffer.isBuffer(payload)) {
-    return false;
-  }
-
-  const digest =
-    "sha256=" + crypto.createHmac("sha256", WEBHOOK_SECRET).update(payload).digest("hex");
-  return timingSafeCompareString(signature, digest);
-}
-
-function timingSafeCompareString(left, right) {
-  const leftBuffer = Buffer.from(left);
-  const rightBuffer = Buffer.from(right);
-
-  if (leftBuffer.length !== rightBuffer.length) {
-    return false;
-  }
-
-  return timingSafeEqual(leftBuffer, rightBuffer);
-}
-
-function parseWebhookPayload(payload) {
-  if (!Buffer.isBuffer(payload)) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(payload.toString("utf8"));
-  } catch {
-    return null;
-  }
-}
-
-function getBranchFromRef(ref) {
-  if (typeof ref !== "string") {
-    return null;
-  }
-
-  const parts = ref.split("/");
-  return parts.length >= 3 ? parts.slice(2).join("/") : null;
-}
-
-async function triggerDeploy(payload) {
-  try {
-    const response = await fetch(DEPLOYER_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-deployer-secret": DEPLOYER_SECRET,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      logEvent("deploy_trigger_failed", {
-        status: response.status,
-        deployerUrl: DEPLOYER_URL,
-      });
-      return false;
-    }
-
-    logEvent("deploy_triggered", {
-      deployerUrl: DEPLOYER_URL,
-      branch: payload.branch,
-    });
-    return true;
-  } catch (error) {
-    logEvent("deploy_trigger_error", {
-      message: error.message,
-      deployerUrl: DEPLOYER_URL,
-    });
-    return false;
-  }
-}
-
-function parsePositiveInt(value, fallback) {
-  const parsed = Number.parseInt(value ?? "", 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function normalizeOrigin(value) {
-  if (!value) return null;
-
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
-}
-
-function isAllowedOrigin(originHeader, requestHost) {
-  if (!originHeader) {
-    return true;
-  }
-
-  try {
-    const requestOrigin = new URL(originHeader).origin;
-
-    if (ALLOWED_ORIGIN) {
-      return requestOrigin === ALLOWED_ORIGIN;
-    }
-
-    return new URL(`http://${requestHost}`).host === new URL(requestOrigin).host;
-  } catch {
-    return false;
-  }
-}
-
-function logAccess(request, response, startedAt) {
-  const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
-  logEvent("http_access", {
-    ip: getRequestIp(request),
-    method: request.method,
-    path: request.originalUrl || request.url,
-    status: response.statusCode,
-    durationMs: durationMs.toFixed(1),
-    userAgent: request.get("user-agent") || "unknown",
-  });
-}
-
-function getRequestIp(request) {
-  return request.ip || request.socket?.remoteAddress || "unknown";
-}
-
-function logEvent(event, details) {
-  const timestamp = new Date().toISOString();
-  const serializedDetails = Object.entries(details)
-    .map(([key, value]) => `${key}=${serializeLogValue(value)}`)
-    .join(" ");
-
-  console.log(`[${timestamp}] ${event}${serializedDetails ? ` ${serializedDetails}` : ""}`);
-}
-
-function serializeLogValue(value) {
-  return String(value).replace(/\s+/g, "_");
 }

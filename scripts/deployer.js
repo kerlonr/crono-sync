@@ -2,9 +2,9 @@ const http = require("http");
 const { spawn } = require("child_process");
 
 const PORT = Number.parseInt(process.env.DEPLOYER_PORT || "8081", 10);
-const DEPLOYER_SECRET = process.env.DEPLOYER_SECRET || "";
 const DEPLOY_SCRIPT =
   process.env.WEBHOOK_DEPLOY_SCRIPT || "/app/scripts/webhook-deploy.sh";
+const MAX_BODY_BYTES = 32 * 1024;
 
 let activeProcess = null;
 
@@ -28,12 +28,6 @@ server.listen(PORT, () => {
 });
 
 function handleDeploy(request, response) {
-  if (!isAuthorized(request)) {
-    response.writeHead(401, { "content-type": "text/plain" });
-    response.end("Unauthorized");
-    return;
-  }
-
   if (activeProcess) {
     response.writeHead(202, { "content-type": "text/plain" });
     response.end("Deploy already running");
@@ -105,19 +99,19 @@ function handleDeploy(request, response) {
     });
 }
 
-function isAuthorized(request) {
-  if (!DEPLOYER_SECRET) {
-    return true;
-  }
-
-  return request.headers["x-deployer-secret"] === DEPLOYER_SECRET;
-}
-
 function readJsonBody(request) {
   return new Promise((resolve, reject) => {
     const chunks = [];
+    let totalBytes = 0;
 
     request.on("data", (chunk) => {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_BODY_BYTES) {
+        reject(new Error("Payload too large"));
+        request.destroy();
+        return;
+      }
+
       chunks.push(chunk);
     });
 

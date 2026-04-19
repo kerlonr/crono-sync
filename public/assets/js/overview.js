@@ -3,22 +3,34 @@
   const overviewEmpty = document.getElementById("overview-empty");
   const statOnline = document.getElementById("stat-online");
   const statRunning = document.getElementById("stat-running");
-  const POLL_INTERVAL_MS = 1500;
+  const POLL_INTERVAL_MS = 3000;
   let pollTimer = 0;
+  let requestInFlight = false;
 
   if (!overviewGrid || !overviewEmpty || !statOnline || !statRunning) {
     return;
   }
 
-  loadSessions();
-  pollTimer = window.setInterval(loadSessions, POLL_INTERVAL_MS);
+  startPolling();
   window.addEventListener("beforeunload", () => {
-    if (pollTimer) {
-      window.clearInterval(pollTimer);
+    stopPolling();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopPolling();
+      return;
     }
+
+    startPolling(true);
   });
 
   async function loadSessions() {
+    if (requestInFlight) {
+      return;
+    }
+
+    requestInFlight = true;
+
     try {
       const response = await fetch("/api/sessions/active", {
         method: "GET",
@@ -38,7 +50,28 @@
     } catch (error) {
       console.error(error);
       renderOverview([]);
+    } finally {
+      requestInFlight = false;
     }
+  }
+
+  function startPolling(runImmediately = true) {
+    stopPolling();
+
+    if (runImmediately) {
+      loadSessions();
+    }
+
+    pollTimer = window.setInterval(loadSessions, POLL_INTERVAL_MS);
+  }
+
+  function stopPolling() {
+    if (!pollTimer) {
+      return;
+    }
+
+    window.clearInterval(pollTimer);
+    pollTimer = 0;
   }
 
   function renderOverview(sessions) {

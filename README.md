@@ -41,6 +41,15 @@ O projeto permite:
 |           |-- admin.js
 |           |-- overview.js
 |           `-- viewer.js
+|-- scripts/
+|   |-- deployer.js
+|   `-- webhook-deploy.sh
+|-- src/
+|   |-- config.js
+|   |-- deploy-client.js
+|   |-- logger.js
+|   |-- security.js
+|   `-- sessions.js
 |-- server.js
 |-- Dockerfile
 |-- docker-compose.yml
@@ -130,8 +139,11 @@ As variaveis atuais sao:
 | `PORT` | nao | Porta HTTP da aplicacao |
 | `NODE_ENV` | nao | Ambiente de execucao |
 | `APP_ORIGIN` | recomendado | Origem permitida para conexoes e uso do app |
+| `HOST_REPO_PATH` | sim, se auto-deploy ativado | Caminho absoluto do repo no host |
 | `ENABLE_WEBHOOK` | nao | Ativa o endpoint `/webhook` |
 | `WEBHOOK_SECRET` | sim, se webhook ativado | Segredo para validar assinatura do webhook |
+| `WEBHOOK_DEPLOY_BRANCH` | nao | Branch aceito para o auto-deploy |
+| `DEPLOYER_TIMEOUT_MS` | nao | Timeout para disparar o servico de deploy |
 | `SESSION_TTL_MINUTES` | nao | Tempo de vida das sessoes em memoria |
 | `SESSION_CLEANUP_MINUTES` | nao | Intervalo de limpeza das sessoes expiradas |
 | `TRUST_PROXY` | nao | Ativa `trust proxy` no Express |
@@ -161,7 +173,7 @@ O projeto ja inclui algumas medidas de endurecimento:
 - expiracao automatica de sessoes em memoria
 - limite maximo de tempo configuravel no servidor
 - frontend sem `onclick` inline nem scripts embutidos, o que permite CSP mais forte
-- `Dockerfile` rodando com usuario nao-root
+- servico principal do app rodando como usuario nao-root no Compose
 - `docker-compose.yml` com `read_only`, `tmpfs`, `cap_drop` e `no-new-privileges`
 
 ## Limitacoes Atuais
@@ -172,7 +184,7 @@ Alguns pontos importantes para considerar antes de producao mais seria:
 - os presets ficam em `localStorage` no navegador do admin
 - nao existe banco de dados
 - nao existe painel de usuarios nem autenticacao tradicional
-- o projeto ainda esta concentrado em `server.js`, sem modularizacao do backend
+- o deploy automatico continua exigindo um sidecar com acesso ao Docker socket do host
 
 ## Boas Praticas para Este Repo
 
@@ -184,7 +196,6 @@ Alguns pontos importantes para considerar antes de producao mais seria:
 
 ## Proximos Passos Recomendados
 
-- modularizar o backend em `src/`
 - mover sessao para Redis ou banco
 - adicionar testes para regras de sessao e sockets
 - criar pipeline de deploy fora da aplicacao
