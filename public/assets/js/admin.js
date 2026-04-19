@@ -46,7 +46,7 @@
     drawerOverlay: document.getElementById("drawer-overlay"),
     drawer: document.getElementById("drawer"),
     closeDrawer: document.getElementById("btn-close-drawer"),
-    viewerLinks: document.querySelectorAll(".viewer-link-d a, .viewer-link-m a"),
+    viewerLinks: document.querySelectorAll(".viewer-direct-link"),
     desktopInputH: document.getElementById("d-input-h"),
     desktopInputM: document.getElementById("d-input-m"),
     desktopInputS: document.getElementById("d-input-s"),

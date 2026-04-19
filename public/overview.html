@@ -23,24 +23,36 @@
       </div>
     </header>
 
-    <section class="overview-stats" aria-label="Resumo">
-      <article class="stat-card">
-        <span class="stat-label">Online</span>
-        <strong class="stat-value" id="stat-online">0</strong>
-      </article>
-      <article class="stat-card">
-        <span class="stat-label">Rodando</span>
-        <strong class="stat-value" id="stat-running">0</strong>
-      </article>
-    </section>
+    <section class="overview-board">
+      <section class="overview-stats" aria-label="Resumo">
+        <article class="stat-card">
+          <span class="stat-label">Online</span>
+          <strong class="stat-value" id="stat-online">0</strong>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Rodando</span>
+          <strong class="stat-value" id="stat-running">0</strong>
+        </article>
+      </section>
 
-    <section class="overview-grid" id="overview-grid" aria-live="polite"></section>
+      <section class="overview-grid-shell">
+        <div class="overview-grid-head">
+          <div>
+            <span class="grid-kicker">Painel Global</span>
+            <h2>Sessões em tempo real</h2>
+          </div>
+          <p>Abra qualquer card em modo viewer para acompanhar o cronômetro sem acesso de administração.</p>
+        </div>
 
-    <section class="overview-empty" id="overview-empty">
-      <div class="empty-badge">Sem cronômetros online</div>
-      <h2>Nenhum cronômetro online agora.</h2>
-      <p>Quando uma nova sessão for criada no servidor, ela vai aparecer aqui automaticamente.</p>
-      <a class="hero-link" href="/">Criar cronômetro</a>
+        <section class="overview-grid" id="overview-grid" aria-live="polite"></section>
+      </section>
+
+      <section class="overview-empty" id="overview-empty">
+        <div class="empty-badge">Sem cronômetros online</div>
+        <h2>Nenhum cronômetro online agora.</h2>
+        <p>Quando uma nova sessão for criada no servidor, ela vai aparecer aqui automaticamente.</p>
+        <a class="hero-link" href="/">Criar cronômetro</a>
+      </section>
     </section>
   </main>
 
