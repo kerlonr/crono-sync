@@ -31,7 +31,7 @@ body {
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   min-height: 100dvh;
   display: flex;
   align-items: center;
@@ -46,12 +46,20 @@ body.message-mode {
 }
 
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0, 245, 160, 0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 50% at 80% 20%, rgba(0, 201, 255, 0.05) 0%, transparent 70%);
+    radial-gradient(
+      ellipse 60% 40% at 20% 80%,
+      rgba(0, 245, 160, 0.06) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 50% at 80% 20%,
+      rgba(0, 201, 255, 0.05) 0%,
+      transparent 70%
+    );
   pointer-events: none;
 }
 
@@ -67,7 +75,7 @@ body::before {
   background: rgba(19, 19, 28, 0.92);
   color: var(--danger);
   text-align: center;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 16px;
   line-height: 1.6;
   padding: 28px 24px;
@@ -137,12 +145,14 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 16px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
   white-space: nowrap;
   max-width: 100%;
   overflow: hidden;
@@ -202,7 +212,9 @@ body::before {
   cursor: pointer;
   font-size: 16px;
   color: var(--muted);
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .btn-close-settings:hover {
@@ -257,7 +269,7 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 8px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 22px;
   color: var(--text);
   outline: none;
@@ -270,7 +282,7 @@ body::before {
 }
 
 .time-sep {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 24px;
   color: var(--muted);
   margin-top: 14px;
@@ -289,7 +301,7 @@ body::before {
   border: none;
   border-radius: 8px;
   padding: 10px 20px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.15em;
@@ -331,7 +343,11 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.22) 100%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(10, 10, 15, 0.22) 100%
+    ),
     var(--bg);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -341,19 +357,30 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(6, 6, 8, 0.18) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(6, 6, 8, 0.18) 100%
+  );
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 14px;
   padding: 12px 14px;
   min-width: 0;
   overflow: hidden;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .preset-manage-row:hover {
   transform: translateY(-1px);
   border-color: rgba(0, 201, 255, 0.18);
-  background: linear-gradient(180deg, rgba(0, 201, 255, 0.06) 0%, rgba(6, 6, 8, 0.18) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 201, 255, 0.06) 0%,
+    rgba(6, 6, 8, 0.18) 100%
+  );
 }
 
 .preset-manage-info {
@@ -370,7 +397,7 @@ body::before {
 }
 
 .preset-manage-time {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 11px;
   color: var(--muted);
   margin-top: 6px;
@@ -385,7 +412,10 @@ body::before {
   font-size: 14px;
   cursor: pointer;
   padding: 8px 10px;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
   flex: 0 0 auto;
 }
 
@@ -418,11 +448,14 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 13px 14px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 13px;
   color: var(--text);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
 }
 
 .add-preset-row input:focus {
@@ -462,17 +495,24 @@ body::before {
 
 .btn-add-preset {
   appearance: none;
-  background: linear-gradient(135deg, rgba(0, 201, 255, 0.16) 0%, rgba(0, 245, 160, 0.14) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.16) 0%,
+    rgba(0, 245, 160, 0.14) 100%
+  );
   border: 1px solid rgba(0, 201, 255, 0.22);
   border-radius: 12px;
   padding: 12px 16px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--accent2);
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
   flex: 0 0 auto;
   min-height: 48px;
 }
@@ -480,7 +520,11 @@ body::before {
 .btn-add-preset:hover {
   transform: translateY(-1px);
   border-color: rgba(0, 245, 160, 0.26);
-  background: linear-gradient(135deg, rgba(0, 201, 255, 0.24) 0%, rgba(0, 245, 160, 0.18) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.24) 0%,
+    rgba(0, 245, 160, 0.18) 100%
+  );
 }
 
 .presets-empty {
@@ -490,10 +534,12 @@ body::before {
 }
 
 .timer-display {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   letter-spacing: 0.05em;
   color: var(--text);
-  transition: color 0.3s, text-shadow 0.3s;
+  transition:
+    color 0.3s,
+    text-shadow 0.3s;
   user-select: none;
 }
 
@@ -518,7 +564,6 @@ body::before {
 }
 
 @keyframes timerBlink {
-
   0%,
   100% {
     opacity: 1;
@@ -544,7 +589,9 @@ body::before {
 .progress-fill {
   height: 100%;
   border-radius: 3px;
-  transition: width 0.1s linear, background 0.5s;
+  transition:
+    width 0.1s linear,
+    background 0.5s;
   background: var(--accent);
 }
 
@@ -583,7 +630,6 @@ body::before {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -604,7 +650,7 @@ body::before {
 
 .btn-d {
   appearance: none;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.2em;
@@ -613,7 +659,9 @@ body::before {
   border-radius: 10px;
   padding: 16px 36px;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition:
+    opacity 0.2s,
+    transform 0.1s;
 }
 
 .btn-d:active {
@@ -680,7 +728,7 @@ body::before {
 .overview-link-inline a {
   color: var(--accent2);
   text-decoration: none;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
 }
 
 .viewer-link-d a:hover,
@@ -700,14 +748,21 @@ body::before {
   padding: 0 16px;
   border-radius: 12px;
   border: 1px solid rgba(0, 201, 255, 0.22);
-  background: linear-gradient(135deg, rgba(0, 201, 255, 0.14) 0%, rgba(0, 245, 160, 0.12) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.14) 0%,
+    rgba(0, 245, 160, 0.12) 100%
+  );
   color: var(--accent2);
   text-decoration: none;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .overview-btn-inline:hover {
@@ -725,7 +780,7 @@ body::before {
   animation: fadeIn 0.35s ease;
 }
 
-.admin-links-bar {
+css.admin-links-bar {
   width: min(100%, 660px);
   margin: 0 auto;
   padding: 0 24px 32px;
@@ -734,6 +789,48 @@ body::before {
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.viewer-direct-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 28px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 245, 160, 0.25);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 245, 160, 0.1) 0%,
+    rgba(0, 201, 255, 0.08) 100%
+  );
+  color: var(--accent);
+  font-family: "Barlow", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.viewer-direct-link::before {
+  content: "⬡";
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.viewer-direct-link:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 245, 160, 0.45);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 245, 160, 0.18) 0%,
+    rgba(0, 201, 255, 0.14) 100%
+  );
 }
 
 .admin-link-pill {
@@ -747,11 +844,14 @@ body::before {
   background: rgba(255, 255, 255, 0.03);
   color: var(--accent2);
   text-decoration: none;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .admin-link-pill:hover {
@@ -837,7 +937,7 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px 20px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 15px;
   font-weight: 700;
   color: var(--text);
@@ -875,7 +975,7 @@ body::before {
 
 .btn-m {
   appearance: none;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 15px;
   font-weight: 900;
   letter-spacing: 0.15em;
@@ -887,7 +987,9 @@ body::before {
   flex: 1;
   text-align: center;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.15s, transform 0.1s;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
 }
 
 .btn-m:active {
@@ -932,7 +1034,7 @@ body::before {
 .viewer-link-m .overview-link-inline a {
   color: var(--accent2);
   text-decoration: none;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
 }
 
 .drawer-overlay {
@@ -1009,7 +1111,9 @@ body::before {
   font-size: 18px;
   color: var(--muted);
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .btn-close-drawer:active {
@@ -1058,7 +1162,7 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px 8px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 26px;
   color: var(--text);
   outline: none;
@@ -1072,7 +1176,7 @@ body::before {
 }
 
 .time-sep-m {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 26px;
   color: var(--muted);
   margin-top: 18px;
@@ -1091,7 +1195,7 @@ body::before {
   border: none;
   border-radius: 10px;
   padding: 13px 22px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.15em;
@@ -1118,7 +1222,11 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.22) 100%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(10, 10, 15, 0.22) 100%
+    ),
     var(--bg);
 }
 
@@ -1127,7 +1235,11 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(6, 6, 8, 0.18) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(6, 6, 8, 0.18) 100%
+  );
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 14px;
   padding: 14px 16px;
@@ -1149,7 +1261,7 @@ body::before {
 }
 
 .preset-row-time {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   font-size: 12px;
   color: var(--muted);
   margin-top: 4px;
@@ -1166,7 +1278,10 @@ body::before {
   padding: 8px 10px;
   -webkit-tap-highlight-color: transparent;
   flex: 0 0 auto;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .preset-row-del:active {
@@ -1195,7 +1310,7 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 13px 14px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 14px;
   color: var(--text);
   outline: none;
@@ -1209,11 +1324,15 @@ body::before {
 
 .btn-add-m {
   appearance: none;
-  background: linear-gradient(135deg, rgba(0, 201, 255, 0.16) 0%, rgba(0, 245, 160, 0.14) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.16) 0%,
+    rgba(0, 245, 160, 0.14) 100%
+  );
   border: 1px solid rgba(0, 201, 255, 0.22);
   border-radius: 12px;
   padding: 13px 16px;
-  font-family: 'Barlow', sans-serif;
+  font-family: "Barlow", sans-serif;
   font-size: 13px;
   font-weight: 700;
   color: var(--accent2);
@@ -1225,7 +1344,11 @@ body::before {
 }
 
 .btn-add-m:active {
-  background: linear-gradient(135deg, rgba(0, 201, 255, 0.24) 0%, rgba(0, 245, 160, 0.18) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.24) 0%,
+    rgba(0, 245, 160, 0.18) 100%
+  );
 }
 
 .modal-overlay {
@@ -1247,8 +1370,16 @@ body::before {
 
 .modal {
   background:
-    radial-gradient(circle at top right, rgba(0, 201, 255, 0.08), transparent 30%),
-    linear-gradient(180deg, rgba(22, 22, 30, 0.98) 0%, rgba(12, 12, 18, 0.98) 100%);
+    radial-gradient(
+      circle at top right,
+      rgba(0, 201, 255, 0.08),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(22, 22, 30, 0.98) 0%,
+      rgba(12, 12, 18, 0.98) 100%
+    );
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 28px;
   width: 100%;
@@ -1281,7 +1412,11 @@ body::before {
   justify-content: space-between;
   padding: 24px 28px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
 .modal-title {
@@ -1305,7 +1440,9 @@ body::before {
   cursor: pointer;
   font-size: 18px;
   color: var(--muted);
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .btn-close-modal:hover {
@@ -1332,7 +1469,11 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.18) 100%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(10, 10, 15, 0.18) 100%
+    ),
     rgba(19, 19, 28, 0.86);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   overflow: hidden;
@@ -1345,8 +1486,16 @@ body::before {
 
 .modal-col-manage {
   background:
-    radial-gradient(circle at top right, rgba(0, 201, 255, 0.08), transparent 40%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.18) 100%),
+    radial-gradient(
+      circle at top right,
+      rgba(0, 201, 255, 0.08),
+      transparent 40%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(10, 10, 15, 0.18) 100%
+    ),
     rgba(19, 19, 28, 0.9);
   min-width: 0;
   width: 100%;
