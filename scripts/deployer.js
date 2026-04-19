@@ -1,5 +1,6 @@
 const http = require("http");
 const { spawn } = require("child_process");
+const { logEvent } = require("../src/logger");
 
 const PORT = Number.parseInt(process.env.DEPLOYER_PORT || "8081", 10);
 const DEPLOY_SCRIPT =
@@ -129,12 +130,5 @@ function readJsonBody(request) {
 }
 
 function log(event, details) {
-  const timestamp = new Date().toISOString();
-  const serializedDetails = Object.entries(details)
-    .map(([key, value]) => `${key}=${String(value).replace(/\s+/g, "_")}`)
-    .join(" ");
-
-  console.log(
-    `[${timestamp}] ${event}${serializedDetails ? ` ${serializedDetails}` : ""}`,
-  );
+  logEvent(event, details);
 }

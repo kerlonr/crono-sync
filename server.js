@@ -7,7 +7,7 @@ const { Server } = require("socket.io");
 
 const config = require("./src/config");
 const { triggerDeploy } = require("./src/deploy-client");
-const { getRequestIp, logAccess, logEvent } = require("./src/logger");
+const { formatTimerMs, getRequestIp, logAccess, logEvent } = require("./src/logger");
 const {
   getBranchFromRef,
   isAllowedOrigin,
@@ -173,6 +173,7 @@ app.post("/api/session/new", createSessionLimiter, (request, response) => {
   const session = sessionStore.createSession();
   logEvent("session_created", {
     sessionId: session.id,
+    totalTime: formatTimerMs(session.totalTime),
     ip: getRequestIp(request),
     userAgent: request.get("user-agent") || "unknown",
   });
@@ -204,6 +205,11 @@ io.on("connection", (socket) => {
     const adminToken = typeof tokenOrCallback === "string" ? tokenOrCallback : null;
 
     if (!sessionStore.isValidSessionId(sessionId) || !sessionStore.isValidRole(role)) {
+      logEvent("session_join_denied", buildSocketLogDetails(socket, {
+        sessionId: normalizeSessionId(sessionId),
+        role: normalizeRole(role),
+        reason: "invalid_request",
+      }));
       if (callback) callback({ success: false, reason: "invalid_request" });
       return;
     }
@@ -211,6 +217,11 @@ io.on("connection", (socket) => {
     const currentSession = sessionStore.getSession(sessionId);
     if (!currentSession) {
       sessionStore.deleteSession(sessionId);
+      logEvent("session_join_denied", buildSocketLogDetails(socket, {
+        sessionId,
+        role,
+        reason: "not_found",
+      }));
       if (callback) callback({ success: false, reason: "not_found" });
       return;
     }
@@ -224,6 +235,11 @@ io.on("connection", (socket) => {
         sessionStore.isValidAdminToken,
       )
     ) {
+      logEvent("session_join_denied", buildSocketLogDetails(socket, {
+        sessionId,
+        role,
+        reason: "unauthorized",
+      }));
       if (callback) callback({ success: false, reason: "unauthorized" });
       return;
     }
@@ -238,6 +254,13 @@ io.on("connection", (socket) => {
     socket.isAdmin = wantsAdmin;
 
     sessionStore.emitSessionState(socket, currentSession);
+    logEvent("session_joined", buildSocketLogDetails(socket, {
+      sessionId,
+      role,
+      status: currentSession.status,
+      remaining: formatTimerMs(sessionStore.getRemaining(currentSession)),
+      userAgent: getSocketUserAgent(socket),
+    }));
 
     if (callback) callback({ success: true });
   });
@@ -252,6 +275,11 @@ io.on("connection", (socket) => {
     session.startTime = null;
     session.status = "stopped";
     sessionStore.broadcastSession(socket.currentSession);
+    logEvent("timer_updated", buildSocketLogDetails(socket, {
+      sessionId: socket.currentSession,
+      totalTime: formatTimerMs(session.totalTime),
+      remaining: formatTimerMs(sessionStore.getRemaining(session)),
+    }));
   });
 
   socket.on("timer:start", () => {
@@ -268,6 +296,11 @@ io.on("connection", (socket) => {
     }
 
     sessionStore.broadcastSession(socket.currentSession);
+    logEvent("timer_started", buildSocketLogDetails(socket, {
+      sessionId: socket.currentSession,
+      totalTime: formatTimerMs(session.totalTime),
+      remaining: formatTimerMs(sessionStore.getRemaining(session)),
+    }));
   });
 
   socket.on("timer:pause", () => {
@@ -279,6 +312,11 @@ io.on("connection", (socket) => {
     session.status = "paused";
     sessionStore.clearSessionInterval(session);
     sessionStore.broadcastSession(socket.currentSession);
+    logEvent("timer_paused", buildSocketLogDetails(socket, {
+      sessionId: socket.currentSession,
+      totalTime: formatTimerMs(session.totalTime),
+      remaining: formatTimerMs(sessionStore.getRemaining(session)),
+    }));
   });
 
   socket.on("timer:reset", () => {
@@ -290,13 +328,21 @@ io.on("connection", (socket) => {
     session.status = "stopped";
     sessionStore.clearSessionInterval(session);
     sessionStore.broadcastSession(socket.currentSession);
+    logEvent("timer_reset", buildSocketLogDetails(socket, {
+      sessionId: socket.currentSession,
+      totalTime: formatTimerMs(session.totalTime),
+      remaining: formatTimerMs(sessionStore.getRemaining(session)),
+    }));
   });
 });
 
 setInterval(sessionStore.cleanupExpiredSessions, config.SESSION_CLEANUP_MS).unref();
 
 server.listen(config.PORT, () => {
-  console.log(`Servidor em http://localhost:${config.PORT}`);
+  logEvent("server_started", {
+    port: config.PORT,
+    url: `http://localhost:${config.PORT}`,
+  });
 });
 
 function buildCspDirectives(nodeEnv) {
@@ -327,4 +373,24 @@ function createLimiter(windowMs, max) {
     standardHeaders: "draft-7",
     legacyHeaders: false,
   });
+}
+
+function buildSocketLogDetails(socket, extra = {}) {
+  return {
+    socketId: socket.id,
+    ip: getRequestIp(socket.request),
+    ...extra,
+  };
+}
+
+function getSocketUserAgent(socket) {
+  return socket.request?.headers?.["user-agent"] || "unknown";
+}
+
+function normalizeSessionId(value) {
+  return typeof value === "string" && value ? value : "unknown";
+}
+
+function normalizeRole(value) {
+  return value === "admin" || value === "viewer" ? value : "unknown";
 }
