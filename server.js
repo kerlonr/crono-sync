@@ -136,8 +136,9 @@ app.use(
   "/assets",
   express.static(path.join(config.PUBLIC_DIR, "assets"), {
     fallthrough: false,
-    immutable: true,
-    maxAge: "7d",
+    etag: true,
+    immutable: false,
+    maxAge: 0,
   }),
 );
 
