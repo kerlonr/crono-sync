@@ -739,7 +739,8 @@ body::before {
   flex-wrap: wrap;
 }
 
-.settings-link {
+.settings-link,
+.viewer-direct-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -753,6 +754,7 @@ body::before {
     rgba(0, 245, 160, 0.12) 100%
   );
   color: var(--accent2);
+  font-family: "Barlow", sans-serif;
   text-decoration: none;
   font-size: 11px;
   font-weight: 800;
@@ -762,10 +764,14 @@ body::before {
     transform 0.18s ease,
     border-color 0.18s ease,
     color 0.18s ease;
+}
+
+.settings-link {
   align-self: flex-start;
 }
 
-.settings-link:hover {
+.settings-link:hover,
+.viewer-direct-link:hover {
   transform: translateY(-1px);
   border-color: rgba(0, 245, 160, 0.28);
   color: var(--accent);
@@ -783,48 +789,6 @@ body::before {
   width: 100%;
   min-height: 100dvh;
   animation: fadeIn 0.35s ease;
-}
-
-.viewer-direct-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 0 28px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 245, 160, 0.25);
-  background: linear-gradient(
-    135deg,
-    rgba(0, 245, 160, 0.1) 0%,
-    rgba(0, 201, 255, 0.08) 100%
-  );
-  color: var(--accent);
-  font-family: "Barlow", sans-serif;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background 0.18s ease;
-}
-
-.viewer-direct-link::before {
-  content: "⬡";
-  font-size: 16px;
-  opacity: 0.7;
-}
-
-.viewer-direct-link:hover {
-  transform: translateY(-2px);
-  border-color: rgba(0, 245, 160, 0.45);
-  background: linear-gradient(
-    135deg,
-    rgba(0, 245, 160, 0.18) 0%,
-    rgba(0, 201, 255, 0.14) 100%
-  );
 }
 
 .topbar {
