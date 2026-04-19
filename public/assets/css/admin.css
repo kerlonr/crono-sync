@@ -730,6 +730,7 @@ body::before {
   border-color: var(--accent);
 }
 
+.viewer-link-d,
 .viewer-link-m {
   display: flex;
   align-items: center;
