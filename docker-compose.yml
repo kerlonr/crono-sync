@@ -4,14 +4,23 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     restart: unless-stopped
+    working_dir: /app
     env_file:
       - .env
     environment:
       NODE_ENV: production
+      HOME: /tmp
+      DOCKER_CONFIG: /tmp/.docker
+      HOST_REPO_PATH: ${HOST_REPO_PATH}
+      WEBHOOK_REPO_DIR: ${HOST_REPO_PATH}
+      WEBHOOK_COMPOSE_FILE: ${HOST_REPO_PATH}/docker-compose.yml
     init: true
     read_only: true
     tmpfs:
       - /tmp
+    volumes:
+      - ${HOST_REPO_PATH}:${HOST_REPO_PATH}
+      - /var/run/docker.sock:/var/run/docker.sock
     cap_drop:
       - ALL
     security_opt:

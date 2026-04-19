@@ -5,11 +5,15 @@ const http = require("http");
 const rateLimit = require("express-rate-limit");
 const { Server } = require("socket.io");
 const path = require("path");
+const { spawn } = require("child_process");
 const { randomBytes, timingSafeEqual } = require("crypto");
 
 const PORT = parsePositiveInt(process.env.PORT, 3000);
 const ENABLE_WEBHOOK = process.env.ENABLE_WEBHOOK === "true";
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
+const WEBHOOK_DEPLOY_BRANCH = process.env.WEBHOOK_DEPLOY_BRANCH || "main";
+const WEBHOOK_DEPLOY_SCRIPT =
+  process.env.WEBHOOK_DEPLOY_SCRIPT || path.join(__dirname, "scripts", "webhook-deploy.sh");
 const SESSION_TTL_MS = parsePositiveInt(process.env.SESSION_TTL_MINUTES, 180) * 60 * 1000;
 const SESSION_CLEANUP_MS =
   parsePositiveInt(process.env.SESSION_CLEANUP_MINUTES, 5) * 60 * 1000;
@@ -35,6 +39,7 @@ const io = new Server(server, {
 
 const publicDir = path.join(__dirname, "public");
 const sessions = new Map();
+let webhookDeployProcess = null;
 const cspDirectives = {
   defaultSrc: ["'self'"],
   scriptSrc: ["'self'"],
@@ -107,7 +112,6 @@ const webhookLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-app.use(express.json({ limit: "16kb" }));
 
 app.post(
   "/webhook",
@@ -128,10 +132,37 @@ app.post(
       return response.status(202).send("Ignored");
     }
 
-    console.log("Webhook validado com sucesso.");
+    const payload = parseWebhookPayload(request.body);
+    if (!payload) {
+      return response.status(400).send("Invalid payload");
+    }
+
+    const pushedBranch = getBranchFromRef(payload.ref);
+    if (!pushedBranch || pushedBranch !== WEBHOOK_DEPLOY_BRANCH) {
+      logEvent("webhook_ignored", {
+        branch: pushedBranch || "unknown",
+        expectedBranch: WEBHOOK_DEPLOY_BRANCH,
+      });
+      return response.status(202).send("Ignored");
+    }
+
+    if (webhookDeployProcess) {
+      logEvent("webhook_busy", {
+        branch: pushedBranch,
+      });
+      return response.status(202).send("Deploy already running");
+    }
+
+    logEvent("webhook_accepted", {
+      branch: pushedBranch,
+      repository: payload.repository?.full_name || "unknown",
+    });
+    startWebhookDeploy(pushedBranch);
     return response.status(202).send("Accepted");
   }
 );
+
+app.use(express.json({ limit: "16kb" }));
 
 app.use(
   "/assets",
@@ -500,6 +531,77 @@ function timingSafeCompareString(left, right) {
   }
 
   return timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function parseWebhookPayload(payload) {
+  if (!Buffer.isBuffer(payload)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(payload.toString("utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function getBranchFromRef(ref) {
+  if (typeof ref !== "string") {
+    return null;
+  }
+
+  const parts = ref.split("/");
+  return parts.length >= 3 ? parts.slice(2).join("/") : null;
+}
+
+function startWebhookDeploy(branch) {
+  const env = {
+    ...process.env,
+    WEBHOOK_DEPLOY_BRANCH: branch,
+  };
+
+  webhookDeployProcess = spawn("/bin/sh", [WEBHOOK_DEPLOY_SCRIPT], {
+    cwd: __dirname,
+    env,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  logEvent("deploy_started", {
+    branch,
+    script: WEBHOOK_DEPLOY_SCRIPT,
+    pid: webhookDeployProcess.pid || "unknown",
+  });
+
+  webhookDeployProcess.stdout.on("data", (chunk) => {
+    for (const line of chunk.toString("utf8").split(/\r?\n/)) {
+      if (line.trim()) {
+        logEvent("deploy_stdout", { line: line.trim() });
+      }
+    }
+  });
+
+  webhookDeployProcess.stderr.on("data", (chunk) => {
+    for (const line of chunk.toString("utf8").split(/\r?\n/)) {
+      if (line.trim()) {
+        logEvent("deploy_stderr", { line: line.trim() });
+      }
+    }
+  });
+
+  webhookDeployProcess.on("close", (code, signal) => {
+    logEvent("deploy_finished", {
+      code: code ?? "null",
+      signal: signal || "none",
+    });
+    webhookDeployProcess = null;
+  });
+
+  webhookDeployProcess.on("error", (error) => {
+    logEvent("deploy_error", {
+      message: error.message,
+    });
+    webhookDeployProcess = null;
+  });
 }
 
 function parsePositiveInt(value, fallback) {
