@@ -692,6 +692,30 @@ body::before {
   color: var(--muted);
 }
 
+.overview-btn-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 201, 255, 0.22);
+  background: linear-gradient(135deg, rgba(0, 201, 255, 0.14) 0%, rgba(0, 245, 160, 0.12) 100%);
+  color: var(--accent2);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.overview-btn-inline:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 245, 160, 0.28);
+  color: var(--accent);
+}
+
 .mobile-layout {
   display: none;
   flex-direction: column;
