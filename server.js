@@ -144,13 +144,6 @@ app.post(
       return response.status(202).send("Ignored");
     }
 
-    if (webhookDeployProcess) {
-      logEvent("webhook_busy", {
-        branch: pushedBranch,
-      });
-      return response.status(202).send("Deploy already running");
-    }
-
     logEvent("webhook_accepted", {
       branch: pushedBranch,
       repository: payload.repository?.full_name || "unknown",
