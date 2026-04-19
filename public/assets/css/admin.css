@@ -294,6 +294,21 @@ body::before {
   flex-wrap: wrap;
 }
 
+.settings-shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.settings-shortcuts-copy {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(233, 233, 238, 0.72);
+}
+
 .btn-set {
   appearance: none;
   background: var(--accent);
@@ -715,7 +730,6 @@ body::before {
   border-color: var(--accent);
 }
 
-.viewer-link-d,
 .viewer-link-m {
   display: flex;
   align-items: center;
@@ -724,7 +738,7 @@ body::before {
   flex-wrap: wrap;
 }
 
-.overview-btn-inline {
+.settings-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -747,12 +761,18 @@ body::before {
     transform 0.18s ease,
     border-color 0.18s ease,
     color 0.18s ease;
+  align-self: flex-start;
 }
 
-.overview-btn-inline:hover {
+.settings-link:hover {
   transform: translateY(-1px);
   border-color: rgba(0, 245, 160, 0.28);
   color: var(--accent);
+}
+
+.settings-link.mobile {
+  width: 100%;
+  min-height: 48px;
 }
 
 .mobile-layout {
