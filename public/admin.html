@@ -109,6 +109,7 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      flex: 1;
     }
 
     .preset-chip-d {
@@ -476,6 +477,8 @@
       display: flex;
       gap: 14px;
       align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .btn-d {
@@ -521,7 +524,8 @@
       background: rgba(255, 62, 62, 0.05);
     }
 
-    .btn-gear-d {
+    /* Botão ícone (gear, fullscreen) desktop */
+    .btn-icon-d {
       width: 44px;
       height: 44px;
       border-radius: 10px;
@@ -533,9 +537,10 @@
       cursor: pointer;
       font-size: 18px;
       transition: border-color 0.2s;
+      flex-shrink: 0;
     }
 
-    .btn-gear-d:hover {
+    .btn-icon-d:hover {
       border-color: var(--accent);
     }
 
@@ -587,7 +592,13 @@
       color: var(--accent);
     }
 
-    .btn-gear-m {
+    .topbar-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-icon-m {
       width: 42px;
       height: 42px;
       border-radius: 12px;
@@ -602,7 +613,7 @@
       transition: border-color 0.2s;
     }
 
-    .btn-gear-m:active {
+    .btn-icon-m:active {
       border-color: var(--accent);
     }
 
@@ -622,7 +633,7 @@
       display: flex;
       gap: 10px;
       overflow-x: auto;
-      padding-bottom: 2px;
+      padding-bottom: 4px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
@@ -949,6 +960,7 @@
 
     .add-preset-row-m input {
       flex: 1;
+      min-width: 0;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -1080,6 +1092,13 @@
       }
     }
 
+    /* ── FULLSCREEN ── */
+    :fullscreen body,
+    :-webkit-full-screen body,
+    :-moz-full-screen body {
+      background: var(--bg);
+    }
+
     /* ── RESPONSIVE SWITCH ── */
     @media (min-width: 768px) {
       .desktop-layout {
@@ -1125,18 +1144,19 @@
     <div class="desktop-layout" id="desktop-layout">
       <span class="badge">● Admin Control</span>
 
-      <!-- Presets bar + gear -->
+      <!-- Presets bar + gear + fullscreen -->
       <div class="desktop-presets-bar">
         <span class="desktop-presets-label">Presets</span>
         <div class="desktop-presets-chips" id="desktop-presets-chips">
           <span class="presets-empty-d">Adicione nas configurações ⚙</span>
         </div>
-        <div style="margin-left:auto">
-          <div class="btn-gear-d" onclick="openModal()" title="Configurações">⚙️</div>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <div class="btn-icon-d" onclick="toggleFullscreen()" title="Tela cheia" id="btn-fs-d">⛶</div>
+          <div class="btn-icon-d" onclick="openModal()" title="Configurações">⚙️</div>
         </div>
       </div>
 
-      <!-- Settings panel inline (desktop) -->
+      <!-- Settings modal (desktop) -->
       <div class="modal-overlay" id="modal-overlay" onclick="handleModalOverlayClick(event)">
         <div class="modal" id="modal">
           <div class="modal-header">
@@ -1188,8 +1208,6 @@
         <span id="d-status-text">PARADO</span>
       </div>
       <div class="controls-d">
-        <div class="btn-gear-d" onclick="openModal()" title="Configurações" style="display:none" id="d-gear-inline">⚙️
-        </div>
         <button class="btn-d btn-start-d" id="d-btn-start" onclick="timerStart()">▶ Start</button>
         <button class="btn-d btn-pause-d" id="d-btn-pause" onclick="timerPause()" disabled>⏸ Pause</button>
         <button class="btn-d btn-reset-d" onclick="timerReset()">↺ Reset</button>
@@ -1203,7 +1221,10 @@
     <div class="mobile-layout" id="mobile-layout">
       <div class="topbar">
         <div class="topbar-title">● Pitch Timer</div>
-        <div class="btn-gear-m" onclick="openDrawer()">⚙️</div>
+        <div class="topbar-actions">
+          <div class="btn-icon-m" onclick="toggleFullscreen()" title="Tela cheia" id="btn-fs-m">⛶</div>
+          <div class="btn-icon-m" onclick="openDrawer()">⚙️</div>
+        </div>
       </div>
       <div class="mobile-main">
         <div class="presets-scroll-m" id="m-presets-scroll">
@@ -1274,7 +1295,10 @@
 
   <script>
     const socket = io();
-    const sessionId = window.location.pathname.split('/').pop(); // pega "abc123" de /admin/abc123
+    const sessionId = window.location.pathname.split('/').pop();
+
+    // ── PRESETS KEY — CORRIGIDO ──────────────────────────────
+    const PRESETS_KEY = 'crono_sw_presets_' + sessionId;
 
     socket.emit('session:join', sessionId, 'admin', (res) => {
       if (!res.success) {
@@ -1282,11 +1306,28 @@
         return;
       }
       document.getElementById('admin-panel').style.display = 'block';
-      // Atualiza o link do viewer
       const viewerUrl = `/view/${sessionId}`;
       document.querySelectorAll('.viewer-link-d a, .viewer-link-m a')
         .forEach(a => { a.href = viewerUrl; a.textContent = window.location.origin + viewerUrl; });
       renderAll();
+    });
+
+    // ── FULLSCREEN ───────────────────────────────────────────
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => { });
+      } else {
+        document.exitFullscreen().catch(() => { });
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const isFs = !!document.fullscreenElement;
+      const icon = isFs ? '✕' : '⛶';
+      const btnD = document.getElementById('btn-fs-d');
+      const btnM = document.getElementById('btn-fs-m');
+      if (btnD) btnD.textContent = icon;
+      if (btnM) btnM.textContent = icon;
     });
 
     // ── Presets storage ──────────────────────────────────────
@@ -1305,7 +1346,6 @@
     }
 
     function applyPreset(secs) {
-      // Sync inputs on both layouts
       ['d-input-h', 'm-input-h'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.floor(secs / 3600); });
       ['d-input-m', 'm-input-m'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.floor((secs % 3600) / 60); });
       ['d-input-s', 'm-input-s'].forEach(id => { const el = document.getElementById(id); if (el) el.value = secs % 60; });
@@ -1480,13 +1520,11 @@
       const cls = 'timer-display ' + ((status === 'running' || status === 'paused') ? phase : 'green');
       const barColor = pct <= 0.20 ? '#ff3e3e' : pct <= 0.40 ? '#ffb800' : '#00f5a0';
 
-      // Desktop
       const dt = document.getElementById('d-timer');
       if (dt) { dt.textContent = time; dt.className = cls + ' timer-display-d'; }
       const dp = document.getElementById('d-progress');
       if (dp) { dp.style.width = (pct * 100) + '%'; dp.style.background = barColor; }
 
-      // Mobile
       const mt = document.getElementById('m-timer');
       if (mt) { mt.textContent = time; mt.className = cls + ' timer-display-m'; }
       const mp = document.getElementById('m-progress');
