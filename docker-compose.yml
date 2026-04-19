@@ -9,11 +9,32 @@ services:
       - .env
     environment:
       NODE_ENV: production
+      DEPLOYER_URL: http://deployer:8081/deploy
+      DEPLOYER_SECRET: ${DEPLOYER_SECRET}
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+  deployer:
+    build: .
+    command: ["node", "scripts/deployer.js"]
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
       HOME: /tmp
       DOCKER_CONFIG: /tmp/.docker
       HOST_REPO_PATH: ${HOST_REPO_PATH}
       WEBHOOK_REPO_DIR: ${HOST_REPO_PATH}
       WEBHOOK_COMPOSE_FILE: ${HOST_REPO_PATH}/docker-compose.yml
+      WEBHOOK_DEPLOY_SERVICE: cronometro
+      DEPLOYER_SECRET: ${DEPLOYER_SECRET}
     init: true
     read_only: true
     tmpfs:

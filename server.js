@@ -5,15 +5,14 @@ const http = require("http");
 const rateLimit = require("express-rate-limit");
 const { Server } = require("socket.io");
 const path = require("path");
-const { spawn } = require("child_process");
 const { randomBytes, timingSafeEqual } = require("crypto");
 
 const PORT = parsePositiveInt(process.env.PORT, 3000);
 const ENABLE_WEBHOOK = process.env.ENABLE_WEBHOOK === "true";
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
 const WEBHOOK_DEPLOY_BRANCH = process.env.WEBHOOK_DEPLOY_BRANCH || "main";
-const WEBHOOK_DEPLOY_SCRIPT =
-  process.env.WEBHOOK_DEPLOY_SCRIPT || path.join(__dirname, "scripts", "webhook-deploy.sh");
+const DEPLOYER_URL = process.env.DEPLOYER_URL || "http://deployer:8081/deploy";
+const DEPLOYER_SECRET = process.env.DEPLOYER_SECRET || "";
 const SESSION_TTL_MS = parsePositiveInt(process.env.SESSION_TTL_MINUTES, 180) * 60 * 1000;
 const SESSION_CLEANUP_MS =
   parsePositiveInt(process.env.SESSION_CLEANUP_MINUTES, 5) * 60 * 1000;
@@ -39,7 +38,6 @@ const io = new Server(server, {
 
 const publicDir = path.join(__dirname, "public");
 const sessions = new Map();
-let webhookDeployProcess = null;
 const cspDirectives = {
   defaultSrc: ["'self'"],
   scriptSrc: ["'self'"],
@@ -117,7 +115,7 @@ app.post(
   "/webhook",
   webhookLimiter,
   express.raw({ type: "application/json", limit: "32kb" }),
-  (request, response) => {
+  async (request, response) => {
     if (!ENABLE_WEBHOOK) {
       return response.status(404).send("Not Found");
     }
@@ -157,7 +155,16 @@ app.post(
       branch: pushedBranch,
       repository: payload.repository?.full_name || "unknown",
     });
-    startWebhookDeploy(pushedBranch);
+
+    const deployStarted = await triggerDeploy({
+      branch: pushedBranch,
+      repository: payload.repository?.full_name || "unknown",
+    });
+
+    if (!deployStarted) {
+      return response.status(502).send("Deploy trigger failed");
+    }
+
     return response.status(202).send("Accepted");
   }
 );
@@ -554,54 +561,37 @@ function getBranchFromRef(ref) {
   return parts.length >= 3 ? parts.slice(2).join("/") : null;
 }
 
-function startWebhookDeploy(branch) {
-  const env = {
-    ...process.env,
-    WEBHOOK_DEPLOY_BRANCH: branch,
-  };
-
-  webhookDeployProcess = spawn("/bin/sh", [WEBHOOK_DEPLOY_SCRIPT], {
-    cwd: __dirname,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-
-  logEvent("deploy_started", {
-    branch,
-    script: WEBHOOK_DEPLOY_SCRIPT,
-    pid: webhookDeployProcess.pid || "unknown",
-  });
-
-  webhookDeployProcess.stdout.on("data", (chunk) => {
-    for (const line of chunk.toString("utf8").split(/\r?\n/)) {
-      if (line.trim()) {
-        logEvent("deploy_stdout", { line: line.trim() });
-      }
-    }
-  });
-
-  webhookDeployProcess.stderr.on("data", (chunk) => {
-    for (const line of chunk.toString("utf8").split(/\r?\n/)) {
-      if (line.trim()) {
-        logEvent("deploy_stderr", { line: line.trim() });
-      }
-    }
-  });
-
-  webhookDeployProcess.on("close", (code, signal) => {
-    logEvent("deploy_finished", {
-      code: code ?? "null",
-      signal: signal || "none",
+async function triggerDeploy(payload) {
+  try {
+    const response = await fetch(DEPLOYER_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-deployer-secret": DEPLOYER_SECRET,
+      },
+      body: JSON.stringify(payload),
     });
-    webhookDeployProcess = null;
-  });
 
-  webhookDeployProcess.on("error", (error) => {
-    logEvent("deploy_error", {
+    if (!response.ok) {
+      logEvent("deploy_trigger_failed", {
+        status: response.status,
+        deployerUrl: DEPLOYER_URL,
+      });
+      return false;
+    }
+
+    logEvent("deploy_triggered", {
+      deployerUrl: DEPLOYER_URL,
+      branch: payload.branch,
+    });
+    return true;
+  } catch (error) {
+    logEvent("deploy_trigger_error", {
       message: error.message,
+      deployerUrl: DEPLOYER_URL,
     });
-    webhookDeployProcess = null;
-  });
+    return false;
+  }
 }
 
 function parsePositiveInt(value, fallback) {

@@ -46,7 +46,7 @@
     drawerOverlay: document.getElementById("drawer-overlay"),
     drawer: document.getElementById("drawer"),
     closeDrawer: document.getElementById("btn-close-drawer"),
-    viewerLink: document.getElementById("viewer-direct-link"),
+    viewerLinks: document.querySelectorAll(".viewer-direct-link"),
     desktopInputH: document.getElementById("d-input-h"),
     desktopInputM: document.getElementById("d-input-m"),
     desktopInputS: document.getElementById("d-input-s"),
@@ -154,9 +154,9 @@
 
       elements.adminPanel.style.display = "block";
       const viewerUrl = `/view/${sessionId}`;
-      if (elements.viewerLink) {
-        elements.viewerLink.href = viewerUrl;
-        elements.viewerLink.textContent = "Abrir viewer";
+      for (const link of elements.viewerLinks) {
+        link.href = viewerUrl;
+        link.textContent = "Abrir viewer";
       }
 
       renderAll();
