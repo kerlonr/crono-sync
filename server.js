@@ -7,7 +7,7 @@ const { Server } = require("socket.io");
 
 const config = require("./src/config");
 const { triggerDeploy } = require("./src/deploy-client");
-const { formatTimerMs, getRequestIp, logAccess, logEvent } = require("./src/logger");
+const { formatTimerMs, getLogFile, getRequestIp, logAccess, logEvent } = require("./src/logger");
 const {
   getBranchFromRef,
   isAllowedOrigin,
@@ -275,11 +275,6 @@ io.on("connection", (socket) => {
     session.startTime = null;
     session.status = "stopped";
     sessionStore.broadcastSession(socket.currentSession);
-    logEvent("timer_updated", buildSocketLogDetails(socket, {
-      sessionId: socket.currentSession,
-      totalTime: formatTimerMs(session.totalTime),
-      remaining: formatTimerMs(sessionStore.getRemaining(session)),
-    }));
   });
 
   socket.on("timer:start", () => {
@@ -296,11 +291,6 @@ io.on("connection", (socket) => {
     }
 
     sessionStore.broadcastSession(socket.currentSession);
-    logEvent("timer_started", buildSocketLogDetails(socket, {
-      sessionId: socket.currentSession,
-      totalTime: formatTimerMs(session.totalTime),
-      remaining: formatTimerMs(sessionStore.getRemaining(session)),
-    }));
   });
 
   socket.on("timer:pause", () => {
@@ -312,11 +302,6 @@ io.on("connection", (socket) => {
     session.status = "paused";
     sessionStore.clearSessionInterval(session);
     sessionStore.broadcastSession(socket.currentSession);
-    logEvent("timer_paused", buildSocketLogDetails(socket, {
-      sessionId: socket.currentSession,
-      totalTime: formatTimerMs(session.totalTime),
-      remaining: formatTimerMs(sessionStore.getRemaining(session)),
-    }));
   });
 
   socket.on("timer:reset", () => {
@@ -328,11 +313,6 @@ io.on("connection", (socket) => {
     session.status = "stopped";
     sessionStore.clearSessionInterval(session);
     sessionStore.broadcastSession(socket.currentSession);
-    logEvent("timer_reset", buildSocketLogDetails(socket, {
-      sessionId: socket.currentSession,
-      totalTime: formatTimerMs(session.totalTime),
-      remaining: formatTimerMs(sessionStore.getRemaining(session)),
-    }));
   });
 });
 
@@ -342,6 +322,7 @@ server.listen(config.PORT, () => {
   logEvent("server_started", {
     port: config.PORT,
     url: `http://localhost:${config.PORT}`,
+    file: getLogFile(),
   });
 });
 

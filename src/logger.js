@@ -1,5 +1,15 @@
+const fs = require("fs");
+const path = require("path");
+
+const LOG_HEADER = (process.env.LOG_HEADER || "CRONO").trim() || "CRONO";
+const LOG_FILE = process.env.LOG_FILE || path.join(process.cwd(), "logs", "app.log");
+
+let fileLoggingReady = false;
+let fileLoggingDisabled = false;
+
 module.exports = {
   formatTimerMs,
+  getLogFile,
   getRequestIp,
   logAccess,
   logEvent,
@@ -8,31 +18,29 @@ module.exports = {
 function logAccess(request, response, startedAt) {
   const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
   const method = request.method || "GET";
-  const path = request.originalUrl || request.url || "/";
+  const requestPath = request.originalUrl || request.url || "/";
 
-  if (shouldSkipAccessLog(method, path)) {
+  if (shouldSkipAccessLog(method, requestPath)) {
     return;
   }
 
-  if (isPageVisit(method, path, response.statusCode)) {
+  if (isPageVisit(method, requestPath, response.statusCode)) {
     logEvent("page_visit", {
-      page: getPageName(path),
-      path,
+      page: getPageName(requestPath),
+      path: requestPath,
       status: response.statusCode,
       duration: formatDurationMs(durationMs),
       ip: getRequestIp(request),
-      userAgent: request.get("user-agent") || "unknown",
     });
     return;
   }
 
   logEvent("http_access", {
     method,
-    path,
+    path: requestPath,
     status: response.statusCode,
     duration: formatDurationMs(durationMs),
     ip: getRequestIp(request),
-    userAgent: request.get("user-agent") || "unknown",
   });
 }
 
@@ -44,110 +52,210 @@ function getRequestIp(request) {
 function logEvent(event, details = {}) {
   const timestamp = new Date().toISOString();
   const meta = getEventMeta(event);
-  const header = `[${timestamp}] [${meta.section.padEnd(8, " ")}] ${meta.label}`;
-  const detailLines = formatDetails(details);
+  const safeDetails = sanitizeDetails(details);
 
-  console.log([header, ...detailLines].join("\n"));
+  console.log(buildConsoleLine(meta, safeDetails));
+  writeToFile(`${timestamp} ${buildFileLine(meta, safeDetails)}\n`);
 }
 
-function shouldSkipAccessLog(method, path) {
+function getLogFile() {
+  return LOG_FILE;
+}
+
+function shouldSkipAccessLog(method, requestPath) {
   if (method === "OPTIONS" || method === "HEAD") {
     return true;
   }
 
   return (
-    path.startsWith("/assets/") ||
-    path.startsWith("/socket.io/") ||
-    path === "/favicon.ico" ||
-    path === "/health" ||
-    path === "/api/session/new" ||
-    path === "/api/sessions/active"
+    requestPath.startsWith("/assets/") ||
+    requestPath.startsWith("/socket.io/") ||
+    requestPath === "/favicon.ico" ||
+    requestPath === "/health" ||
+    requestPath === "/api/session/new" ||
+    requestPath === "/api/sessions/active"
   );
 }
 
-function isPageVisit(method, path, statusCode) {
+function isPageVisit(method, requestPath, statusCode) {
   return (
     method === "GET" &&
     statusCode < 400 &&
-    !path.startsWith("/api/") &&
-    !path.startsWith("/webhook")
+    !requestPath.startsWith("/api/") &&
+    !requestPath.startsWith("/webhook")
   );
 }
 
-function getPageName(path) {
-  if (path === "/" || path === "/index.html") return "landing";
-  if (path === "/overview") return "overview";
-  if (/^\/admin\/[a-f0-9]+$/i.test(path)) return "admin";
-  if (/^\/view\/[a-f0-9]+$/i.test(path)) return "viewer";
+function getPageName(requestPath) {
+  if (requestPath === "/" || requestPath === "/index.html") return "landing";
+  if (requestPath === "/overview") return "overview";
+  if (/^\/admin\/[a-f0-9]+$/i.test(requestPath)) return "admin";
+  if (/^\/view\/[a-f0-9]+$/i.test(requestPath)) return "viewer";
   return "page";
 }
 
 function getEventMeta(event) {
   const knownEvents = {
-    deploy_error: { section: "DEPLOY", label: "Deploy Error" },
-    deploy_finished: { section: "DEPLOY", label: "Deploy Finished" },
-    deploy_started: { section: "DEPLOY", label: "Deploy Started" },
-    deploy_stderr: { section: "DEPLOY", label: "Deploy stderr" },
-    deploy_stdout: { section: "DEPLOY", label: "Deploy stdout" },
-    deploy_trigger_error: { section: "DEPLOY", label: "Trigger Error" },
-    deploy_trigger_failed: { section: "DEPLOY", label: "Trigger Failed" },
-    deploy_triggered: { section: "DEPLOY", label: "Trigger Sent" },
-    deployer_started: { section: "DEPLOY", label: "Deployer Ready" },
-    http_access: { section: "HTTP", label: "Request" },
-    page_visit: { section: "ACCESS", label: "Page Visit" },
-    server_started: { section: "SYSTEM", label: "Server Ready" },
-    session_created: { section: "SESSION", label: "Session Created" },
-    session_join_denied: { section: "SESSION", label: "Join Denied" },
-    session_joined: { section: "SESSION", label: "Joined" },
-    timer_paused: { section: "TIMER", label: "Paused" },
-    timer_reset: { section: "TIMER", label: "Reset" },
-    timer_started: { section: "TIMER", label: "Started" },
-    timer_updated: { section: "TIMER", label: "Time Updated" },
-    webhook_accepted: { section: "WEBHOOK", label: "Accepted" },
-    webhook_ignored: { section: "WEBHOOK", label: "Ignored" },
+    deploy_error: {
+      section: "DEPLOY",
+      action: "error",
+      consoleKeys: ["message"],
+    },
+    deploy_finished: {
+      section: "DEPLOY",
+      action: "finished",
+      consoleKeys: ["code", "signal"],
+    },
+    deploy_started: {
+      section: "DEPLOY",
+      action: "started",
+      consoleKeys: ["branch", "repository"],
+    },
+    deploy_stderr: {
+      section: "DEPLOY",
+      action: "stderr",
+      consoleKeys: ["line"],
+    },
+    deploy_stdout: {
+      section: "DEPLOY",
+      action: "stdout",
+      consoleKeys: ["line"],
+    },
+    deploy_trigger_error: {
+      section: "DEPLOY",
+      action: "trigger_error",
+      consoleKeys: ["branch", "message"],
+    },
+    deploy_trigger_failed: {
+      section: "DEPLOY",
+      action: "trigger_failed",
+      consoleKeys: ["branch", "status"],
+    },
+    deploy_triggered: {
+      section: "DEPLOY",
+      action: "triggered",
+      consoleKeys: ["branch"],
+    },
+    deployer_started: {
+      section: "SYSTEM",
+      action: "ready",
+      consoleKeys: ["port", "file"],
+    },
+    http_access: {
+      section: "HTTP",
+      action: "request",
+      consoleKeys: ["method", "path", "status"],
+    },
+    page_visit: {
+      section: "ACCESS",
+      action: "visit",
+      consoleKeys: ["page", "ip"],
+    },
+    server_started: {
+      section: "SYSTEM",
+      action: "ready",
+      consoleKeys: ["url", "file"],
+    },
+    session_created: {
+      section: "SESSION",
+      action: "created",
+      consoleKeys: ["sessionId", "totalTime", "ip"],
+    },
+    session_join_denied: {
+      section: "SESSION",
+      action: "denied",
+      consoleKeys: ["role", "sessionId", "reason", "ip"],
+    },
+    session_joined: {
+      section: "SESSION",
+      action: "joined",
+      consoleKeys: ["role", "sessionId", "ip"],
+    },
+    webhook_accepted: {
+      section: "WEBHOOK",
+      action: "accepted",
+      consoleKeys: ["branch", "repository"],
+    },
+    webhook_ignored: {
+      section: "WEBHOOK",
+      action: "ignored",
+      consoleKeys: ["branch", "expectedBranch"],
+    },
   };
 
   return (
     knownEvents[event] || {
       section: "APP",
-      label: humanizeEventName(event),
+      action: humanizeEventName(event),
+      consoleKeys: [],
     }
   );
 }
 
-function formatDetails(details) {
-  const entries = Object.entries(details).filter(([, value]) => value !== undefined);
-  if (!entries.length) {
-    return [];
-  }
-
-  const longestKey = entries.reduce(
-    (max, [key]) => Math.max(max, key.length),
-    0,
+function sanitizeDetails(details) {
+  return Object.fromEntries(
+    Object.entries(details)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => [key, formatDetailValue(value)]),
   );
+}
 
-  return entries.map(
-    ([key, value]) => `  ${key.padEnd(longestKey, " ")} : ${formatDetailValue(value)}`,
-  );
+function buildConsoleLine(meta, details) {
+  const prefix = `[${LOG_HEADER}][${meta.section}] ${meta.action}`;
+  const summary = meta.consoleKeys
+    .filter((key) => details[key] !== undefined)
+    .map((key) => `${key}=${details[key]}`)
+    .join(" ");
+
+  return summary ? `${prefix} ${summary}` : prefix;
+}
+
+function buildFileLine(meta, details) {
+  const prefix = `[${LOG_HEADER}][${meta.section}] ${meta.action}`;
+  const payload = Object.entries(details)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(" ");
+
+  return payload ? `${prefix} ${payload}` : `${prefix}`;
 }
 
 function formatDetailValue(value) {
   if (value === null) return "null";
   if (typeof value === "number" || typeof value === "boolean") return String(value);
-  if (Array.isArray(value)) return value.map((item) => formatDetailValue(item)).join(", ");
-
+  if (Array.isArray(value)) {
+    return value.map((item) => formatDetailValue(item)).join(",");
+  }
   if (typeof value === "object") {
-    return truncateText(JSON.stringify(value));
+    return JSON.stringify(value);
   }
 
   const sanitized = String(value).replace(/\s+/g, " ").trim();
+  return sanitized || "\"\"";
+}
 
-  if (!sanitized) {
-    return "\"\"";
+function writeToFile(line) {
+  if (fileLoggingDisabled) {
+    return;
   }
 
-  const shortened = truncateText(sanitized);
-  return /\s/.test(shortened) ? JSON.stringify(shortened) : shortened;
+  try {
+    ensureFileLoggingReady();
+    fs.appendFileSync(LOG_FILE, line, "utf8");
+  } catch (error) {
+    fileLoggingDisabled = true;
+    console.error(
+      `[${LOG_HEADER}][LOGGER] file_disabled path=${LOG_FILE} message=${formatDetailValue(error.message)}`,
+    );
+  }
+}
+
+function ensureFileLoggingReady() {
+  if (fileLoggingReady) {
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
+  fileLoggingReady = true;
 }
 
 function formatDurationMs(value) {
@@ -170,14 +278,5 @@ function humanizeEventName(value) {
   return String(value)
     .split("_")
     .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function truncateText(value, maxLength = 120) {
-  if (value.length <= maxLength) {
-    return value;
-  }
-
-  return `${value.slice(0, maxLength - 3)}...`;
+    .join("_");
 }

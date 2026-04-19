@@ -1,6 +1,6 @@
 const http = require("http");
 const { spawn } = require("child_process");
-const { logEvent } = require("../src/logger");
+const { getLogFile, logEvent } = require("../src/logger");
 
 const PORT = Number.parseInt(process.env.DEPLOYER_PORT || "8081", 10);
 const DEPLOY_SCRIPT =
@@ -25,7 +25,7 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(PORT, () => {
-  log("deployer_started", { port: PORT });
+  log("deployer_started", { port: PORT, file: getLogFile() });
 });
 
 function handleDeploy(request, response) {

@@ -13,10 +13,14 @@ services:
       - .env
     environment:
       NODE_ENV: production
+      LOG_HEADER: CRONO
+      LOG_FILE: /app/logs/cronometro.log
     init: true
     read_only: true
     tmpfs:
       - /tmp
+    volumes:
+      - ./logs:/app/logs
     cap_drop:
       - ALL
     security_opt:
@@ -35,6 +39,8 @@ services:
       HOME: /tmp
       DOCKER_CONFIG: /tmp/.docker
       HOST_REPO_PATH: ${HOST_REPO_PATH}
+      LOG_HEADER: DEPLOY
+      LOG_FILE: /app/logs/deployer.log
       WEBHOOK_REPO_DIR: ${HOST_REPO_PATH}
       WEBHOOK_COMPOSE_FILE: ${HOST_REPO_PATH}/docker-compose.yml
       WEBHOOK_DEPLOY_SERVICE: cronometro
@@ -43,6 +49,7 @@ services:
     tmpfs:
       - /tmp
     volumes:
+      - ./logs:/app/logs
       - ${HOST_REPO_PATH}:${HOST_REPO_PATH}
       - /var/run/docker.sock:/var/run/docker.sock
     cap_drop:
