@@ -58,6 +58,16 @@ if (process.env.TRUST_PROXY === "true") {
   app.set("trust proxy", 1);
 }
 
+app.use((request, response, next) => {
+  const startedAt = process.hrtime.bigint();
+
+  response.on("finish", () => {
+    logAccess(request, response, startedAt);
+  });
+
+  next();
+});
+
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
@@ -160,8 +170,13 @@ app.get("/overview", (_request, response) => {
   return response.sendFile(path.join(publicDir, "overview.html"));
 });
 
-app.post("/api/session/new", createSessionLimiter, (_request, response) => {
+app.post("/api/session/new", createSessionLimiter, (request, response) => {
   const session = createSession();
+  logEvent("session_created", {
+    sessionId: session.id,
+    ip: getRequestIp(request),
+    userAgent: request.get("user-agent") || "unknown",
+  });
   response.status(201).json({
     id: session.id,
     adminToken: session.adminToken,
@@ -518,4 +533,33 @@ function isAllowedOrigin(originHeader, requestHost) {
   } catch {
     return false;
   }
+}
+
+function logAccess(request, response, startedAt) {
+  const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+  logEvent("http_access", {
+    ip: getRequestIp(request),
+    method: request.method,
+    path: request.originalUrl || request.url,
+    status: response.statusCode,
+    durationMs: durationMs.toFixed(1),
+    userAgent: request.get("user-agent") || "unknown",
+  });
+}
+
+function getRequestIp(request) {
+  return request.ip || request.socket?.remoteAddress || "unknown";
+}
+
+function logEvent(event, details) {
+  const timestamp = new Date().toISOString();
+  const serializedDetails = Object.entries(details)
+    .map(([key, value]) => `${key}=${serializeLogValue(value)}`)
+    .join(" ");
+
+  console.log(`[${timestamp}] ${event}${serializedDetails ? ` ${serializedDetails}` : ""}`);
+}
+
+function serializeLogValue(value) {
+  return String(value).replace(/\s+/g, "_");
 }
