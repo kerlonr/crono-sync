@@ -308,10 +308,18 @@ body::before {
 .presets-manage-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 160px;
+  gap: 10px;
+  max-height: 260px;
+  min-height: 204px;
   overflow-y: auto;
   min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.22) 100%),
+    var(--bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .preset-manage-row {
@@ -319,12 +327,19 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(6, 6, 8, 0.18) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 12px 14px;
   min-width: 0;
   overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.preset-manage-row:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 201, 255, 0.18);
+  background: linear-gradient(180deg, rgba(0, 201, 255, 0.06) 0%, rgba(6, 6, 8, 0.18) 100%);
 }
 
 .preset-manage-info {
@@ -344,22 +359,26 @@ body::before {
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
   color: var(--muted);
-  margin-top: 3px;
+  margin-top: 6px;
 }
 
 .preset-del-btn {
-  background: none;
-  border: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
   color: var(--muted);
   font-size: 14px;
   cursor: pointer;
-  padding: 2px 6px;
-  transition: color 0.2s;
+  padding: 8px 10px;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
   flex: 0 0 auto;
 }
 
 .preset-del-btn:hover {
   color: var(--danger);
+  border-color: rgba(255, 62, 62, 0.25);
+  background: rgba(255, 62, 62, 0.08);
 }
 
 .add-preset-row {
@@ -372,39 +391,43 @@ body::before {
 .add-preset-row input {
   flex: 1;
   min-width: 0;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
+  background: rgba(10, 10, 15, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 13px 14px;
   font-family: 'Barlow', sans-serif;
   font-size: 13px;
   color: var(--text);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .add-preset-row input:focus {
   border-color: var(--accent2);
+  box-shadow: 0 0 0 4px rgba(0, 201, 255, 0.08);
+  background: rgba(10, 10, 15, 1);
 }
 
 .btn-add-preset {
   appearance: none;
-  background: transparent;
-  border: 1px solid var(--accent2);
-  border-radius: 8px;
-  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(0, 201, 255, 0.16) 0%, rgba(0, 245, 160, 0.14) 100%);
+  border: 1px solid rgba(0, 201, 255, 0.22);
+  border-radius: 12px;
+  padding: 12px 16px;
   font-family: 'Barlow', sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--accent2);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   flex: 0 0 auto;
 }
 
 .btn-add-preset:hover {
-  background: rgba(0, 201, 255, 0.08);
+  transform: translateY(-1px);
+  border-color: rgba(0, 245, 160, 0.26);
+  background: linear-gradient(135deg, rgba(0, 201, 255, 0.24) 0%, rgba(0, 245, 160, 0.18) 100%);
 }
 
 .presets-empty {
@@ -962,9 +985,15 @@ body::before {
 .presets-list-m {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 14px;
   min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.22) 100%),
+    var(--bg);
 }
 
 .preset-row-m {
@@ -972,9 +1001,9 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(6, 6, 8, 0.18) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
   padding: 14px 16px;
   min-width: 0;
   overflow: hidden;
@@ -1001,18 +1030,27 @@ body::before {
 }
 
 .preset-row-del {
-  background: none;
-  border: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
   color: var(--muted);
   font-size: 18px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 8px 10px;
   -webkit-tap-highlight-color: transparent;
   flex: 0 0 auto;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
 .preset-row-del:active {
   color: var(--danger);
+}
+
+.preset-row-del:hover {
+  color: var(--danger);
+  border-color: rgba(255, 62, 62, 0.25);
+  background: rgba(255, 62, 62, 0.08);
 }
 
 .add-preset-row-m {
@@ -1025,9 +1063,9 @@ body::before {
 .add-preset-row-m input {
   flex: 1;
   min-width: 0;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: rgba(10, 10, 15, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   padding: 13px 14px;
   font-family: 'Barlow', sans-serif;
   font-size: 14px;
@@ -1038,13 +1076,14 @@ body::before {
 
 .add-preset-row-m input:focus {
   border-color: var(--accent2);
+  box-shadow: 0 0 0 4px rgba(0, 201, 255, 0.08);
 }
 
 .btn-add-m {
   appearance: none;
-  background: transparent;
-  border: 1px solid var(--accent2);
-  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0, 201, 255, 0.16) 0%, rgba(0, 245, 160, 0.14) 100%);
+  border: 1px solid rgba(0, 201, 255, 0.22);
+  border-radius: 12px;
   padding: 13px 16px;
   font-family: 'Barlow', sans-serif;
   font-size: 13px;
@@ -1057,14 +1096,15 @@ body::before {
 }
 
 .btn-add-m:active {
-  background: rgba(0, 201, 255, 0.1);
+  background: linear-gradient(135deg, rgba(0, 201, 255, 0.24) 0%, rgba(0, 245, 160, 0.18) 100%);
 }
 
 .modal-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
   z-index: 200;
   align-items: center;
   justify-content: center;
@@ -1077,16 +1117,21 @@ body::before {
 }
 
 .modal {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 201, 255, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(22, 22, 30, 0.98) 0%, rgba(12, 12, 18, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 28px;
   width: 100%;
-  max-width: 560px;
-  padding: 28px;
+  max-width: 860px;
+  max-height: min(86dvh, 760px);
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0;
   animation: slideUp 0.25s ease;
+  overflow: hidden;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
 }
 
 @keyframes slideUp {
@@ -1105,6 +1150,9 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .modal-title {
@@ -1119,9 +1167,9 @@ body::before {
   appearance: none;
   width: 34px;
   height: 34px;
-  border-radius: 8px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(10, 10, 15, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1138,18 +1186,43 @@ body::before {
 
 .modal-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 20px;
+  padding: 24px 28px 28px;
+  overflow: auto;
 }
 
 .modal-col {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
+  min-height: 0;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.18) 100%),
+    rgba(19, 19, 28, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.modal-col-time {
+  justify-content: flex-start;
+}
+
+.modal-col-manage {
+  background:
+    radial-gradient(circle at top right, rgba(0, 201, 255, 0.08), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 15, 0.18) 100%),
+    rgba(19, 19, 28, 0.9);
 }
 
 @media (max-width: 920px) {
+  .modal {
+    max-width: 680px;
+  }
+
   .modal-grid {
     grid-template-columns: 1fr;
     gap: 18px;
@@ -1228,5 +1301,17 @@ body::before {
 
   .btn-add-preset {
     width: 100%;
+  }
+
+  .modal-grid {
+    padding: 20px;
+  }
+
+  .modal-header {
+    padding: 20px 20px 16px;
+  }
+
+  .modal-col {
+    padding: 16px;
   }
 }
