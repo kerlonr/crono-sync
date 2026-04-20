@@ -1295,7 +1295,7 @@ body.message-mode {
   --accent: #58ead0;
   --accent2: #7abfff;
   --warn: #ffc76b;
-  --danger: #ff7e9e;
+  --danger: #ff3b30;
 }
 
 body,
@@ -1416,11 +1416,11 @@ body::after {
 
 .btn-reset-d,
 .btn-reset-m {
-  border-color: rgba(255, 126, 158, 0.22);
+  border-color: rgba(255, 59, 48, 0.28);
   background:
-    linear-gradient(135deg, rgba(255, 126, 158, 0.22), rgba(41, 9, 20, 0.94)),
-    rgba(20, 8, 16, 0.78);
-  color: #ffd7e1;
+    linear-gradient(135deg, rgba(255, 59, 48, 0.28), rgba(54, 6, 6, 0.94)),
+    rgba(24, 6, 6, 0.82);
+  color: #ffe5e2;
 }
 
 .time-input-group input,
@@ -1473,4 +1473,17 @@ body::after {
 
 .drawer-handle {
   background: rgba(237, 245, 255, 0.18);
+}
+
+.timer-display.red,
+.timer-display.blink {
+  color: var(--danger);
+  text-shadow:
+    0 0 24px rgba(255, 59, 48, 0.44),
+    0 0 56px rgba(255, 24, 24, 0.18);
+}
+
+.status-dot.finished {
+  background: var(--danger);
+  box-shadow: 0 0 14px rgba(255, 59, 48, 0.58);
 }

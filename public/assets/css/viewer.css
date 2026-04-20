@@ -170,7 +170,7 @@ body.finished {
   --line: rgba(169, 214, 255, 0.18);
   --accent: #58ead0;
   --warn: #ffc76b;
-  --danger: #ff7e9e;
+  --danger: #ff3b30;
 }
 
 body {
@@ -190,15 +190,15 @@ body::after {
 
 body.flash-red {
   background:
-    radial-gradient(circle at top left, rgba(255, 126, 158, 0.18), transparent 34%),
-    radial-gradient(circle at 80% 20%, rgba(255, 163, 182, 0.1), transparent 26%),
-    linear-gradient(180deg, #1a0910 0%, #240d16 100%);
+    radial-gradient(circle at top left, rgba(255, 59, 48, 0.24), transparent 34%),
+    radial-gradient(circle at 80% 20%, rgba(255, 24, 24, 0.14), transparent 26%),
+    linear-gradient(180deg, #210607 0%, #330809 100%);
 }
 
 body.finished {
   background:
-    radial-gradient(circle at top left, rgba(255, 126, 158, 0.2), transparent 34%),
-    linear-gradient(180deg, #16070d 0%, #220b13 100%) !important;
+    radial-gradient(circle at top left, rgba(255, 59, 48, 0.28), transparent 34%),
+    linear-gradient(180deg, #1b0405 0%, #300708 100%) !important;
 }
 
 .screen-message,
@@ -224,5 +224,7 @@ body.finished {
 }
 
 .timer-display.red {
-  text-shadow: 0 0 34px rgba(255, 126, 158, 0.28);
+  text-shadow:
+    0 0 26px rgba(255, 59, 48, 0.44),
+    0 0 58px rgba(255, 24, 24, 0.2);
 }

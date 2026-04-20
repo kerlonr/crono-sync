@@ -484,7 +484,7 @@ h1 {
   --accent: #58ead0;
   --accent2: #7abfff;
   --warn: #ffc76b;
-  --danger: #ff7e9e;
+  --danger: #ff3b30;
 }
 
 body {
@@ -547,4 +547,9 @@ body::after {
 .card-timer,
 .stat-value {
   color: var(--ink);
+}
+
+.timer-card.is-danger::before,
+.timer-card.is-finished::before {
+  background: radial-gradient(circle, rgba(255, 59, 48, 0.26) 0%, transparent 70%);
 }
