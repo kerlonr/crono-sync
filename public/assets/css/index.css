@@ -212,3 +212,86 @@ p {
     transform: translate3d(-30px, -20px, 0);
   }
 }
+
+/* Dark glass refresh */
+:root {
+  --bg-top: #040812;
+  --bg-bottom: #0a1424;
+  --ink: #edf5ff;
+  --ink-soft: rgba(237, 245, 255, 0.72);
+  --glass: rgba(9, 17, 31, 0.74);
+  --glass-strong: rgba(13, 25, 44, 0.88);
+  --line: rgba(169, 214, 255, 0.18);
+  --shadow: 0 28px 70px rgba(0, 0, 0, 0.42);
+  --accent: #58ead0;
+  --accent2: #7abfff;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(95, 177, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 80% 18%, rgba(88, 234, 208, 0.12), transparent 26%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  color: var(--ink);
+}
+
+body::before {
+  background: radial-gradient(circle, rgba(122, 191, 255, 0.18), transparent 70%);
+}
+
+body::after {
+  background: radial-gradient(circle, rgba(88, 234, 208, 0.12), transparent 68%);
+}
+
+.card {
+  border-color: var(--line);
+  background:
+    linear-gradient(180deg, rgba(24, 38, 64, 0.76), rgba(7, 14, 27, 0.84)),
+    var(--glass);
+  box-shadow: var(--shadow);
+}
+
+.card::before {
+  background:
+    linear-gradient(130deg, rgba(255, 255, 255, 0.08), transparent 35%),
+    radial-gradient(circle at top right, rgba(122, 191, 255, 0.1), transparent 28%);
+}
+
+.logo {
+  color: var(--accent);
+  text-shadow: 0 0 26px rgba(88, 234, 208, 0.24);
+}
+
+h1 {
+  color: rgba(188, 213, 239, 0.56);
+}
+
+p {
+  color: var(--ink-soft);
+}
+
+.btn,
+.btn-secondary-link {
+  border-color: var(--line);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+}
+
+.btn {
+  background:
+    linear-gradient(135deg, rgba(88, 234, 208, 0.74), rgba(122, 191, 255, 0.42)),
+    var(--glass-strong);
+  color: #03111d;
+}
+
+.btn-secondary-link {
+  background:
+    linear-gradient(180deg, rgba(25, 40, 66, 0.88), rgba(11, 21, 37, 0.92)),
+    rgba(8, 15, 27, 0.72);
+  color: var(--ink);
+}
+
+.btn:hover,
+.btn-secondary-link:hover {
+  border-color: rgba(122, 191, 255, 0.38);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+}

@@ -1279,3 +1279,198 @@ body.message-mode {
     width: 100%;
   }
 }
+
+/* Dark glass refresh */
+:root {
+  --bg-top: #040812;
+  --bg-bottom: #0a1322;
+  --ink: #edf5ff;
+  --ink-soft: rgba(237, 245, 255, 0.74);
+  --ink-faint: rgba(188, 208, 229, 0.56);
+  --glass: rgba(9, 17, 31, 0.72);
+  --glass-strong: rgba(13, 25, 44, 0.86);
+  --glass-line: rgba(169, 214, 255, 0.18);
+  --shadow: 0 28px 72px rgba(0, 0, 0, 0.42);
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.28);
+  --accent: #58ead0;
+  --accent2: #7abfff;
+  --warn: #ffc76b;
+  --danger: #ff7e9e;
+}
+
+body,
+:fullscreen body,
+:-webkit-full-screen body,
+:-moz-full-screen body {
+  background:
+    radial-gradient(circle at top left, rgba(95, 177, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 78% 14%, rgba(88, 234, 208, 0.12), transparent 26%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  color: var(--ink);
+}
+
+body::before {
+  background: radial-gradient(circle, rgba(122, 191, 255, 0.18), transparent 68%);
+}
+
+body::after {
+  background: radial-gradient(circle, rgba(88, 234, 208, 0.12), transparent 70%);
+}
+
+.screen-message,
+.desktop-layout,
+.desktop-presets-bar,
+.progress-wrap,
+.status-row,
+.presets-panel-head,
+.settings-shortcuts,
+.modal,
+.modal-col,
+.drawer,
+.drawer-section {
+  border-color: var(--glass-line);
+  background:
+    linear-gradient(180deg, rgba(24, 39, 65, 0.78), rgba(8, 16, 29, 0.84)),
+    var(--glass);
+  box-shadow: var(--shadow);
+}
+
+.desktop-layout::before {
+  background:
+    linear-gradient(130deg, rgba(255, 255, 255, 0.08), transparent 34%),
+    radial-gradient(circle at top right, rgba(122, 191, 255, 0.1), transparent 28%);
+}
+
+.badge {
+  border-color: rgba(122, 191, 255, 0.22);
+  background: rgba(12, 22, 38, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--accent2);
+}
+
+.badge::after,
+.topbar-title::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+}
+
+.preset-chip-d,
+.preset-chip-m,
+.btn-d,
+.btn-m,
+.btn-set,
+.btn-drawer-action,
+.btn-add-preset,
+.btn-add-m,
+.shortcut-link,
+.btn-icon-d,
+.btn-icon-m,
+.btn-close-modal,
+.btn-close-drawer,
+.preset-del-btn,
+.preset-row-del {
+  border-color: var(--glass-line);
+  background:
+    linear-gradient(180deg, rgba(26, 41, 67, 0.82), rgba(10, 18, 33, 0.9)),
+    var(--glass-strong);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.preset-chip-d:hover,
+.preset-chip-m:active,
+.btn-d:hover,
+.btn-set:hover,
+.btn-add-preset:hover,
+.shortcut-link:hover,
+.btn-drawer-action:hover,
+.btn-add-m:hover,
+.btn-icon-d:hover,
+.btn-icon-m:hover,
+.btn-close-modal:hover,
+.btn-close-drawer:hover,
+.preset-del-btn:hover,
+.preset-row-del:hover {
+  border-color: rgba(122, 191, 255, 0.38);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+}
+
+.btn-start-d,
+.btn-start-m,
+.btn-set,
+.btn-drawer-action {
+  background:
+    linear-gradient(135deg, rgba(88, 234, 208, 0.76), rgba(122, 191, 255, 0.42)),
+    rgba(13, 25, 44, 0.88);
+  color: #03111d;
+}
+
+.btn-pause-d,
+.btn-pause-m,
+.btn-set.secondary,
+.btn-drawer-action.sec {
+  background:
+    linear-gradient(135deg, rgba(255, 199, 107, 0.76), rgba(255, 224, 170, 0.34)),
+    rgba(34, 24, 10, 0.82);
+  color: #221200;
+}
+
+.btn-reset-d,
+.btn-reset-m {
+  border-color: rgba(255, 126, 158, 0.22);
+  background:
+    linear-gradient(135deg, rgba(255, 126, 158, 0.22), rgba(41, 9, 20, 0.94)),
+    rgba(20, 8, 16, 0.78);
+  color: #ffd7e1;
+}
+
+.time-input-group input,
+.time-input-group-m input,
+.add-preset-row input,
+.add-preset-row-m input {
+  border-color: var(--glass-line);
+  background:
+    linear-gradient(180deg, rgba(19, 31, 53, 0.92), rgba(8, 16, 29, 0.96)),
+    rgba(8, 16, 29, 0.88);
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.time-input-group input:focus,
+.time-input-group-m input:focus,
+.add-preset-row input:focus,
+.add-preset-row-m input:focus {
+  border-color: rgba(122, 191, 255, 0.42);
+  box-shadow:
+    0 0 0 4px rgba(122, 191, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.progress-wrap,
+.status-row {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, rgba(88, 234, 208, 0.94), rgba(122, 191, 255, 0.94));
+}
+
+.drawer-overlay,
+.modal-overlay {
+  background: rgba(2, 7, 14, 0.58);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.modal-header,
+.drawer-header,
+.drawer-section,
+.settings-shortcuts,
+.presets-panel-actions,
+.shortcut-row,
+.card-actions {
+  border-color: rgba(169, 214, 255, 0.14);
+}
+
+.drawer-handle {
+  background: rgba(237, 245, 255, 0.18);
+}
