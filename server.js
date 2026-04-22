@@ -7,7 +7,13 @@ const { Server } = require("socket.io");
 
 const config = require("./src/config");
 const { triggerDeploy } = require("./src/deploy-client");
-const { formatTimerMs, getLogFile, getRequestIp, logAccess, logEvent } = require("./src/logger");
+const {
+  formatTimerMs,
+  getLogFile,
+  getRequestIp,
+  logAccess,
+  logEvent,
+} = require("./src/logger");
 const {
   getBranchFromRef,
   isAllowedOrigin,
@@ -16,6 +22,8 @@ const {
   tokensMatch,
 } = require("./src/security");
 const { createSessionStore } = require("./src/sessions");
+const { registerSpotifyRoutes } = require("./src/spotify");
+
 
 const app = express();
 const server = http.createServer(app);
@@ -23,7 +31,14 @@ const io = new Server(server, {
   maxHttpBufferSize: 10 * 1024,
   transports: ["websocket", "polling"],
   allowRequest(request, callback) {
-    callback(null, isAllowedOrigin(request.headers.origin, request.headers.host, config.ALLOWED_ORIGIN));
+    callback(
+      null,
+      isAllowedOrigin(
+        request.headers.origin,
+        request.headers.host,
+        config.ALLOWED_ORIGIN,
+      ),
+    );
   },
 });
 
@@ -85,7 +100,9 @@ app.post(
     }
 
     const signature = request.headers["x-hub-signature-256"];
-    if (!isValidWebhookSignature(signature, request.body, config.WEBHOOK_SECRET)) {
+    if (
+      !isValidWebhookSignature(signature, request.body, config.WEBHOOK_SECRET)
+    ) {
       return response.status(401).send("Unauthorized");
     }
 
@@ -109,10 +126,7 @@ app.post(
     }
 
     const repository = payload.repository?.full_name || "unknown";
-    logEvent("webhook_accepted", {
-      branch: pushedBranch,
-      repository,
-    });
+    logEvent("webhook_accepted", { branch: pushedBranch, repository });
 
     const deployStarted = await triggerDeploy({
       branch: pushedBranch,
@@ -154,7 +168,6 @@ app.get("/admin/:id", (request, response) => {
   if (!sessionStore.isValidSessionId(request.params.id)) {
     return response.status(404).send("Not Found");
   }
-
   return response.sendFile(path.join(config.PUBLIC_DIR, "admin.html"));
 });
 
@@ -162,7 +175,6 @@ app.get("/view/:id", (request, response) => {
   if (!sessionStore.isValidSessionId(request.params.id)) {
     return response.status(404).send("Not Found");
   }
-
   return response.sendFile(path.join(config.PUBLIC_DIR, "viewer.html"));
 });
 
@@ -187,84 +199,107 @@ app.post("/api/session/new", createSessionLimiter, (request, response) => {
 
 app.get("/api/sessions/active", activeSessionsLimiter, (_request, response) => {
   sessionStore.cleanupExpiredSessions();
-  response.json({
-    sessions: sessionStore.listActiveSessions(),
-  });
+  response.json({ sessions: sessionStore.listActiveSessions() });
 });
 
 app.get("/health", (_request, response) => {
   response.json({ ok: true });
+});
+registerSpotifyRoutes({
+  app,
+  logEvent,
+  sessionStore,
+  tokensMatch,
 });
 
 io.on("connection", (socket) => {
   socket.currentSession = null;
   socket.isAdmin = false;
 
-  socket.on("session:join", (sessionId, role, tokenOrCallback, maybeCallback) => {
-    const callback =
-      typeof tokenOrCallback === "function" ? tokenOrCallback : maybeCallback;
-    const adminToken = typeof tokenOrCallback === "string" ? tokenOrCallback : null;
+  socket.on(
+    "session:join",
+    (sessionId, role, tokenOrCallback, maybeCallback) => {
+      const callback =
+        typeof tokenOrCallback === "function" ? tokenOrCallback : maybeCallback;
+      const adminToken =
+        typeof tokenOrCallback === "string" ? tokenOrCallback : null;
 
-    if (!sessionStore.isValidSessionId(sessionId) || !sessionStore.isValidRole(role)) {
-      logEvent("session_join_denied", buildSocketLogDetails(socket, {
-        sessionId: normalizeSessionId(sessionId),
-        role: normalizeRole(role),
-        reason: "invalid_request",
-      }));
-      if (callback) callback({ success: false, reason: "invalid_request" });
-      return;
-    }
+      if (
+        !sessionStore.isValidSessionId(sessionId) ||
+        !sessionStore.isValidRole(role)
+      ) {
+        logEvent(
+          "session_join_denied",
+          buildSocketLogDetails(socket, {
+            sessionId: normalizeSessionId(sessionId),
+            role: normalizeRole(role),
+            reason: "invalid_request",
+          }),
+        );
+        if (callback) callback({ success: false, reason: "invalid_request" });
+        return;
+      }
 
-    const currentSession = sessionStore.getSession(sessionId);
-    if (!currentSession) {
-      sessionStore.deleteSession(sessionId);
-      logEvent("session_join_denied", buildSocketLogDetails(socket, {
-        sessionId,
-        role,
-        reason: "not_found",
-      }));
-      if (callback) callback({ success: false, reason: "not_found" });
-      return;
-    }
+      const currentSession = sessionStore.getSession(sessionId);
+      if (!currentSession) {
+        sessionStore.deleteSession(sessionId);
+        logEvent(
+          "session_join_denied",
+          buildSocketLogDetails(socket, {
+            sessionId,
+            role,
+            reason: "not_found",
+          }),
+        );
+        if (callback) callback({ success: false, reason: "not_found" });
+        return;
+      }
 
-    const wantsAdmin = role === "admin";
-    if (
-      wantsAdmin &&
-      !tokensMatch(
-        currentSession.adminToken,
-        adminToken,
-        sessionStore.isValidAdminToken,
-      )
-    ) {
-      logEvent("session_join_denied", buildSocketLogDetails(socket, {
-        sessionId,
-        role,
-        reason: "unauthorized",
-      }));
-      if (callback) callback({ success: false, reason: "unauthorized" });
-      return;
-    }
+      const wantsAdmin = role === "admin";
+      if (
+        wantsAdmin &&
+        !tokensMatch(
+          currentSession.adminToken,
+          adminToken,
+          sessionStore.isValidAdminToken,
+        )
+      ) {
+        logEvent(
+          "session_join_denied",
+          buildSocketLogDetails(socket, {
+            sessionId,
+            role,
+            reason: "unauthorized",
+          }),
+        );
+        if (callback) callback({ success: false, reason: "unauthorized" });
+        return;
+      }
 
-    if (socket.currentSession && socket.currentSession !== sessionId) {
-      socket.leave(socket.currentSession);
-    }
+      if (socket.currentSession && socket.currentSession !== sessionId) {
+        socket.leave(socket.currentSession);
+      }
 
-    sessionStore.touchSession(currentSession);
-    socket.join(sessionId);
-    socket.currentSession = sessionId;
-    socket.isAdmin = wantsAdmin;
+      sessionStore.touchSession(currentSession);
+      socket.join(sessionId);
+      socket.currentSession = sessionId;
+      socket.isAdmin = wantsAdmin;
 
-    sessionStore.emitSessionState(socket, currentSession);
-    logEvent("session_joined", buildSocketLogDetails(socket, {
-      sessionId,
-      role,
-      status: currentSession.status,
-      remaining: formatTimerMs(sessionStore.getRemaining(currentSession)),
-      userAgent: getSocketUserAgent(socket),
-    }));
+      sessionStore.emitSessionState(socket, currentSession);
+      logEvent(
+        "session_joined",
+        buildSocketLogDetails(socket, {
+          sessionId,
+          role,
+          status: currentSession.status,
+          remaining: formatTimerMs(sessionStore.getRemaining(currentSession)),
+          userAgent: getSocketUserAgent(socket),
+        }),
+      );
 
-    if (callback) callback({ success: true });
-  });
+      if (callback) callback({ success: true });
+    },
+  );
 
   socket.on("timer:setTime", (ms) => {
     const session = sessionStore.getAdminSession(socket);
@@ -280,7 +315,12 @@ io.on("connection", (socket) => {
 
   socket.on("timer:start", () => {
     const session = sessionStore.getAdminSession(socket);
-    if (!session || session.status === "running" || sessionStore.getRemaining(session) <= 0) return;
+    if (
+      !session ||
+      session.status === "running" ||
+      sessionStore.getRemaining(session) <= 0
+    )
+      return;
 
     session.startTime = Date.now();
     session.status = "running";
@@ -288,7 +328,10 @@ io.on("connection", (socket) => {
 
     if (!session.interval) {
       const sessionId = socket.currentSession;
-      session.interval = setInterval(() => sessionStore.broadcastSession(sessionId), 250);
+      session.interval = setInterval(
+        () => sessionStore.broadcastSession(sessionId),
+        250,
+      );
     }
 
     sessionStore.broadcastSession(socket.currentSession);
@@ -317,7 +360,10 @@ io.on("connection", (socket) => {
   });
 });
 
-setInterval(sessionStore.cleanupExpiredSessions, config.SESSION_CLEANUP_MS).unref();
+setInterval(
+  sessionStore.cleanupExpiredSessions,
+  config.SESSION_CLEANUP_MS,
+).unref();
 
 server.listen(config.PORT, () => {
   logEvent("server_started", {
@@ -333,8 +379,14 @@ function buildCspDirectives(nodeEnv) {
     scriptSrc: ["'self'"],
     styleSrc: ["'self'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-    connectSrc: ["'self'", "ws:", "wss:"],
-    imgSrc: ["'self'", "data:"],
+    connectSrc: [
+      "'self'",
+      "ws:",
+      "wss:",
+      "https://api.spotify.com",
+      "https://accounts.spotify.com",
+    ],
+    imgSrc: ["'self'", "data:", "https://i.scdn.co"],
     objectSrc: ["'none'"],
     baseUri: ["'self'"],
     formAction: ["'self'"],
@@ -376,3 +428,4 @@ function normalizeSessionId(value) {
 function normalizeRole(value) {
   return value === "admin" || value === "viewer" ? value : "unknown";
 }
+

@@ -4,40 +4,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Cronômetro - Admin</title>
+  <title>Cronometro - Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;600;900&display=swap"
     rel="stylesheet" />
   <script src="/socket.io/socket.io.js"></script>
-  <link rel="stylesheet" href="/assets/css/admin.css?v=20260419e" />
+  <link rel="stylesheet" href="/assets/css/admin.css?v=20260422a" />
 </head>
 
 <body>
   <div id="admin-panel">
     <div class="desktop-layout" id="desktop-layout">
-      <span class="badge">● Admin Control</span>
+      <span class="badge">Admin Control</span>
 
       <div class="desktop-presets-bar">
         <span class="desktop-presets-label">Presets</span>
         <div class="desktop-presets-chips" id="desktop-presets-chips">
-          <span class="presets-empty-d">Adicione nas configurações ⚙</span>
+          <span class="presets-empty-d">Adicione nas configuracoes</span>
         </div>
         <div class="desktop-presets-actions">
           <button class="btn-icon-d" id="btn-fs-d" type="button" title="Tela cheia"
-            aria-label="Alternar tela cheia">⛶</button>
-          <button class="btn-icon-d" id="btn-open-modal" type="button" title="Configurações"
-            aria-label="Abrir configurações">⚙️</button>
+            aria-label="Alternar tela cheia">FS</button>
+          <button class="btn-icon-d" id="btn-open-modal" type="button" title="Configuracoes"
+            aria-label="Abrir configuracoes">CFG</button>
         </div>
       </div>
 
       <div class="modal-overlay" id="modal-overlay">
         <div class="modal" id="modal">
           <div class="modal-header">
-            <div class="modal-title">⚙ Configurações</div>
-            <button class="btn-close-modal" id="btn-close-modal" type="button" aria-label="Fechar modal">✕</button>
+            <div class="modal-title">Configuracoes</div>
+            <button class="btn-close-modal" id="btn-close-modal" type="button" aria-label="Fechar modal">X</button>
           </div>
           <div class="modal-grid">
             <div class="modal-col modal-col-time">
-              <div class="section-label">⏱ Definir tempo</div>
+              <div class="section-label">Definir tempo</div>
               <div class="time-inputs">
                 <div class="time-input-group">
                   <label for="d-input-h">h</label>
@@ -55,18 +55,18 @@
                 </div>
               </div>
               <div class="setter-actions">
-                <button class="btn-set" id="btn-d-apply" type="button">✓ Aplicar</button>
-                <button class="btn-set secondary" id="btn-d-save-preset" type="button">📌 Salvar preset</button>
+                <button class="btn-set" id="btn-d-apply" type="button">Aplicar</button>
+                <button class="btn-set secondary" id="btn-d-save-preset" type="button">Salvar preset</button>
               </div>
               <div class="settings-shortcuts">
-                <div class="section-label">Visão geral</div>
+                <div class="section-label">Visao geral</div>
                 <a class="settings-link shortcut-link" href="/overview" target="_blank" rel="noopener noreferrer">Ver
-                  sessões ativas</a>
+                  sessoes ativas</a>
               </div>
             </div>
             <div class="modal-col modal-col-manage">
               <div class="presets-panel-head">
-                <div class="section-label">📌 Gerenciar presets</div>
+                <div class="section-label">Gerenciar presets</div>
                 <div class="presets-panel-copy">Salve o tempo atual com um nome direto nesta tela.</div>
               </div>
               <div class="presets-manage-list" id="d-presets-manage"></div>
@@ -92,29 +92,83 @@
         <span id="d-status-text">PARADO</span>
       </div>
       <div class="controls-d">
-        <button class="btn-d btn-start-d" id="d-btn-start" type="button">▶ Start</button>
-        <button class="btn-d btn-pause-d" id="d-btn-pause" type="button" disabled>⏸ Pause</button>
-        <button class="btn-d btn-reset-d" id="d-btn-reset" type="button">↺ Reset</button>
+        <button class="btn-d btn-start-d" id="d-btn-start" type="button">Start</button>
+        <button class="btn-d btn-pause-d" id="d-btn-pause" type="button" disabled>Pause</button>
+        <button class="btn-d btn-reset-d" id="d-btn-reset" type="button">Reset</button>
       </div>
       <div class="viewer-link-d">
-        <a class="viewer-direct-link shortcut-link" href="/viewer.html" target="_blank" rel="noopener noreferrer">
-          Abrir viewer
-        </a>
+        <a class="viewer-direct-link shortcut-link" href="/viewer.html" target="_blank" rel="noopener noreferrer">Abrir
+          viewer</a>
+      </div>
+
+      <div class="sp-section" id="sp-section-d">
+        <div class="sp-header">
+          <div class="sp-header-left">
+            <div class="sp-logo">S</div>
+            <span class="sp-title">Spotify</span>
+            <span class="sp-device-badge" id="sp-device-d" hidden>sem dispositivo</span>
+          </div>
+          <button class="sp-auth-btn" id="sp-login-btn-d" type="button">Conectar</button>
+        </div>
+
+        <div class="sp-not-auth" id="sp-not-auth-d">
+          <div class="sp-not-auth-text">Conecte sua conta Spotify para controlar a musica daqui.</div>
+        </div>
+
+        <div id="sp-auth-content-d" class="sp-auth-content" hidden>
+          <div class="sp-now-playing" id="sp-now-playing-d">
+            <div class="sp-cover" id="sp-cover-d">S</div>
+            <div class="sp-track-info">
+              <div class="sp-track-name" id="sp-track-name-d">Nenhuma faixa</div>
+              <div class="sp-track-artist" id="sp-track-artist-d">-</div>
+              <div class="sp-progress-wrap" id="sp-progress-bar-d">
+                <div class="sp-progress-fill" id="sp-progress-fill-d"></div>
+              </div>
+              <div class="sp-time-row">
+                <span id="sp-time-cur-d">0:00</span>
+                <span id="sp-time-total-d">0:00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sp-controls">
+            <button class="sp-btn" id="sp-btn-shuffle-d" type="button" title="Shuffle">SH</button>
+            <button class="sp-btn" id="sp-btn-prev-d" type="button" title="Anterior">&lt;&lt;</button>
+            <button class="sp-btn sp-btn-play" id="sp-btn-play-d" type="button" title="Play/Pause">&gt;</button>
+            <button class="sp-btn" id="sp-btn-next-d" type="button" title="Proxima">&gt;&gt;</button>
+            <button class="sp-btn" id="sp-btn-repeat-d" type="button" title="Repetir">RP</button>
+          </div>
+
+          <div class="sp-vol-row">
+            <span class="sp-vol-label">Vol</span>
+            <input class="sp-vol-slider" id="sp-vol-d" type="range" min="0" max="100" value="70" />
+            <span class="sp-vol-val" id="sp-vol-val-d">70%</span>
+          </div>
+
+          <div class="section-label sp-playlist-label">Playlist</div>
+          <select class="sp-playlist-select" id="sp-playlist-select-d">
+            <option value="">- selecione uma playlist -</option>
+          </select>
+
+          <div class="sp-tracklist" id="sp-tracklist-d">
+            <div class="sp-empty">Selecione uma playlist</div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="mobile-layout" id="mobile-layout">
       <div class="topbar">
-        <div class="topbar-title">● Pitch Timer</div>
+        <div class="topbar-title">Pitch Timer</div>
         <div class="topbar-actions">
           <button class="btn-icon-m" id="btn-fs-m" type="button" title="Tela cheia"
-            aria-label="Alternar tela cheia">⛶</button>
-          <button class="btn-icon-m" id="btn-open-drawer" type="button" aria-label="Abrir configurações">⚙️</button>
+            aria-label="Alternar tela cheia">FS</button>
+          <button class="btn-icon-m" id="btn-open-drawer" type="button" aria-label="Abrir configuracoes">CFG</button>
         </div>
       </div>
       <div class="mobile-main">
         <div class="presets-scroll-m" id="m-presets-scroll">
-          <span class="presets-empty-m">Adicione presets nas configurações ⚙️</span>
+          <span class="presets-empty-m">Adicione presets nas configuracoes</span>
         </div>
         <div class="timer-display timer-display-m" id="m-timer">00:00:00</div>
         <div class="progress-wrap">
@@ -125,14 +179,40 @@
           <span id="m-status-text">PARADO</span>
         </div>
         <div class="controls-m">
-          <button class="btn-m btn-start-m" id="m-btn-start" type="button">▶ Start</button>
-          <button class="btn-m btn-pause-m" id="m-btn-pause" type="button" disabled>⏸ Pause</button>
-          <button class="btn-m btn-reset-m" id="m-btn-reset" type="button">↺</button>
+          <button class="btn-m btn-start-m" id="m-btn-start" type="button">Start</button>
+          <button class="btn-m btn-pause-m" id="m-btn-pause" type="button" disabled>Pause</button>
+          <button class="btn-m btn-reset-m" id="m-btn-reset" type="button">Reset</button>
         </div>
         <div class="viewer-link-m">
-          <a class="viewer-direct-link shortcut-link" href="/viewer.html" target="_blank" rel="noopener noreferrer">
-            Abrir viewer
-          </a>
+          <a class="viewer-direct-link shortcut-link" href="/viewer.html" target="_blank"
+            rel="noopener noreferrer">Abrir viewer</a>
+        </div>
+
+        <div class="sp-section sp-section-mobile" id="sp-section-m">
+          <div class="sp-header">
+            <div class="sp-header-left">
+              <div class="sp-logo">S</div>
+              <span class="sp-title">Spotify</span>
+            </div>
+            <button class="sp-auth-btn" id="sp-login-btn-m" type="button">Conectar</button>
+          </div>
+          <div id="sp-auth-content-m" class="sp-auth-content sp-auth-content-mobile" hidden>
+            <div class="sp-now-playing" id="sp-now-playing-m">
+              <div class="sp-cover sp-cover-mobile" id="sp-cover-m">S</div>
+              <div class="sp-track-info">
+                <div class="sp-track-name sp-track-name-mobile" id="sp-track-name-m">Nenhuma faixa</div>
+                <div class="sp-track-artist sp-track-artist-mobile" id="sp-track-artist-m">-</div>
+              </div>
+            </div>
+            <div class="sp-controls-m">
+              <button class="sp-btn sp-btn-m" id="sp-btn-prev-m" type="button">&lt;&lt;</button>
+              <button class="sp-btn sp-btn-play sp-btn-play-m" id="sp-btn-play-m" type="button">&gt;</button>
+              <button class="sp-btn sp-btn-m" id="sp-btn-next-m" type="button">&gt;&gt;</button>
+            </div>
+          </div>
+          <div id="sp-not-auth-m" class="sp-not-auth sp-not-auth-compact">
+            <div class="sp-not-auth-text">Conecte o Spotify</div>
+          </div>
         </div>
       </div>
     </div>
@@ -142,12 +222,12 @@
   <div class="drawer" id="drawer">
     <div class="drawer-handle"></div>
     <div class="drawer-header">
-      <div class="drawer-title">⚙ Configurações</div>
-      <button class="btn-close-drawer" id="btn-close-drawer" type="button" aria-label="Fechar painel">✕</button>
+      <div class="drawer-title">Configuracoes</div>
+      <button class="btn-close-drawer" id="btn-close-drawer" type="button" aria-label="Fechar painel">X</button>
     </div>
 
     <div class="drawer-section">
-      <div class="drawer-section-label">⏱ Definir tempo</div>
+      <div class="drawer-section-label">Definir tempo</div>
       <div class="time-inputs-m">
         <div class="time-input-group-m">
           <label for="m-input-h">h</label>
@@ -165,13 +245,13 @@
         </div>
       </div>
       <div class="drawer-actions">
-        <button class="btn-drawer-action" id="btn-m-apply" type="button">✓ Aplicar</button>
-        <button class="btn-drawer-action sec" id="btn-m-save-preset" type="button">📌 Salvar preset</button>
+        <button class="btn-drawer-action" id="btn-m-apply" type="button">Aplicar</button>
+        <button class="btn-drawer-action sec" id="btn-m-save-preset" type="button">Salvar preset</button>
       </div>
     </div>
 
     <div class="drawer-section">
-      <div class="drawer-section-label">📌 Gerenciar presets</div>
+      <div class="drawer-section-label">Gerenciar presets</div>
       <div class="presets-list-m" id="m-presets-manage"></div>
       <div class="add-preset-row-m">
         <div class="preset-name-stack">
@@ -183,14 +263,35 @@
       </div>
     </div>
 
+    <div class="drawer-section drawer-sp-section">
+      <div class="drawer-section-label sp-drawer-title">Spotify Playlist</div>
+      <div id="sp-drawer-not-auth">
+        <button class="sp-auth-btn sp-auth-btn-full" id="sp-login-btn-drawer" type="button">Conectar Spotify</button>
+      </div>
+      <div id="sp-drawer-auth" class="sp-auth-content sp-auth-content-mobile" hidden>
+        <select class="sp-playlist-select" id="sp-playlist-select-m">
+          <option value="">- selecione uma playlist -</option>
+        </select>
+        <div class="sp-tracklist sp-tracklist-drawer" id="sp-tracklist-m">
+          <div class="sp-empty">Selecione uma playlist</div>
+        </div>
+        <div class="sp-vol-row">
+          <span class="sp-vol-label">Vol</span>
+          <input class="sp-vol-slider" id="sp-vol-m" type="range" min="0" max="100" value="70" />
+          <span class="sp-vol-val" id="sp-vol-val-m">70%</span>
+        </div>
+      </div>
+    </div>
+
     <div class="drawer-section">
-      <div class="drawer-section-label">Visão geral</div>
+      <div class="drawer-section-label">Visao geral</div>
       <a class="settings-link shortcut-link mobile" href="/overview" target="_blank" rel="noopener noreferrer">Ver
-        sessões ativas</a>
+        sessoes ativas</a>
     </div>
   </div>
 
   <script src="/assets/js/admin.js?v=20260419a"></script>
+  <script src="/assets/js/admin-spotify.js?v=20260422a"></script>
 </body>
 
 </html>
