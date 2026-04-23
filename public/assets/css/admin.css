@@ -1116,7 +1116,7 @@ body.message-mode {
   position: absolute;
   right: 20px;
   bottom: 20px;
-  width: min(360px, 38vw);
+  width: min(340px, 34vw);
   z-index: 0;
   opacity: 0.5;
   pointer-events: auto;
@@ -1137,7 +1137,7 @@ body.message-mode {
 
 .sp-embed-frame-wrap {
   position: relative;
-  border-radius: 22px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(169, 214, 255, 0.16);
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.3);
@@ -1149,7 +1149,7 @@ body.message-mode {
   display: block;
   width: 100%;
   border: 0;
-  border-radius: 22px;
+  border-radius: 12px;
 }
 
 .sp-header {
