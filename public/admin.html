@@ -101,75 +101,6 @@
           viewer</a>
       </div>
 
-      <div class="sp-section sp-integration-panel" id="sp-section-d" hidden>
-        <div class="sp-header">
-          <div class="sp-header-left">
-            <div class="sp-logo">S</div>
-            <span class="sp-title">Spotify</span>
-            <span class="sp-device-badge" id="sp-device-d" hidden>sem dispositivo</span>
-          </div>
-          <button class="sp-auth-btn" id="sp-login-btn-d" type="button">Conectar</button>
-        </div>
-
-        <div class="sp-not-auth" id="sp-not-auth-d">
-          <div class="sp-not-auth-text">Conecte sua conta Spotify para controlar a musica daqui.</div>
-        </div>
-
-        <div id="sp-auth-content-d" class="sp-auth-content" hidden>
-          <div class="sp-now-playing" id="sp-now-playing-d">
-            <div class="sp-cover" id="sp-cover-d">S</div>
-            <div class="sp-track-info">
-              <div class="sp-track-name" id="sp-track-name-d">Nenhuma faixa</div>
-              <div class="sp-track-artist" id="sp-track-artist-d">-</div>
-              <div class="sp-progress-wrap" id="sp-progress-bar-d">
-                <div class="sp-progress-fill" id="sp-progress-fill-d"></div>
-              </div>
-              <div class="sp-time-row">
-                <span id="sp-time-cur-d">0:00</span>
-                <span id="sp-time-total-d">0:00</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="sp-controls">
-            <button class="sp-btn" id="sp-btn-shuffle-d" type="button" title="Shuffle">SH</button>
-            <button class="sp-btn" id="sp-btn-prev-d" type="button" title="Anterior">&lt;&lt;</button>
-            <button class="sp-btn sp-btn-play" id="sp-btn-play-d" type="button" title="Play/Pause">&gt;</button>
-            <button class="sp-btn" id="sp-btn-next-d" type="button" title="Proxima">&gt;&gt;</button>
-            <button class="sp-btn" id="sp-btn-repeat-d" type="button" title="Repetir">RP</button>
-          </div>
-
-          <div class="sp-vol-row">
-            <span class="sp-vol-label">Vol</span>
-            <input class="sp-vol-slider" id="sp-vol-d" type="range" min="0" max="100" value="70" />
-            <span class="sp-vol-val" id="sp-vol-val-d">70%</span>
-          </div>
-
-          <div class="section-label sp-playlist-label">Playlist</div>
-          <select class="sp-playlist-select" id="sp-playlist-select-d">
-            <option value="">- selecione uma playlist -</option>
-          </select>
-
-          <div class="sp-tracklist" id="sp-tracklist-d">
-            <div class="sp-empty">Selecione uma playlist</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="sp-embed-layer" aria-label="Playlist Spotify em segundo plano">
-        <div class="sp-embed-frame-wrap">
-          <iframe
-            class="sp-embed-frame"
-            title="Spotify playlist"
-            src="https://open.spotify.com/embed/playlist/6prlLmFpyLjNGXYdJZhk5L?utm_source=generator&theme=0"
-            width="100%"
-            height="152"
-            frameborder="0"
-            allowfullscreen
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"></iframe>
-        </div>
-      </div>
     </div>
 
     <div class="mobile-layout" id="mobile-layout">
@@ -203,33 +134,22 @@
             rel="noopener noreferrer">Abrir viewer</a>
         </div>
 
-        <div class="sp-section sp-section-mobile sp-integration-panel" id="sp-section-m" hidden>
-          <div class="sp-header">
-            <div class="sp-header-left">
-              <div class="sp-logo">S</div>
-              <span class="sp-title">Spotify</span>
-            </div>
-            <button class="sp-auth-btn" id="sp-login-btn-m" type="button">Conectar</button>
-          </div>
-          <div id="sp-auth-content-m" class="sp-auth-content sp-auth-content-mobile" hidden>
-            <div class="sp-now-playing" id="sp-now-playing-m">
-              <div class="sp-cover sp-cover-mobile" id="sp-cover-m">S</div>
-              <div class="sp-track-info">
-                <div class="sp-track-name sp-track-name-mobile" id="sp-track-name-m">Nenhuma faixa</div>
-                <div class="sp-track-artist sp-track-artist-mobile" id="sp-track-artist-m">-</div>
-              </div>
-            </div>
-            <div class="sp-controls-m">
-              <button class="sp-btn sp-btn-m" id="sp-btn-prev-m" type="button">&lt;&lt;</button>
-              <button class="sp-btn sp-btn-play sp-btn-play-m" id="sp-btn-play-m" type="button">&gt;</button>
-              <button class="sp-btn sp-btn-m" id="sp-btn-next-m" type="button">&gt;&gt;</button>
-            </div>
-          </div>
-          <div id="sp-not-auth-m" class="sp-not-auth sp-not-auth-compact">
-            <div class="sp-not-auth-text">Conecte o Spotify</div>
-          </div>
-        </div>
       </div>
+    </div>
+  </div>
+
+  <div class="sp-embed-layer" aria-label="Playlist Spotify em segundo plano">
+    <div class="sp-embed-frame-wrap">
+      <iframe
+        class="sp-embed-frame"
+        title="Spotify playlist"
+        src="https://open.spotify.com/embed/playlist/6prlLmFpyLjNGXYdJZhk5L?utm_source=generator&theme=0"
+        width="100%"
+        height="152"
+        frameborder="0"
+        allowfullscreen
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"></iframe>
     </div>
   </div>
 
@@ -277,27 +197,6 @@
         <button class="btn-add-m" id="btn-m-add-preset" type="button">+ Adicionar</button>
       </div>
     </div>
-
-    <div class="drawer-section drawer-sp-section sp-integration-panel" hidden>
-      <div class="drawer-section-label sp-drawer-title">Spotify Playlist</div>
-      <div id="sp-drawer-not-auth">
-        <button class="sp-auth-btn sp-auth-btn-full" id="sp-login-btn-drawer" type="button">Conectar Spotify</button>
-      </div>
-      <div id="sp-drawer-auth" class="sp-auth-content sp-auth-content-mobile" hidden>
-        <select class="sp-playlist-select" id="sp-playlist-select-m">
-          <option value="">- selecione uma playlist -</option>
-        </select>
-        <div class="sp-tracklist sp-tracklist-drawer" id="sp-tracklist-m">
-          <div class="sp-empty">Selecione uma playlist</div>
-        </div>
-        <div class="sp-vol-row">
-          <span class="sp-vol-label">Vol</span>
-          <input class="sp-vol-slider" id="sp-vol-m" type="range" min="0" max="100" value="70" />
-          <span class="sp-vol-val" id="sp-vol-val-m">70%</span>
-        </div>
-      </div>
-    </div>
-
     <div class="drawer-section">
       <div class="drawer-section-label">Visao geral</div>
       <a class="settings-link shortcut-link mobile" href="/overview" target="_blank" rel="noopener noreferrer">Ver
