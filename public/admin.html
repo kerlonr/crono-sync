@@ -101,7 +101,7 @@
           viewer</a>
       </div>
 
-      <div class="sp-section" id="sp-section-d">
+      <div class="sp-section sp-integration-panel" id="sp-section-d">
         <div class="sp-header">
           <div class="sp-header-left">
             <div class="sp-logo">S</div>
@@ -155,6 +155,21 @@
           </div>
         </div>
       </div>
+
+      <div class="sp-embed-layer" aria-label="Playlist Spotify em segundo plano">
+        <div class="sp-embed-frame-wrap">
+          <iframe
+            class="sp-embed-frame"
+            title="Spotify playlist"
+            src="https://open.spotify.com/embed/playlist/6prlLmFpyLjNGXYdJZhk5L?utm_source=generator"
+            width="100%"
+            height="352"
+            frameborder="0"
+            allowfullscreen
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"></iframe>
+        </div>
+      </div>
     </div>
 
     <div class="mobile-layout" id="mobile-layout">
@@ -188,7 +203,7 @@
             rel="noopener noreferrer">Abrir viewer</a>
         </div>
 
-        <div class="sp-section sp-section-mobile" id="sp-section-m">
+        <div class="sp-section sp-section-mobile sp-integration-panel" id="sp-section-m">
           <div class="sp-header">
             <div class="sp-header-left">
               <div class="sp-logo">S</div>
@@ -263,7 +278,7 @@
       </div>
     </div>
 
-    <div class="drawer-section drawer-sp-section">
+    <div class="drawer-section drawer-sp-section sp-integration-panel">
       <div class="drawer-section-label sp-drawer-title">Spotify Playlist</div>
       <div id="sp-drawer-not-auth">
         <button class="sp-auth-btn sp-auth-btn-full" id="sp-login-btn-drawer" type="button">Conectar Spotify</button>
@@ -291,7 +306,6 @@
   </div>
 
   <script src="/assets/js/admin.js?v=20260419a"></script>
-  <script src="/assets/js/admin-spotify.js?v=20260422a"></script>
 </body>
 
 </html>

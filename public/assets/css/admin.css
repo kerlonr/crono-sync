@@ -126,6 +126,11 @@ body.message-mode {
   animation: panelIn 0.5s ease;
 }
 
+.desktop-layout > *:not(.sp-embed-layer) {
+  position: relative;
+  z-index: 1;
+}
+
 .desktop-layout::before {
   content: "";
   position: absolute;
@@ -1103,6 +1108,50 @@ body.message-mode {
   box-shadow: var(--shadow);
 }
 
+.sp-integration-panel {
+  display: none !important;
+}
+
+.sp-embed-layer {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: min(360px, 38vw);
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: auto;
+  filter: saturate(0.9) brightness(0.92);
+}
+
+.sp-embed-layer::before {
+  content: "";
+  position: absolute;
+  inset: -20px -18px -18px -18px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(88, 234, 208, 0.14), transparent 42%),
+    radial-gradient(circle at bottom right, rgba(122, 191, 255, 0.16), transparent 46%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.sp-embed-frame-wrap {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(169, 214, 255, 0.16);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.sp-embed-frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 22px;
+}
+
 .sp-header {
   display: flex;
   align-items: center;
@@ -1776,6 +1825,10 @@ body.message-mode {
 
   .btn-add-m {
     width: 100%;
+  }
+
+  .sp-embed-layer {
+    display: none;
   }
 }
 

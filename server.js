@@ -387,6 +387,7 @@ function buildCspDirectives(nodeEnv) {
       "https://accounts.spotify.com",
     ],
     imgSrc: ["'self'", "data:", "https://i.scdn.co"],
+    frameSrc: ["'self'", "https://open.spotify.com"],
     objectSrc: ["'none'"],
     baseUri: ["'self'"],
     formAction: ["'self'"],
