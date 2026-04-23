@@ -1206,11 +1206,12 @@ body.message-mode {
 }
 
 .sp-embed-layer {
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
+  display: block;
+  position: fixed;
+  inset: auto 12px 12px auto;
   width: min(340px, 34vw);
-  z-index: 2;
+  margin: 0;
+  z-index: 40;
   opacity: 0.5;
   pointer-events: auto;
   filter: saturate(0.9) brightness(0.92);
@@ -1419,13 +1420,6 @@ body.message-mode {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.sp-embed-layer {
-  display: flex;
-  position: absolute;
-  right: 1%;
-  top: calc(100% - 18%);
 }
 
 .sp-track-name-mobile {
