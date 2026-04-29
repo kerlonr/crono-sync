@@ -587,6 +587,17 @@ body.message-mode {
   flex-shrink: 0;
 }
 
+.btn-icon-glyph {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .btn-icon-d:hover,
 .btn-icon-m:hover,
 .btn-close-modal:hover,
@@ -849,14 +860,14 @@ body.message-mode {
   min-width: 0;
   overflow: hidden;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background:
     linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.88),
       rgba(255, 255, 255, 0.64)
     ),
-    rgba(255, 255, 255, 0.52);
+    rgba(255, 255, 255, 0.158);
   box-shadow: 0 12px 24px rgba(67, 104, 142, 0.1);
   transition:
     transform 0.2s ease,
@@ -2083,6 +2094,15 @@ body::after {
     var(--glass-strong);
   color: var(--ink);
   box-shadow: var(--shadow-soft);
+}
+
+.preset-manage-row,
+.preset-row-m {
+  border-color: rgba(169, 214, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(21, 34, 57, 0.92), rgba(8, 16, 29, 0.96)),
+    rgba(10, 18, 33, 0.88);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
 }
 
 .preset-chip-d:hover,
