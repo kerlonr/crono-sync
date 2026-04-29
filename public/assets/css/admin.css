@@ -659,14 +659,10 @@ body.message-mode {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 10px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
   align-content: center;
-  flex-wrap: wrap;
   align-items: center;
-  padding-bottom: 16px;
-  border-radius: 18px;
+  justify-content: center;
+  text-align: center;
 }
 
 .time-inputs,
@@ -1003,11 +999,14 @@ body.message-mode {
 
 .modal-grid {
   display: grid;
-  grid-template-columns: minmax(300px, 0.94fr) minmax(360px, 1.06fr);
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  grid-template-areas:
+    "time manage"
+    "overview manage";
   gap: 20px;
   padding: 24px 28px 28px;
   overflow: auto;
-  align-items: start;
+  align-items: stretch;
 }
 
 .modal-col {
@@ -1030,11 +1029,20 @@ body.message-mode {
 }
 
 .modal-col-time {
+  grid-area: time;
   justify-content: flex-start;
-  align-self: start;
+}
+
+.modal-col-overview {
+  grid-area: overview;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .modal-col-manage {
+  grid-area: manage;
+  align-self: stretch;
   background:
     linear-gradient(
       180deg,
@@ -1042,6 +1050,11 @@ body.message-mode {
       rgba(255, 255, 255, 0.5)
     ),
     rgba(255, 255, 255, 0.42);
+}
+
+.modal-col-manage .presets-manage-list {
+  flex: 1;
+  max-height: none;
 }
 
 .mobile-layout {
@@ -1884,6 +1897,10 @@ body.message-mode {
 
   .modal-grid {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "time"
+      "manage"
+      "overview";
     gap: 18px;
   }
 }
