@@ -981,8 +981,7 @@ body.message-mode {
   position: sticky;
   top: 0;
   z-index: 2;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgb(0 0 0 / 31%);
+  background: rgb(51 51 51 / 10%);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
