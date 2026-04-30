@@ -60,6 +60,40 @@
         },
       };
     },
+
+    createWatcher(src = DEFAULT_FINISH_SOUND) {
+      const finishSound = this.create(src);
+      let armed = false;
+      let played = false;
+
+      return {
+        sync(status, remaining) {
+          if (status === "running" && remaining > 0) {
+            armed = true;
+          }
+
+          if (status === "finished" || remaining <= 0) {
+            if (armed && !played) {
+              finishSound?.play();
+            }
+
+            played = true;
+            armed = false;
+            return;
+          }
+
+          if (status === "stopped") {
+            armed = false;
+            played = false;
+            return;
+          }
+
+          if (remaining > 0) {
+            played = false;
+          }
+        },
+      };
+    },
   };
 
   function resetAudio(audio) {

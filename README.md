@@ -1,16 +1,16 @@
-# Cronometro Sync
+# Cronômetro Sync
 
-Cronometro sincronizado em tempo real com painel de admin e tela de viewer, usando `Express` e `Socket.IO`.
+Cronômetro sincronizado em tempo real com painel de admin, tela pública de viewer e visão geral das sessões online.
 
-## Visao Geral
+## Visão Geral
 
 O projeto permite:
 
-- criar uma sessao de cronometro
+- criar uma sessão de cronômetro
 - controlar o tempo por uma tela de admin
 - compartilhar um link de viewer para acompanhar a contagem em tempo real
 - salvar presets localmente no navegador do admin
-- acompanhar todas as sessoes ativas do servidor em um painel somente-viewer
+- acompanhar e finalizar sessões ativas em um painel geral
 
 ## Stack
 
@@ -31,6 +31,8 @@ O projeto permite:
 |   |-- overview.html
 |   |-- viewer.html
 |   `-- assets/
+|       |-- audio/
+|       |   `-- trompeta.mp3
 |       |-- css/
 |       |   |-- index.css
 |       |   |-- admin.css
@@ -39,6 +41,7 @@ O projeto permite:
 |       `-- js/
 |           |-- index.js
 |           |-- admin.js
+|           |-- finish-sound.js
 |           |-- overview.js
 |           `-- viewer.js
 |-- scripts/
@@ -59,6 +62,36 @@ O projeto permite:
 |-- package.json
 `-- package-lock.json
 ```
+
+## Organização de Responsabilidades
+
+### Backend
+
+- `server.js`: configura Express, segurança, rotas HTTP, Socket.IO e CSP.
+- `src/config.js`: centraliza variáveis de ambiente e valores padrão.
+- `src/sessions.js`: guarda sessões em memória e concentra regras do cronômetro.
+- `src/security.js`: valida origem, tokens e assinatura do webhook.
+- `src/logger.js`: registra acessos e eventos do app.
+- `src/deploy-client.js`: dispara o serviço opcional de deploy.
+
+### Frontend
+
+- `public/index.html` + `assets/js/index.js`: cria uma nova sessão.
+- `public/admin.html` + `assets/js/admin.js`: controla tempo, presets, fullscreen e link do viewer.
+- `public/viewer.html` + `assets/js/viewer.js`: mostra a contagem sincronizada sem controles.
+- `public/overview.html` + `assets/js/overview.js`: lista sessões ativas e permite finalizar sessões.
+- `assets/js/finish-sound.js`: encapsula o som final do cronômetro.
+
+### CSS
+
+Cada tela possui um CSS próprio para evitar acoplamento visual excessivo:
+
+- `index.css`: tela inicial.
+- `admin.css`: painel de controle e drawer mobile.
+- `viewer.css`: tela pública de contagem.
+- `overview.css`: painel geral de sessões.
+
+O padrão visual atual é dark glass: fundos escuros, bordas translúcidas, blur e acentos em verde/azul.
 
 ## Requisitos
 
@@ -111,7 +144,7 @@ Subindo com Compose:
 docker compose up --build
 ```
 
-Por padrao, o `docker-compose.yml` expõe a aplicacao apenas em:
+Por padrão, o `docker-compose.yml` expõe a aplicação apenas em:
 
 ```text
 http://127.0.0.1:3000
@@ -119,84 +152,94 @@ http://127.0.0.1:3000
 
 ## Fluxo de Uso
 
-1. Abra a pagina inicial.
-2. Clique em `Criar cronometro`.
-3. Voce sera redirecionado para a URL de admin da sessao.
-4. Use o link de viewer exibido no painel para compartilhar a visualizacao.
-5. Abra `/overview` para ver todas as sessoes ativas do servidor em modo viewer.
+1. Abra a página inicial.
+2. Clique em `Criar cronômetro`.
+3. Você será redirecionado para a URL de admin da sessão.
+4. Use o link de viewer exibido no painel para compartilhar a visualização.
+5. Abra `/overview` para ver e finalizar sessões ativas.
 
-Observacao:
+Observação:
 
-- a URL de admin inclui um token no hash para autenticar a sessao de controle
-- a URL de viewer nao inclui permissao de admin
+- a URL de admin inclui um token no hash para autenticar a sessão de controle
+- a URL de viewer não inclui permissão de admin
+- o arquivo de som final deve ficar em `public/assets/audio/trompeta.mp3`
 
-## Variaveis de Ambiente
+## Variáveis de Ambiente
 
-As variaveis atuais sao:
+As variáveis atuais são:
 
-| Variavel | Obrigatoria | Descricao |
+| Variável | Obrigatória | Descrição |
 |---|---|---|
-| `PORT` | nao | Porta HTTP da aplicacao |
-| `NODE_ENV` | nao | Ambiente de execucao |
-| `APP_ORIGIN` | recomendado | Origem permitida para conexoes e uso do app |
+| `PORT` | não | Porta HTTP da aplicação |
+| `NODE_ENV` | não | Ambiente de execução |
+| `APP_ORIGIN` | recomendado | Origem permitida para conexões e uso do app |
 | `HOST_REPO_PATH` | sim, se auto-deploy ativado | Caminho absoluto do repo no host |
-| `ENABLE_WEBHOOK` | nao | Ativa o endpoint `/webhook` |
+| `ENABLE_WEBHOOK` | não | Ativa o endpoint `/webhook` |
 | `WEBHOOK_SECRET` | sim, se webhook ativado | Segredo para validar assinatura do webhook |
-| `WEBHOOK_DEPLOY_BRANCH` | nao | Branch aceito para o auto-deploy |
-| `DEPLOYER_TIMEOUT_MS` | nao | Timeout para disparar o servico de deploy |
-| `SESSION_TTL_MINUTES` | nao | Tempo de vida das sessoes em memoria |
-| `SESSION_CLEANUP_MINUTES` | nao | Intervalo de limpeza das sessoes expiradas |
-| `TRUST_PROXY` | nao | Ativa `trust proxy` no Express |
+| `WEBHOOK_DEPLOY_BRANCH` | não | Branch aceito para o auto-deploy |
+| `DEPLOYER_TIMEOUT_MS` | não | Timeout para disparar o serviço de deploy |
+| `SESSION_TTL_MINUTES` | não | Tempo de vida das sessões em memória |
+| `SESSION_CLEANUP_MINUTES` | não | Intervalo de limpeza das sessões expiradas |
+| `TRUST_PROXY` | não | Ativa `trust proxy` no Express |
 
 ## Endpoints Principais
 
-| Metodo | Rota | Descricao |
+| Método | Rota | Descrição |
 |---|---|---|
-| `GET` | `/` | Pagina inicial |
-| `POST` | `/api/session/new` | Cria uma nova sessao |
+| `GET` | `/` | Página inicial |
+| `POST` | `/api/session/new` | Cria uma nova sessão |
+| `GET` | `/api/sessions/active` | Lista sessões ativas |
+| `DELETE` | `/api/sessions/:id` | Finaliza uma sessão |
 | `GET` | `/admin/:id` | Painel de admin |
-| `GET` | `/overview` | Painel com todos os cronometros ativos em modo viewer |
+| `GET` | `/overview` | Painel com todos os cronômetros ativos |
 | `GET` | `/view/:id` | Tela de viewer |
 | `GET` | `/health` | Healthcheck simples |
 | `POST` | `/webhook` | Endpoint opcional de webhook |
 
-## Seguranca Atual
+## Validação Local
 
-O projeto ja inclui algumas medidas de endurecimento:
+```bash
+npm run check
+npm audit --audit-level=moderate
+```
 
-- token de admin por sessao
-- validacao de `sessionId`, token e payloads recebidos
-- `Helmet` com CSP e headers de seguranca
-- rate limit global, para criacao de sessao e para webhook
-- validacao de assinatura no webhook
-- restricao de origem para conexoes do Socket.IO
-- expiracao automatica de sessoes em memoria
-- limite maximo de tempo configuravel no servidor
+## Segurança Atual
+
+O projeto já inclui algumas medidas de endurecimento:
+
+- token de admin por sessão
+- validação de `sessionId`, token e payloads recebidos
+- `Helmet` com CSP e headers de segurança
+- rate limit global, para criação de sessão e para webhook
+- validação de assinatura no webhook
+- restrição de origem para conexões do Socket.IO
+- expiração automática de sessões em memória
+- limite máximo de tempo configurável no servidor
 - frontend sem `onclick` inline nem scripts embutidos, o que permite CSP mais forte
-- servico principal do app rodando como usuario nao-root no Compose
+- serviço principal do app rodando como usuário não-root no Compose
 - `docker-compose.yml` com `read_only`, `tmpfs`, `cap_drop` e `no-new-privileges`
 
-## Limitacoes Atuais
+## Limitações Atuais
 
-Alguns pontos importantes para considerar antes de producao mais seria:
+Alguns pontos importantes para considerar antes de produção mais séria:
 
-- as sessoes ficam apenas em memoria e somem ao reiniciar o processo
+- as sessões ficam apenas em memória e somem ao reiniciar o processo
 - os presets ficam em `localStorage` no navegador do admin
-- nao existe banco de dados
-- nao existe painel de usuarios nem autenticacao tradicional
+- não existe banco de dados
+- não existe painel de usuários nem autenticação tradicional
 - o deploy automatico continua exigindo um sidecar com acesso ao Docker socket do host
 
-## Boas Praticas para Este Repo
+## Boas Práticas para Este Repo
 
-- nao commitar `.env`
-- nao remover `.gitignore` nem `.dockerignore`
+- não commitar `.env`
+- não remover `.gitignore` nem `.dockerignore`
 - prefira `npm ci` em vez de `npm install`
 - use `APP_ORIGIN` corretamente no ambiente onde for publicar
-- deixe `ENABLE_WEBHOOK=false` se voce nao estiver usando webhook
+- deixe `ENABLE_WEBHOOK=false` se você não estiver usando webhook
 
-## Proximos Passos Recomendados
+## Próximos Passos Recomendados
 
-- mover sessao para Redis ou banco
-- adicionar testes para regras de sessao e sockets
-- criar pipeline de deploy fora da aplicacao
+- mover sessão para Redis ou banco
+- adicionar testes para regras de sessão e sockets
+- criar pipeline de deploy fora da aplicação
 - adicionar observabilidade e logs estruturados
