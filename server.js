@@ -200,6 +200,26 @@ app.get("/api/sessions/active", activeSessionsLimiter, (_request, response) => {
   response.json({ sessions: sessionStore.listActiveSessions() });
 });
 
+app.delete("/api/sessions/:id", activeSessionsLimiter, (request, response) => {
+  const sessionId = request.params.id;
+  if (!sessionStore.isValidSessionId(sessionId)) {
+    return response.status(404).json({ error: "session_not_found" });
+  }
+
+  const closed = sessionStore.closeSession(sessionId);
+  if (!closed) {
+    return response.status(404).json({ error: "session_not_found" });
+  }
+
+  logEvent("session_closed", {
+    sessionId,
+    ip: getRequestIp(request),
+    userAgent: request.get("user-agent") || "unknown",
+  });
+
+  return response.json({ success: true });
+});
+
 app.get("/health", (_request, response) => {
   response.json({ ok: true });
 });

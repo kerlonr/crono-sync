@@ -7,28 +7,29 @@
 }
 
 :root {
-  --bg-top: #eef6ff;
-  --bg-bottom: #dbeafb;
-  --ink: #17324d;
-  --glass: rgba(255, 255, 255, 0.42);
-  --line: rgba(255, 255, 255, 0.76);
-  --accent: #24b89d;
-  --warn: #d99827;
-  --danger: #d85f7e;
+  --bg-top: #040812;
+  --bg-bottom: #091321;
+  --ink: #eef6ff;
+  --glass: rgba(8, 16, 30, 0.72);
+  --line: rgba(169, 214, 255, 0.18);
+  --accent: #58ead0;
+  --warn: #ffc76b;
+  --danger: #ff3b30;
 }
 
 body {
-  min-height: 100vh;
+  position: relative;
   display: flex;
+  min-height: 100dvh;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(85, 174, 246, 0.2), transparent 34%),
-    radial-gradient(circle at 80% 20%, rgba(63, 201, 177, 0.16), transparent 26%),
+    radial-gradient(circle at top left, rgba(95, 177, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 80% 18%, rgba(88, 234, 208, 0.12), transparent 26%),
     linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  color: var(--ink);
   transition: background 0.35s ease;
-  position: relative;
 }
 
 body::before,
@@ -45,7 +46,7 @@ body::before {
   height: 420px;
   top: -140px;
   left: -120px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.94), transparent 70%);
+  background: radial-gradient(circle, rgba(122, 191, 255, 0.16), transparent 70%);
 }
 
 body::after {
@@ -53,7 +54,7 @@ body::after {
   height: 360px;
   right: -100px;
   bottom: -120px;
-  background: radial-gradient(circle, rgba(174, 229, 255, 0.8), transparent 70%);
+  background: radial-gradient(circle, rgba(88, 234, 208, 0.12), transparent 70%);
 }
 
 body.message-mode {
@@ -62,15 +63,15 @@ body.message-mode {
 
 body.flash-red {
   background:
-    radial-gradient(circle at top left, rgba(255, 203, 214, 0.34), transparent 34%),
-    radial-gradient(circle at 80% 20%, rgba(255, 170, 188, 0.22), transparent 26%),
-    linear-gradient(180deg, #fff0f4 0%, #ffe3ea 100%);
+    radial-gradient(circle at top left, rgba(255, 59, 48, 0.24), transparent 34%),
+    radial-gradient(circle at 80% 20%, rgba(255, 24, 24, 0.14), transparent 26%),
+    linear-gradient(180deg, #210607 0%, #330809 100%);
 }
 
 body.finished {
   background:
-    radial-gradient(circle at top left, rgba(255, 212, 222, 0.4), transparent 34%),
-    linear-gradient(180deg, #fff2f6 0%, #ffe6ed 100%) !important;
+    radial-gradient(circle at top left, rgba(255, 59, 48, 0.28), transparent 34%),
+    linear-gradient(180deg, #1b0405 0%, #300708 100%) !important;
 }
 
 .glow-bg {
@@ -85,60 +86,62 @@ body.finished {
   z-index: 10;
   width: min(100%, 560px);
   padding: 28px 24px;
-  border-radius: 28px;
   border: 1px solid var(--line);
+  border-radius: 24px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.62)),
-    rgba(255, 255, 255, 0.56);
+    linear-gradient(180deg, rgba(23, 38, 64, 0.78), rgba(8, 16, 30, 0.84)),
+    var(--glass);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 24px 60px rgba(67, 104, 142, 0.16);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
   color: var(--danger);
-  text-align: center;
   font-family: "Share Tech Mono", monospace;
   font-size: 16px;
   line-height: 1.6;
+  text-align: center;
 }
 
 .timer-display {
   position: relative;
   z-index: 10;
   padding: 34px 42px;
-  border-radius: 34px;
   border: 1px solid var(--line);
+  border-radius: 34px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.5)),
+    linear-gradient(180deg, rgba(23, 38, 64, 0.78), rgba(8, 16, 30, 0.84)),
     var(--glass);
   backdrop-filter: blur(26px);
   -webkit-backdrop-filter: blur(26px);
-  box-shadow: 0 26px 70px rgba(67, 104, 142, 0.16);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+  color: var(--ink);
   font-family: "Share Tech Mono", monospace;
   font-size: clamp(96px, 21vw, 270px);
   letter-spacing: 0.04em;
   line-height: 1;
-  user-select: none;
-  color: var(--ink);
-  text-shadow: 0 0 24px rgba(85, 174, 246, 0.1);
+  text-shadow: 0 0 26px rgba(122, 191, 255, 0.12);
   transition:
     color 0.45s ease,
     text-shadow 0.45s ease,
     opacity 0.3s ease,
     background 0.4s ease;
+  user-select: none;
 }
 
 .timer-display.green {
   color: var(--accent);
-  text-shadow: 0 0 30px rgba(36, 184, 157, 0.24);
+  text-shadow: 0 0 30px rgba(88, 234, 208, 0.24);
 }
 
 .timer-display.yellow {
   color: var(--warn);
-  text-shadow: 0 0 30px rgba(217, 152, 39, 0.24);
+  text-shadow: 0 0 30px rgba(255, 199, 107, 0.24);
 }
 
 .timer-display.red {
   color: var(--danger);
-  text-shadow: 0 0 34px rgba(216, 95, 126, 0.28);
+  text-shadow:
+    0 0 26px rgba(255, 59, 48, 0.44),
+    0 0 58px rgba(255, 24, 24, 0.2);
 }
 
 .timer-display.blink {
@@ -161,70 +164,12 @@ body.finished {
   }
 }
 
-/* Dark glass refresh */
-:root {
-  --bg-top: #040812;
-  --bg-bottom: #091321;
-  --ink: #eef6ff;
-  --glass: rgba(8, 16, 30, 0.72);
-  --line: rgba(169, 214, 255, 0.18);
-  --accent: #58ead0;
-  --warn: #ffc76b;
-  --danger: #ff3b30;
-}
-
-body {
-  background:
-    radial-gradient(circle at top left, rgba(95, 177, 255, 0.18), transparent 34%),
-    radial-gradient(circle at 80% 18%, rgba(88, 234, 208, 0.12), transparent 26%),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
-}
-
-body::before {
-  background: radial-gradient(circle, rgba(122, 191, 255, 0.16), transparent 70%);
-}
-
-body::after {
-  background: radial-gradient(circle, rgba(88, 234, 208, 0.12), transparent 70%);
-}
-
-body.flash-red {
-  background:
-    radial-gradient(circle at top left, rgba(255, 59, 48, 0.24), transparent 34%),
-    radial-gradient(circle at 80% 20%, rgba(255, 24, 24, 0.14), transparent 26%),
-    linear-gradient(180deg, #210607 0%, #330809 100%);
-}
-
-body.finished {
-  background:
-    radial-gradient(circle at top left, rgba(255, 59, 48, 0.28), transparent 34%),
-    linear-gradient(180deg, #1b0405 0%, #300708 100%) !important;
-}
-
-.screen-message,
-.timer-display {
-  border-color: var(--line);
-  background:
-    linear-gradient(180deg, rgba(23, 38, 64, 0.78), rgba(8, 16, 30, 0.84)),
-    var(--glass);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
-}
-
-.timer-display {
-  color: var(--ink);
-  text-shadow: 0 0 26px rgba(122, 191, 255, 0.12);
-}
-
-.timer-display.green {
-  text-shadow: 0 0 30px rgba(88, 234, 208, 0.24);
-}
-
-.timer-display.yellow {
-  text-shadow: 0 0 30px rgba(255, 199, 107, 0.24);
-}
-
-.timer-display.red {
-  text-shadow:
-    0 0 26px rgba(255, 59, 48, 0.44),
-    0 0 58px rgba(255, 24, 24, 0.2);
+@media (max-width: 720px) {
+  .timer-display {
+    width: calc(100% - 24px);
+    padding: 24px 18px;
+    border-radius: 24px;
+    font-size: clamp(54px, 18vw, 118px);
+    text-align: center;
+  }
 }

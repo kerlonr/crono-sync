@@ -26,6 +26,10 @@
     showError("Não foi possível conectar ao servidor.");
   });
 
+  socket.on("session:closed", () => {
+    showError("Sessão encerrada.");
+  });
+
   socket.on("timer:tick", ({ status, remaining, pct }) => {
     const safeRemaining = sanitizeMs(remaining);
     const safePct = sanitizePct(pct);

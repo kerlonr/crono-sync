@@ -2,23 +2,64 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cronômetro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;600;900&display=swap"
-        rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/css/index.css?v=20260419e" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cronômetro Sync</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;600;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/index.css?v=20260429a" />
 </head>
 
 <body>
-    <div class="card">
-        <div class="logo">00:00</div>
-        <h1>Cronômetro</h1>
-        <p>Crie um cronômetro e compartilhe o link com quem quiser acompanhar em tempo real.</p>
-        <button class="btn" id="btn-criar" type="button">+ Criar cronômetro</button>
-        <a class="btn-secondary-link" href="/overview">Ver todos os cronômetros online</a>
-    </div>
-    <script src="/assets/js/index.js"></script>
+  <main class="home-shell">
+    <section class="hero-panel" aria-labelledby="home-title">
+      <div class="hero-copy">
+        <span class="hero-badge">Cronômetro sincronizado</span>
+        <h1 id="home-title">Controle o tempo em uma tela. Compartilhe em todas.</h1>
+        <p>
+          Crie uma sessão, defina o tempo e envie o viewer para quem precisa acompanhar a contagem em tempo real.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn" id="btn-criar" type="button">Criar cronômetro</button>
+          <a class="btn-secondary-link" href="/overview">Ver sessões online</a>
+        </div>
+      </div>
+
+      <div class="timer-preview" aria-hidden="true">
+        <div class="preview-top">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="preview-display">05:00</div>
+        <div class="preview-progress">
+          <div></div>
+        </div>
+        <div class="preview-status">
+          <span class="status-dot"></span>
+          <span>Sincronizado</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature-grid" aria-label="Recursos principais">
+      <article class="feature-card">
+        <strong>Admin rápido</strong>
+        <span>Defina, inicie, pause e reinicie sem complicar a operação.</span>
+      </article>
+      <article class="feature-card">
+        <strong>Viewer público</strong>
+        <span>Compartilhe uma tela limpa para acompanhar o tempo sem controles.</span>
+      </article>
+      <article class="feature-card">
+        <strong>Painel geral</strong>
+        <span>Veja as sessões online e finalize o que não precisa mais ficar aberto.</span>
+      </article>
+    </section>
+  </main>
+
+  <script src="/assets/js/index.js?v=20260429a"></script>
 </body>
 
 </html>

@@ -18,6 +18,7 @@ function createSessionStore({
     broadcastSession,
     clearSessionInterval,
     cleanupExpiredSessions,
+    closeSession,
     createSession,
     deleteSession,
     emitSessionState,
@@ -95,6 +96,18 @@ function createSessionStore({
 
     clearSessionInterval(session);
     sessions.delete(sessionId);
+  }
+
+  function closeSession(sessionId) {
+    const session = sessions.get(sessionId);
+    if (!session || isSessionExpired(session)) {
+      deleteSession(sessionId);
+      return false;
+    }
+
+    io.to(sessionId).emit("session:closed");
+    deleteSession(sessionId);
+    return true;
   }
 
   function getSession(sessionId) {

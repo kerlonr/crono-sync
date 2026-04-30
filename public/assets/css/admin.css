@@ -451,6 +451,18 @@ body.message-mode {
   flex-wrap: wrap;
 }
 
+.controls-d,
+.controls-m {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.controls-d {
+  max-width: 560px;
+  margin-inline: auto;
+}
+
 .btn-d,
 .btn-m,
 .btn-set,
@@ -505,12 +517,16 @@ body.message-mode {
 }
 
 .btn-d {
-  padding: 16px 34px;
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  padding: 0 18px;
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .btn-start-d,
@@ -1133,19 +1149,21 @@ body.message-mode {
 }
 
 .btn-m {
-  flex: 1;
-  padding: 18px 0;
-  font-size: 15px;
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  padding: 0 6px;
+  font-size: 13px;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
   -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
 }
 
 .btn-reset-m {
-  flex: 0 0 64px;
-  font-size: 22px;
+  font-size: 13px;
 }
 
 .drawer-overlay {
@@ -1690,4 +1708,165 @@ body::after {
 .status-dot.finished {
   background: var(--danger);
   box-shadow: 0 0 14px rgba(255, 59, 48, 0.58);
+}
+
+@media (max-width: 767px) {
+  .drawer {
+    top: max(10px, env(safe-area-inset-top));
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    display: flex;
+    max-height: none;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(169, 214, 255, 0.2);
+    border-radius: 22px;
+    transform: translateY(calc(100% + 18px));
+  }
+
+  .drawer-handle {
+    width: 42px;
+    height: 4px;
+    flex: 0 0 auto;
+    margin-top: 8px;
+  }
+
+  .drawer-header {
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 8px 14px 10px;
+    border-bottom: 1px solid rgba(169, 214, 255, 0.12);
+  }
+
+  .drawer-title {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+  }
+
+  .btn-close-drawer {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+
+  .drawer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin: 0 12px 10px;
+    padding: 12px;
+    border: 1px solid rgba(169, 214, 255, 0.14);
+    border-radius: 16px;
+    background:
+      linear-gradient(180deg, rgba(22, 36, 58, 0.88), rgba(8, 16, 29, 0.86)),
+      rgba(10, 18, 33, 0.72);
+    box-shadow: none;
+  }
+
+  .drawer-section-time {
+    flex: 0 0 auto;
+    margin-top: 4px;
+  }
+
+  .drawer-section-manage {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .drawer-section-overview {
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+  }
+
+  .time-inputs-m {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 7px;
+    align-items: end;
+    width: 100%;
+  }
+
+  .time-input-group-m {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .time-input-group-m input {
+    width: 100%;
+    min-height: 52px;
+    padding: 8px 6px;
+    border-radius: 12px;
+    font-size: 22px;
+  }
+
+  .time-sep-m {
+    margin: 0 0 10px;
+    font-size: 20px;
+  }
+
+  .drawer-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+  }
+
+  .btn-drawer-action {
+    min-height: 46px;
+    padding: 0 10px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .presets-list-m {
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 74px;
+    margin-bottom: 0;
+    padding: 8px;
+    border-radius: 14px;
+    overflow-y: auto;
+  }
+
+  .presets-empty {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+
+  .add-preset-row-m {
+    gap: 10px;
+  }
+
+  .add-preset-row-m input,
+  .btn-add-m,
+  .shortcut-link.mobile {
+    min-height: 44px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 380px), (max-height: 720px) {
+  .drawer-section {
+    gap: 10px;
+    margin-inline: 10px;
+    margin-bottom: 8px;
+    padding: 10px;
+  }
+
+  .time-input-group-m input {
+    min-height: 48px;
+    font-size: 20px;
+  }
+
+  .btn-drawer-action,
+  .btn-add-m,
+  .shortcut-link.mobile {
+    min-height: 42px;
+  }
+
+  .presets-list-m {
+    min-height: 56px;
+  }
 }

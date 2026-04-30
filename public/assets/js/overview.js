@@ -4,6 +4,8 @@
   const statOnline = document.getElementById("stat-online");
   const statRunning = document.getElementById("stat-running");
   const POLL_INTERVAL_MS = 3000;
+  const closingSessions = new Set();
+  let currentSessions = [];
   let pollTimer = 0;
   let requestInFlight = false;
 
@@ -46,6 +48,7 @@
 
       const data = await response.json();
       const sessions = Array.isArray(data?.sessions) ? data.sessions : [];
+      currentSessions = sessions;
       renderOverview(sessions);
     } catch (error) {
       console.error(error);
@@ -136,22 +139,69 @@
     const actions = document.createElement("div");
     actions.className = "card-actions";
 
+    const actionButtons = document.createElement("div");
+    actionButtons.className = "card-action-buttons";
+
     const link = document.createElement("a");
     link.className = "card-link";
     link.href = `/view/${session.id}`;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.textContent = "Abrir viewer";
+    link.textContent = "Viewer";
+
+    const closeButton = document.createElement("button");
+    closeButton.className = "card-link card-end-button";
+    closeButton.type = "button";
+    closeButton.disabled = closingSessions.has(session.id);
+    closeButton.textContent = closeButton.disabled ? "Encerrando" : "Finalizar";
+    closeButton.addEventListener("click", () => closeSession(session.id));
 
     const note = document.createElement("div");
     note.className = "card-note";
     note.textContent = `Atualizado ${formatRelative(session.lastAccessAt)}`;
 
-    actions.append(link, note);
+    actionButtons.append(link, closeButton);
+    actions.append(actionButtons, note);
     top.append(identity, status);
     root.append(top, timer, meta, actions);
 
     return root;
+  }
+
+  async function closeSession(sessionId) {
+    if (!isValidSessionId(sessionId) || closingSessions.has(sessionId)) {
+      return;
+    }
+
+    const confirmed = window.confirm("Finalizar esta sessão?");
+    if (!confirmed) {
+      return;
+    }
+
+    closingSessions.add(sessionId);
+    renderOverview(currentSessions);
+
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao finalizar a sessão.");
+      }
+
+      currentSessions = currentSessions.filter((session) => session?.id !== sessionId);
+      renderOverview(currentSessions);
+      loadSessions();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      closingSessions.delete(sessionId);
+      renderOverview(currentSessions);
+    }
   }
 
   function mapStatus(status, remaining, pct) {
@@ -268,5 +318,9 @@
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return 1;
     return Math.min(1, Math.max(0, parsed));
+  }
+
+  function isValidSessionId(value) {
+    return typeof value === "string" && /^[a-f0-9]{8}$/i.test(value);
   }
 })();

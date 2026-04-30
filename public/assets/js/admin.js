@@ -145,6 +145,9 @@
       updateTimers(remaining, pct, status);
       updateControls(status);
     });
+    socket.on("session:closed", () => {
+      showError("Sessão encerrada.");
+    });
   }
 
   function connectToSession() {
@@ -688,7 +691,7 @@
       if (status === "running") {
         set.text.textContent = "RODANDO";
         set.start.disabled = true;
-        set.start.textContent = "▶ Start";
+        set.start.textContent = "Start";
         set.pause.disabled = false;
         return;
       }
@@ -696,7 +699,7 @@
       if (status === "paused") {
         set.text.textContent = "PAUSADO";
         set.start.disabled = false;
-        set.start.textContent = "▶ Continuar";
+        set.start.textContent = "Start";
         set.pause.disabled = true;
         return;
       }
@@ -704,14 +707,14 @@
       if (status === "finished") {
         set.text.textContent = "FINALIZADO";
         set.start.disabled = true;
-        set.start.textContent = "▶ Start";
+        set.start.textContent = "Start";
         set.pause.disabled = true;
         return;
       }
 
       set.text.textContent = "PARADO";
       set.start.disabled = false;
-      set.start.textContent = "▶ Start";
+      set.start.textContent = "Start";
       set.pause.disabled = true;
     });
   }
