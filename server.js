@@ -1,4 +1,5 @@
 const express = require("express");
+const fs = require("fs");
 const helmet = require("helmet");
 const http = require("http");
 const path = require("path");
@@ -154,31 +155,47 @@ app.use(
   }),
 );
 
-app.use(
-  express.static(config.PUBLIC_DIR, {
-    fallthrough: true,
-    index: "index.html",
-    maxAge: 0,
-  }),
-);
+app.get(["/", "/index.html"], (request, response) => {
+  sendHtmlPage(request, response, "index.html", "/");
+});
+
+app.get("/admin.html", (request, response) => {
+  sendHtmlPage(request, response, "admin.html", "/admin.html");
+});
+
+app.get("/viewer.html", (request, response) => {
+  sendHtmlPage(request, response, "viewer.html", "/viewer.html");
+});
+
+app.get("/overview.html", (request, response) => {
+  sendHtmlPage(request, response, "overview.html", "/overview");
+});
 
 app.get("/admin/:id", (request, response) => {
   if (!sessionStore.isValidSessionId(request.params.id)) {
     return response.status(404).send("Not Found");
   }
-  return response.sendFile(path.join(config.PUBLIC_DIR, "admin.html"));
+  return sendHtmlPage(request, response, "admin.html", `/admin/${request.params.id}`);
 });
 
 app.get("/view/:id", (request, response) => {
   if (!sessionStore.isValidSessionId(request.params.id)) {
     return response.status(404).send("Not Found");
   }
-  return response.sendFile(path.join(config.PUBLIC_DIR, "viewer.html"));
+  return sendHtmlPage(request, response, "viewer.html", `/view/${request.params.id}`);
 });
 
-app.get("/overview", (_request, response) => {
-  response.sendFile(path.join(config.PUBLIC_DIR, "overview.html"));
+app.get("/overview", (request, response) => {
+  sendHtmlPage(request, response, "overview.html", "/overview");
 });
+
+app.use(
+  express.static(config.PUBLIC_DIR, {
+    fallthrough: true,
+    index: false,
+    maxAge: 0,
+  }),
+);
 
 app.post("/api/session/new", createSessionLimiter, (request, response) => {
   const session = sessionStore.createSession();
@@ -384,6 +401,51 @@ server.listen(config.PORT, () => {
     file: getLogFile(),
   });
 });
+
+function sendHtmlPage(request, response, fileName, pagePath) {
+  const filePath = path.join(config.PUBLIC_DIR, fileName);
+
+  fs.readFile(filePath, "utf8", (error, html) => {
+    if (error) {
+      logEvent("html_read_failed", {
+        fileName,
+        message: error.message,
+      });
+      return response.status(500).send("Internal Server Error");
+    }
+
+    const origin = getRequestOrigin(request);
+    const canonicalUrl = new URL(pagePath, `${origin}/`).toString();
+    const ogImageUrl = new URL("/assets/img/icon-512.png", `${origin}/`).toString();
+
+    response.setHeader("Cache-Control", "no-cache");
+    response.type("html").send(
+      html
+        .replaceAll("__CANONICAL_URL__", escapeHtmlAttribute(canonicalUrl))
+        .replaceAll("__OG_IMAGE_URL__", escapeHtmlAttribute(ogImageUrl)),
+    );
+  });
+}
+
+function getRequestOrigin(request) {
+  if (config.ALLOWED_ORIGIN) return config.ALLOWED_ORIGIN;
+
+  const forwardedProto = request.get("x-forwarded-proto");
+  const protocol = forwardedProto
+    ? forwardedProto.split(",")[0].trim()
+    : request.protocol;
+  const host = request.get("host") || `localhost:${config.PORT}`;
+
+  return `${protocol}://${host}`;
+}
+
+function escapeHtmlAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
 
 function buildCspDirectives(nodeEnv) {
   const directives = {
