@@ -22,8 +22,6 @@ const {
   tokensMatch,
 } = require("./src/security");
 const { createSessionStore } = require("./src/sessions");
-const { registerSpotifyRoutes } = require("./src/spotify");
-
 
 const app = express();
 const server = http.createServer(app);
@@ -205,12 +203,6 @@ app.get("/api/sessions/active", activeSessionsLimiter, (_request, response) => {
 app.get("/health", (_request, response) => {
   response.json({ ok: true });
 });
-registerSpotifyRoutes({
-  app,
-  logEvent,
-  sessionStore,
-  tokensMatch,
-});
 
 io.on("connection", (socket) => {
   socket.currentSession = null;
@@ -383,10 +375,8 @@ function buildCspDirectives(nodeEnv) {
       "'self'",
       "ws:",
       "wss:",
-      "https://api.spotify.com",
-      "https://accounts.spotify.com",
     ],
-    imgSrc: ["'self'", "data:", "https://i.scdn.co"],
+    imgSrc: ["'self'", "data:"],
     frameSrc: ["'self'", "https://open.spotify.com"],
     objectSrc: ["'none'"],
     baseUri: ["'self'"],

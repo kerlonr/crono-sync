@@ -7,6 +7,7 @@
   const sessionId = window.location.pathname.split("/").pop();
   const adminToken = window.location.hash.slice(1);
   const presetsKey = `crono_sw_presets_${sessionId}`;
+  const finishSound = window.CronoFinishSound?.create();
 
   const elements = {
     adminPanel: document.getElementById("admin-panel"),
@@ -58,6 +59,8 @@
 
   let touchStartY = 0;
   const presetFeedbackTimers = { desktop: 0, mobile: 0 };
+  let finishSoundArmed = false;
+  let finishSoundPlayed = false;
 
   if (
     !elements.adminPanel ||
@@ -137,6 +140,8 @@
       showError("Não foi possível conectar ao servidor.");
     });
     socket.on("timer:tick", ({ status, remaining, pct }) => {
+      const safeRemaining = sanitizeMs(remaining);
+      syncFinishSound(status, safeRemaining);
       updateTimers(remaining, pct, status);
       updateControls(status);
     });
@@ -721,6 +726,32 @@
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return 1;
     return Math.min(1, Math.max(0, parsed));
+  }
+
+  function syncFinishSound(status, remaining) {
+    if (status === "running" && remaining > 0) {
+      finishSoundArmed = true;
+    }
+
+    if (status === "finished" || remaining <= 0) {
+      if (finishSoundArmed && !finishSoundPlayed) {
+        finishSound?.play();
+      }
+
+      finishSoundPlayed = true;
+      finishSoundArmed = false;
+      return;
+    }
+
+    if (status === "stopped") {
+      finishSoundArmed = false;
+      finishSoundPlayed = false;
+      return;
+    }
+
+    if (remaining > 0) {
+      finishSoundPlayed = false;
+    }
   }
 
   function isValidSessionId(value) {

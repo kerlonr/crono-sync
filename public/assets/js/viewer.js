@@ -3,6 +3,9 @@
   const sessionId = window.location.pathname.split("/").pop();
   const timerDisplay = document.getElementById("timer-display");
   const glowBg = document.getElementById("glow-bg");
+  const finishSound = window.CronoFinishSound?.create();
+  let finishSoundArmed = false;
+  let finishSoundPlayed = false;
 
   if (!timerDisplay || !glowBg) {
     return;
@@ -27,6 +30,7 @@
     const safeRemaining = sanitizeMs(remaining);
     const safePct = sanitizePct(pct);
 
+    syncFinishSound(status, safeRemaining);
     timerDisplay.textContent = formatTime(safeRemaining);
 
     if (safeRemaining <= 0) {
@@ -79,6 +83,32 @@
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return 1;
     return Math.min(1, Math.max(0, parsed));
+  }
+
+  function syncFinishSound(status, remaining) {
+    if (status === "running" && remaining > 0) {
+      finishSoundArmed = true;
+    }
+
+    if (status === "finished" || remaining <= 0) {
+      if (finishSoundArmed && !finishSoundPlayed) {
+        finishSound?.play();
+      }
+
+      finishSoundPlayed = true;
+      finishSoundArmed = false;
+      return;
+    }
+
+    if (status === "stopped") {
+      finishSoundArmed = false;
+      finishSoundPlayed = false;
+      return;
+    }
+
+    if (remaining > 0) {
+      finishSoundPlayed = false;
+    }
   }
 
   function formatTime(ms) {
