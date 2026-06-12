@@ -1,4 +1,6 @@
 (() => {
+  const { formatTime, getPhase, isValidSessionId, sanitizeMs, sanitizePct } =
+    window.CronoUtils;
   const socket = io();
   const sessionId = window.location.pathname.split("/").pop();
   const timerDisplay = document.getElementById("timer-display");
@@ -45,10 +47,7 @@
 
     document.body.classList.remove("flash-red", "finished");
 
-    let phase = "green";
-    if (safePct <= 0.1) phase = "blink";
-    else if (safePct <= 0.2) phase = "red";
-    else if (safePct <= 0.4) phase = "yellow";
+    const phase = getPhase(safePct);
 
     let className = "timer-display";
     if (status === "running") className += ` ${phase}`;
@@ -70,33 +69,6 @@
 
     glowBg.style.background = status === "running" ? glows[phase] || glows.green : "none";
   });
-
-  function isValidSessionId(value) {
-    return typeof value === "string" && /^[a-f0-9]{8}$/i.test(value);
-  }
-
-  function sanitizeMs(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 0;
-    return Math.max(0, Math.trunc(parsed));
-  }
-
-  function sanitizePct(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 1;
-    return Math.min(1, Math.max(0, parsed));
-  }
-
-  function formatTime(ms) {
-    const totalSeconds = Math.ceil(ms / 1000);
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds / 60) % 60;
-    const hours = Math.floor(totalSeconds / 3600);
-
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-      seconds
-    ).padStart(2, "0")}`;
-  }
 
   function showError(message) {
     socket.disconnect();

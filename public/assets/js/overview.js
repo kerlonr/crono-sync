@@ -1,4 +1,6 @@
 (() => {
+  const { formatTime, isValidSessionId, sanitizeMs, sanitizePct } =
+    window.CronoUtils;
   const overviewGrid = document.getElementById("overview-grid");
   const overviewEmpty = document.getElementById("overview-empty");
   const statOnline = document.getElementById("stat-online");
@@ -267,17 +269,6 @@
     };
   }
 
-  function formatTime(ms) {
-    const totalSeconds = Math.ceil(Math.max(0, ms) / 1000);
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds / 60) % 60;
-    const hours = Math.floor(totalSeconds / 3600);
-
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-      seconds
-    ).padStart(2, "0")}`;
-  }
-
   function formatDate(timestamp) {
     const date = new Date(Number(timestamp));
     if (Number.isNaN(date.getTime())) {
@@ -308,19 +299,4 @@
     return `há ${diffHours}h`;
   }
 
-  function sanitizeMs(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 0;
-    return Math.max(0, Math.trunc(parsed));
-  }
-
-  function sanitizePct(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 1;
-    return Math.min(1, Math.max(0, parsed));
-  }
-
-  function isValidSessionId(value) {
-    return typeof value === "string" && /^[a-f0-9]{8}$/i.test(value);
-  }
 })();

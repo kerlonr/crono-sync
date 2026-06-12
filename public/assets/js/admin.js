@@ -1,4 +1,12 @@
 (() => {
+  const {
+    formatTime,
+    getPhase,
+    isValidAdminToken,
+    isValidSessionId,
+    sanitizeMs,
+    sanitizePct,
+  } = window.CronoUtils;
   const MAX_PRESET_NAME_LENGTH = 24;
   const MAX_PRESETS = 20;
   const MAX_TIMER_SECONDS = 12 * 60 * 60;
@@ -620,24 +628,6 @@
     socket.emit("timer:reset");
   }
 
-  function formatTime(ms) {
-    const totalSeconds = Math.ceil(Math.max(0, ms) / 1000);
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds / 60) % 60;
-    const hours = Math.floor(totalSeconds / 3600);
-
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
-      seconds,
-    ).padStart(2, "0")}`;
-  }
-
-  function getPhase(pct) {
-    if (pct <= 0.1) return "blink";
-    if (pct <= 0.2) return "red";
-    if (pct <= 0.4) return "yellow";
-    return "green";
-  }
-
   function updateTimers(remaining, pct, status) {
     const safeRemaining = sanitizeMs(remaining);
     const safePct = sanitizePct(pct);
@@ -715,26 +705,6 @@
       set.start.textContent = "Start";
       set.pause.disabled = true;
     });
-  }
-
-  function sanitizeMs(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 0;
-    return Math.max(0, Math.trunc(parsed));
-  }
-
-  function sanitizePct(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 1;
-    return Math.min(1, Math.max(0, parsed));
-  }
-
-  function isValidSessionId(value) {
-    return typeof value === "string" && /^[a-f0-9]{8}$/i.test(value);
-  }
-
-  function isValidAdminToken(value) {
-    return typeof value === "string" && /^[a-f0-9]{36}$/i.test(value);
   }
 
   function showError(message) {
