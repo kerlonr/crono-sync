@@ -39,12 +39,16 @@ O projeto permite:
 |       |   |-- overview.css
 |       |   `-- viewer.css
 |       `-- js/
+|           |-- crono-utils.js
 |           |-- index.js
 |           |-- admin.js
 |           |-- finish-sound.js
 |           |-- overview.js
 |           `-- viewer.js
 |-- scripts/
+|-- test/
+|   |-- security.test.js
+|   `-- sessions.test.js
 |   |-- deployer.js
 |   `-- webhook-deploy.sh
 |-- src/
@@ -81,6 +85,7 @@ O projeto permite:
 - `public/viewer.html` + `assets/js/viewer.js`: mostra a contagem sincronizada sem controles.
 - `public/overview.html` + `assets/js/overview.js`: lista sessões ativas e permite finalizar sessões.
 - `assets/js/finish-sound.js`: encapsula o som final do cronômetro.
+- `assets/js/crono-utils.js`: utilidades compartilhadas (`window.CronoUtils`) de formatação de tempo, sanitização e validação, usadas por admin, viewer e overview.
 
 ### CSS
 
@@ -200,8 +205,12 @@ As variáveis atuais são:
 
 ```bash
 npm run check
+npm test
 npm audit --audit-level=moderate
 ```
+
+Os testes usam o runner nativo do Node (`node --test`), sem dependências
+extras, e cobrem `src/security.js` e `src/sessions.js`.
 
 ## Segurança Atual
 
@@ -240,6 +249,6 @@ Alguns pontos importantes para considerar antes de produção mais séria:
 ## Próximos Passos Recomendados
 
 - mover sessão para Redis ou banco
-- adicionar testes para regras de sessão e sockets
+- ampliar a cobertura de testes (eventos de socket e fluxo de deploy)
 - criar pipeline de deploy fora da aplicação
 - adicionar observabilidade e logs estruturados
