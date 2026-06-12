@@ -50,7 +50,10 @@ const sessionStore = createSessionStore({
   sessionTtlMs: config.SESSION_TTL_MS,
 });
 
-const cspDirectives = buildCspDirectives(process.env.NODE_ENV);
+const cspDirectives = buildCspDirectives(
+  process.env.NODE_ENV,
+  config.ALLOWED_ORIGIN,
+);
 const globalLimiter = createLimiter(15 * 60 * 1000, 250);
 const createSessionLimiter = createLimiter(10 * 60 * 1000, 30);
 const activeSessionsLimiter = createLimiter(60 * 1000, 120);
@@ -447,17 +450,13 @@ function escapeHtmlAttribute(value) {
     .replaceAll(">", "&gt;");
 }
 
-function buildCspDirectives(nodeEnv) {
+function buildCspDirectives(nodeEnv, allowedOrigin) {
   const directives = {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'"],
     styleSrc: ["'self'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-    connectSrc: [
-      "'self'",
-      "ws:",
-      "wss:",
-    ],
+    connectSrc: buildConnectSrc(allowedOrigin),
     imgSrc: ["'self'", "data:"],
     frameSrc: ["'self'", "https://open.spotify.com"],
     objectSrc: ["'none'"],
@@ -471,6 +470,20 @@ function buildCspDirectives(nodeEnv) {
   }
 
   return directives;
+}
+
+// O Socket.IO conecta sempre na mesma origem da pagina, entao "'self'" ja
+// cobre o WebSocket. Quando APP_ORIGIN esta definido, adicionamos o seu
+// equivalente ws/wss explicitamente, em vez de liberar os curingas "ws:"
+// e "wss:" (que permitiriam conexao a qualquer host).
+function buildConnectSrc(allowedOrigin) {
+  const connectSrc = ["'self'"];
+
+  if (allowedOrigin) {
+    connectSrc.push(allowedOrigin.replace(/^http/, "ws"));
+  }
+
+  return connectSrc;
 }
 
 function createLimiter(windowMs, max) {
