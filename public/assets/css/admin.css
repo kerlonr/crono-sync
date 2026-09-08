@@ -1,20 +1,16 @@
 /**
  * Painel de administracao.
  *
- * Uma coluna: barra de acoes no topo, o cronometro em destaque no centro, os
- * demais em cartoes abaixo e o rodape com o aviso e o link do viewer. Os dois
- * modais - ajustes do cronometro e configuracoes da sessao - usam o componente
- * de `base.css`, sem estilo proprio de janela.
+ * Uma coluna: barra de acoes no topo, o cronometro em destaque num painel
+ * proprio e os demais em cartoes abaixo. Os dois modais - ajustes do
+ * cronometro e configuracoes da sessao - usam o componente de `base.css`, sem
+ * estilo proprio de janela.
  *
  * O arquivo anterior tinha 2338 linhas porque era um tema claro inteiro
  * seguido de um tema escuro que o sobrescrevia, mais uma camada de layout que
  * anulava a anterior com `!important`. Aqui nada e definido duas vezes: a cor
- * vem dos tokens e o tema escuro nao precisa de uma unica regra nesta folha.
+ * vem dos tokens e o tema claro nao precisa de uma unica regra nesta folha.
  */
-
-body {
-  background: var(--bg-sunken);
-}
 
 /* ================================================================= login */
 
@@ -32,14 +28,15 @@ body {
   flex-direction: column;
   gap: var(--space-4);
   padding: var(--space-8);
-  border: var(--hairline) solid var(--separator);
-  border-radius: var(--radius-xl);
+  border: var(--hairline) solid var(--separator-strong);
+  border-radius: var(--radius-2xl);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: var(--edge), var(--shadow-raised);
 }
 
 .login-card h1 {
   font-size: var(--text-xl);
+  letter-spacing: var(--tracking-display);
 }
 
 .login-card a {
@@ -53,9 +50,9 @@ body {
    atributo em vez de `style.display` deixa a regra de tela cheia abaixo
    funcionar - um `display` inline venceria qualquer folha. */
 .admin {
-  width: min(960px, calc(100% - var(--space-6)));
+  width: min(980px, calc(100% - var(--space-6)));
   margin: 0 auto;
-  padding: var(--space-5) 0 var(--space-10);
+  padding: var(--space-6) 0 var(--space-16);
 }
 
 /* ---------------------------------------------------------------- barra */
@@ -65,8 +62,12 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: var(--hairline) solid var(--separator);
+  margin-bottom: var(--space-6);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--edge), var(--shadow);
   flex-wrap: wrap;
 }
 
@@ -96,15 +97,20 @@ body {
   flex: none;
   border: var(--hairline) solid var(--separator-strong);
   border-radius: var(--radius-pill);
-  background: var(--surface);
+  background: var(--surface-sunken);
+  box-shadow: var(--edge);
   color: var(--text-secondary);
   font-size: var(--text-sm);
   white-space: nowrap;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease);
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease-spring);
 }
 
 .model-chip:hover {
+  transform: translateY(-1px);
   background: var(--surface-hover);
   color: var(--text);
 }
@@ -116,12 +122,40 @@ body {
 
 /* ------------------------------------------------------------- destaque */
 
+/* O cronometro em destaque ganha painel proprio: e o objeto principal da tela
+   e antes flutuava solto sobre o fundo, sem nada que o delimitasse. */
 .primary {
   display: flex;
+  position: relative;
+  overflow: hidden;
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-10) var(--space-6);
+  margin-bottom: var(--space-4);
+  padding: var(--space-16) var(--space-6);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-2xl);
+  background: var(--surface);
+  box-shadow: var(--edge), var(--shadow);
+}
+
+/* Um clarao muito baixo saindo do topo do painel, na cor do acento. Da volume
+   ao bloco sem nenhum desfoque. */
+.primary::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 180px;
+  background: radial-gradient(
+    600px 180px at 50% 0,
+    var(--accent-soft),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.primary > * {
+  position: relative;
 }
 
 .primary-head {
@@ -134,19 +168,18 @@ body {
   color: var(--text-secondary);
   font-size: var(--text-md);
   font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
 }
 
 .primary-time {
-  font-size: clamp(3.5rem, 13vw, 7rem);
+  font-size: clamp(3.75rem, 14vw, 7.5rem);
   font-weight: var(--weight-bold);
-  letter-spacing: -0.035em;
 }
 
-/* Estreita e afastada do numero, pelo mesmo motivo do viewer: colada, ela
-   parecia um sublinhado dos digitos. */
+/* Estreita e afastada do numero: colada e da largura dele, a barra virava um
+   sublinhado dos digitos em vez de um indicador proprio. */
 .primary-bar {
-  max-width: 340px;
-  height: 4px;
+  max-width: 360px;
   margin-top: var(--space-2);
 }
 
@@ -179,7 +212,7 @@ body {
 
 .strip {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: var(--space-3);
 }
 
@@ -187,11 +220,19 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--space-5);
   border: var(--hairline) solid var(--separator);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: var(--edge), var(--shadow);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    border-color var(--duration-fast) var(--ease);
+}
+
+.mini:hover {
+  transform: translateY(-2px);
+  border-color: var(--separator-strong);
 }
 
 .mini-head {
@@ -211,7 +252,7 @@ body {
 }
 
 .mini-time {
-  font-size: 2rem;
+  font-size: 2.125rem;
 }
 
 .mini-meta {
@@ -227,7 +268,9 @@ body {
 /* ---------------------------------------------------------------- rodape */
 
 .empty-note {
-  padding: var(--space-10) var(--space-6);
+  padding: var(--space-16) var(--space-6);
+  border: var(--hairline) dashed var(--separator-strong);
+  border-radius: var(--radius-xl);
   color: var(--text-tertiary);
   font-size: var(--text-base);
   text-align: center;
@@ -238,7 +281,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
   padding-top: var(--space-4);
   border-top: var(--hairline) solid var(--separator);
 }
@@ -251,7 +294,7 @@ body {
 /* ================================================== conteudo dos ajustes */
 
 .modal-body {
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
 .config-row {
@@ -268,7 +311,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding-top: var(--space-5);
+  padding-top: var(--space-6);
   border-top: var(--hairline) solid var(--separator);
 }
 
@@ -294,13 +337,17 @@ body {
 
 .time-unit {
   display: flex;
-  width: 68px;
+  width: 70px;
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
   color: var(--text-tertiary);
   font-size: var(--text-xs);
   cursor: pointer;
+}
+
+.time-unit .input {
+  font-size: var(--text-md);
 }
 
 .spend-row {
@@ -312,14 +359,16 @@ body {
 
 /* Extrato da conta (base + ganho − usado). Vermelho quando ha divida. */
 .ledger {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  border: var(--hairline) solid var(--separator);
   border-radius: var(--radius-md);
-  background: var(--surface-sunken);
+  background: var(--canvas);
   color: var(--text-secondary);
   font-size: var(--text-xs);
 }
 
 .ledger[data-state="over"] {
+  border-color: transparent;
   background: var(--red-soft);
   color: var(--red-text);
 }
@@ -353,18 +402,22 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  padding: var(--space-4);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
   color: var(--text-secondary);
   font-size: var(--text-sm);
   flex-wrap: wrap;
 }
 
 .accrual[data-enabled="false"] {
-  opacity: 0.45;
+  opacity: 0.4;
   pointer-events: none;
 }
 
 .accrual .input--number {
-  width: 56px;
+  width: 58px;
 }
 
 .accrual select.input {
@@ -373,7 +426,7 @@ body {
 }
 
 .config-footer {
-  padding-top: var(--space-5);
+  padding-top: var(--space-6);
   border-top: var(--hairline) solid var(--separator);
 }
 
@@ -399,6 +452,7 @@ body {
 
 .model-name {
   font-size: var(--text-base);
+  font-weight: var(--weight-medium);
 }
 
 .model-detail {
@@ -411,13 +465,14 @@ body {
 @media (max-width: 640px) {
   .admin {
     width: calc(100% - var(--space-4));
-    padding: var(--space-4) 0 var(--space-8);
+    padding: var(--space-4) 0 var(--space-10);
   }
 
   .toolbar {
     align-items: stretch;
     flex-direction: column;
     gap: var(--space-3);
+    padding: var(--space-3);
   }
 
   /* Em coluna, o `flex-basis: 320px` da barra passa a valer como ALTURA e
@@ -431,7 +486,7 @@ body {
   }
 
   .primary {
-    padding: var(--space-6) 0;
+    padding: var(--space-8) var(--space-4);
   }
 
   .primary-controls .btn {
@@ -449,7 +504,7 @@ body {
   }
 
   .time-unit {
-    width: 60px;
+    width: 62px;
   }
 }
 
@@ -457,12 +512,12 @@ body {
    de alguem entrar em tela cheia. */
 :fullscreen .admin {
   display: flex;
-  width: min(1200px, calc(100% - var(--space-8)));
+  width: min(1280px, calc(100% - var(--space-8)));
   min-height: 100dvh;
   flex-direction: column;
   justify-content: center;
 }
 
 :fullscreen .primary-time {
-  font-size: clamp(4rem, 17vw, 11rem);
+  font-size: clamp(4rem, 18vw, 12rem);
 }
