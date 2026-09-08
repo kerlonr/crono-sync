@@ -144,6 +144,10 @@
   let stripSignature = null;
   let openTimerId = null;
   let selectedTimerId = null;
+  // Cronometro cujo numero esta sendo editado no lugar. Enquanto houver um, o
+  // tick de 250ms nao encosta naquele elemento - senao apagaria o que esta
+  // sendo digitado quatro vezes por segundo.
+  let editingTimerId = null;
   let feedbackTimer = 0;
   let entrou = false;
   let tentativasDeEntrada = 0;
@@ -308,12 +312,37 @@
 
     for (const root of [ui.primaryBlock, ui.strip]) {
       root.addEventListener("click", (event) => {
+        // Clicar no proprio numero abre a edicao no lugar, sem passar pelo
+        // modal de ajustes.
+        const digitos = event.target.closest(".timer-digits");
+        if (digitos && root.contains(digitos)) {
+          const alvo = findTimer(
+            digitos.closest("[data-timer-id]")?.dataset.timerId,
+          );
+          if (alvo) beginEdit(alvo, digitos);
+          return;
+        }
+
         const button = event.target.closest("[data-action]");
         if (!button || button.disabled || !root.contains(button)) return;
         runAction(
           button.dataset.action,
           button.closest("[data-timer-id]")?.dataset.timerId,
         );
+      });
+
+      // Enter e Espaco abrem a edicao, como em qualquer botao.
+      root.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+
+        const digitos = event.target.closest?.(".timer-digits");
+        if (!digitos || digitos.dataset.editable !== "true") return;
+
+        event.preventDefault();
+        const alvo = findTimer(
+          digitos.closest("[data-timer-id]")?.dataset.timerId,
+        );
+        if (alvo) beginEdit(alvo, digitos);
       });
     }
 
@@ -513,7 +542,7 @@
     ui.primaryBlock.dataset.timerId = timer.id;
 
     ui.primaryName.textContent = getTimerLabel(timer);
-    ui.primaryTime.textContent = formatTime(getDisplayMs(timer));
+    setTimerText(ui.primaryTime, timer);
     applyTimerLook(ui.primaryTime, timer);
 
     ui.primaryMeta.replaceChildren(
@@ -586,7 +615,7 @@
 
     mini.dot.dataset.status = timer.status;
     mini.name.textContent = getTimerLabel(timer);
-    mini.time.textContent = formatTime(getDisplayMs(timer));
+    setTimerText(mini.time, timer);
     applyTimerLook(mini.time, timer);
     mini.meta.textContent = bonus
       ? `${formatCompactDuration(timer.baseTotalTime)} · ${bonus}`
@@ -608,6 +637,178 @@
     element.dataset.status = timer.status;
     element.dataset.phase =
       timer.status === "stopped" ? "green" : getPhase(timer.pct);
+
+    // O clique so vale com a contagem fora do ar - e a mesma condicao que o
+    // servidor exige para aceitar um novo ponto de partida. Quem edita entra
+    // pelo teclado tambem, entao o numero vira um controle de verdade em vez
+    // de um texto que por acaso responde ao mouse.
+    const editavel = isEditable(timer);
+    element.dataset.editable = String(editavel);
+
+    if (editavel) {
+      element.tabIndex = 0;
+      element.setAttribute("role", "button");
+      element.setAttribute("aria-label", `Editar o tempo de ${getTimerLabel(timer)}`);
+    } else {
+      element.removeAttribute("tabindex");
+      element.removeAttribute("role");
+      element.removeAttribute("aria-label");
+    }
+  }
+
+  /**
+   * Escreve o tempo no elemento, a nao ser que ele esteja sendo editado.
+   * Sem esta guarda o tick sobrescreveria o campo a cada 250ms.
+   */
+  function setTimerText(element, timer) {
+    if (editingTimerId === timer.id) return;
+    element.textContent = formatTime(getDisplayMs(timer));
+  }
+
+  // ----------------------------------------------- edicao do tempo no lugar
+
+  /**
+   * Editar o numero exige que a contagem esteja fora do ar.
+   *
+   * Vale para pausado, parado e finalizado - todos os estados em que o
+   * servidor aceita reposicionar a contagem. Correndo, nao: o valor mudaria
+   * embaixo do dedo e o servidor recusaria em silencio.
+   */
+  function isEditable(timer) {
+    return timer.status !== "running";
+  }
+
+  /**
+   * Troca o numero por um campo, com o valor atual ja selecionado.
+   *
+   * O que se edita e o tempo EXIBIDO, que e o que a pessoa ve: num regressivo
+   * o que falta, num progressivo o que ja correu. A conversao para o modelo
+   * do servidor acontece em `commitEdit`.
+   */
+  function beginEdit(timer, element) {
+    if (!isEditable(timer) || editingTimerId) return;
+
+    editingTimerId = timer.id;
+    const original = formatTime(getDisplayMs(timer));
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "timer-edit";
+    input.value = original;
+    input.setAttribute("aria-label", `Tempo de ${getTimerLabel(timer)}`);
+    input.inputMode = "numeric";
+    input.spellcheck = false;
+    // O campo herda o tamanho do numero, que varia com a tela; medir em `ch`
+    // mantem a largura colada no conteudo sem depender do CSS saber disso.
+    input.size = original.length;
+
+    element.replaceChildren(input);
+    input.focus();
+    input.select();
+
+    let encerrado = false;
+    const encerrar = (aplicar) => {
+      if (encerrado) return;
+      encerrado = true;
+      editingTimerId = null;
+
+      const valor = input.value;
+      element.replaceChildren();
+      // Devolve o texto na hora; o proximo tick confirma com o valor do
+      // servidor, tenha a edicao sido aplicada ou nao.
+      element.textContent = original;
+
+      if (aplicar) commitEdit(timer.id, valor);
+    };
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        encerrar(true);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        encerrar(false);
+      }
+    });
+
+    // Sair do campo confirma, que e o que se espera de um valor digitado.
+    input.addEventListener("blur", () => encerrar(true));
+
+    // O clique dentro do campo nao deve reabrir a edicao nem disparar o
+    // manipulador do bloco.
+    input.addEventListener("click", (event) => event.stopPropagation());
+  }
+
+  /**
+   * Converte o tempo digitado no ponto de partida que o servidor entende.
+   *
+   *   progressivo: mostra o decorrido      -> offsetMs = valor
+   *   regressivo:  mostra o que falta      -> offsetMs = total - valor
+   *
+   * Reusa `timer:update` com `offsetMs`, o mesmo caminho do campo "ja
+   * consumido": nao ha regra nova no servidor, e ele ja recusa a operacao com
+   * o cronometro rodando.
+   */
+  function commitEdit(timerId, texto) {
+    const timer = findTimer(timerId);
+    if (!timer) return;
+
+    const alvo = parseTimeInput(texto);
+    if (alvo === null) {
+      return showFeedback(
+        "Tempo inválido. Use h:mm:ss, mm:ss ou só os segundos.",
+        "error",
+      );
+    }
+
+    if (alvo > timer.totalTime) {
+      return showFeedback(
+        `O máximo é ${formatTime(timer.totalTime)}. Para passar disso, mude a duração em Ajustar.`,
+        "error",
+      );
+    }
+
+    const offsetMs =
+      timer.direction === "up" ? alvo : timer.totalTime - alvo;
+
+    if (offsetMs === timer.offsetMs) return;
+
+    socket.emit("timer:update", timerId, { offsetMs });
+    showFeedback(`Tempo ajustado para ${formatTime(alvo)}.`, "success");
+  }
+
+  /**
+   * Aceita `h:mm:ss`, `mm:ss` e `ss`, sempre lendo da direita para a esquerda.
+   * O campo mais a esquerda pode estourar ("90" e 1min30, "90:00" e 1h30),
+   * porque e assim que se digita duracao sem pensar na base 60.
+   *
+   * @returns {number|null} milissegundos, ou `null` se o texto nao servir.
+   */
+  function parseTimeInput(texto) {
+    const limpo = String(texto).trim();
+    if (!limpo) return null;
+
+    const partes = limpo.split(":");
+    if (partes.length > 3) return null;
+    if (partes.some((parte) => !/^\d*$/.test(parte.trim()))) return null;
+
+    const numeros = partes.map((parte) => {
+      const valor = parte.trim();
+      return valor === "" ? 0 : Number.parseInt(valor, 10);
+    });
+
+    if (numeros.some((numero) => !Number.isFinite(numero))) return null;
+
+    // Só o campo mais à esquerda pode passar de 59.
+    if (numeros.slice(1).some((numero) => numero > 59)) return null;
+
+    const [horas, minutos, segundos] = [
+      numeros.length === 3 ? numeros[0] : 0,
+      numeros.length === 3 ? numeros[1] : numeros.length === 2 ? numeros[0] : 0,
+      numeros[numeros.length - 1],
+    ];
+
+    return (horas * 3600 + minutos * 60 + segundos) * 1000;
   }
 
   function setProgress(element, timer) {

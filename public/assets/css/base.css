@@ -419,6 +419,50 @@ select.input {
   opacity: 0.42;
 }
 
+/* ------------------------------------------------- edicao do tempo no lugar */
+
+/* Com a contagem fora do ar, o proprio numero vira o controle de edicao. A
+   dica so aparece no hover e no foco: um sublinhado tracejado permanente
+   poluiria a tela que fica horas projetada. */
+.timer-digits[data-editable="true"] {
+  border-radius: var(--radius-md);
+  cursor: text;
+  transition:
+    background var(--duration-fast) var(--ease),
+    box-shadow var(--duration-fast) var(--ease);
+}
+
+.timer-digits[data-editable="true"]:hover {
+  background: var(--surface-sunken);
+  box-shadow: 0 0 0 var(--space-2) var(--surface-sunken);
+}
+
+.timer-digits[data-editable="true"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: var(--space-2);
+}
+
+/* O campo ocupa o lugar exato do numero: mesma familia, mesmo corpo, mesmo
+   peso. Trocar o texto por uma caixa de formulario com outra medida faria a
+   tela inteira pular no instante do clique. */
+.timer-edit {
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  box-shadow: 0 0 0 var(--space-2) var(--surface-sunken);
+  color: var(--accent);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: inherit;
+  text-align: center;
+}
+
+.timer-edit:focus {
+  outline: none;
+}
+
 /* O trilho e afundado e o preenchimento tem volume proprio: e a mesma leitura
    de luz dos campos, aplicada a uma peca de 6px. */
 .progress {
