@@ -1,607 +1,184 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-:root {
-  --bg-top: #050812;
-  --bg-bottom: #0d1320;
-  --surface: rgba(14, 24, 39, 0.86);
-  --surface-soft: rgba(18, 31, 50, 0.72);
-  --surface-raised: rgba(23, 37, 58, 0.92);
-  --line: rgba(166, 205, 238, 0.18);
-  --line-strong: rgba(166, 205, 238, 0.32);
-  --ink: #edf5ff;
-  --ink-soft: rgba(237, 245, 255, 0.72);
-  --ink-faint: rgba(190, 211, 232, 0.56);
-  --accent: #57dbc8;
-  --accent-blue: #79b8ff;
-  --warn: #ffc86a;
-  --danger: #ff5f64;
-  --shadow: 0 24px 58px rgba(0, 0, 0, 0.36);
-  --shadow-soft: 0 14px 30px rgba(0, 0, 0, 0.24);
-  --radius-lg: 18px;
-  --radius-md: 12px;
-}
-
-html,
-body {
-  min-height: 100%;
-}
+/**
+ * Visao geral das sessoes.
+ *
+ * Uma grade de cartoes iguais, cada um resumindo uma sessao. O que saiu: o
+ * hero com badge, os dois "stat cards" grandes (Online / Rodando, que agora
+ * cabem numa linha de texto no cabecalho), o subtitulo repetido acima da
+ * grade e a frase descritiva por cartao - o rotulo de estado ja diz tudo o
+ * que elas diziam.
+ */
 
 body {
-  background:
-    radial-gradient(circle at 18% 4%, rgba(121, 184, 255, 0.16), transparent 32%),
-    radial-gradient(circle at 85% 10%, rgba(87, 219, 200, 0.1), transparent 30%),
-    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
-  color: var(--ink);
-  font-family: "Barlow", sans-serif;
+  background: var(--bg-sunken);
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 42%);
-}
-
-button,
-a {
-  font-family: inherit;
-}
-
-.overview-shell {
-  position: relative;
-  z-index: 1;
-  width: min(1180px, calc(100% - 32px));
+.overview {
+  width: min(1200px, calc(100% - var(--space-8)));
   margin: 0 auto;
-  padding: 32px 0 48px;
+  padding: var(--space-10) 0 var(--space-16);
 }
 
-.overview-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 24px;
-  align-items: end;
-  margin-bottom: 22px;
-}
-
-.hero-copy {
+.overview-head {
   display: flex;
-  max-width: 760px;
-  flex-direction: column;
-  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
 }
 
-.hero-badge,
-.empty-badge,
-.grid-kicker {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--accent-blue);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+.overview-head h1 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
 }
 
-h1 {
-  max-width: 860px;
-  font-size: clamp(34px, 5vw, 58px);
-  line-height: 0.98;
-}
-
-.overview-hero p,
-.overview-empty p,
-.overview-grid-head p {
-  color: var(--ink-soft);
-  font-size: 15px;
-  line-height: 1.55;
-}
-
-.hero-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.hero-link,
-.card-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: linear-gradient(180deg, rgba(27, 42, 65, 0.96), rgba(10, 18, 31, 0.96));
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  line-height: 1.1;
-  text-align: center;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background 0.18s ease,
-    opacity 0.18s ease;
-}
-
-.hero-link {
-  min-width: 190px;
-  padding: 0 18px;
-}
-
-.hero-link.ghost {
-  color: var(--accent-blue);
-}
-
-.hero-link:hover,
-.card-link:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: var(--line-strong);
-  background: linear-gradient(180deg, rgba(34, 52, 80, 0.96), rgba(12, 22, 38, 0.96));
-}
-
-.overview-board {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.overview-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 180px));
-  gap: 12px;
-}
-
-.stat-card,
-.overview-grid-shell,
-.overview-empty,
-.timer-card {
-  border: 1px solid var(--line);
-  background:
-    linear-gradient(180deg, rgba(24, 39, 62, 0.86), rgba(9, 16, 28, 0.9)),
-    var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.stat-card {
-  padding: 16px 18px;
-  border-radius: var(--radius-lg);
-}
-
-.stat-label {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--ink-faint);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.stat-value {
-  color: var(--ink);
-  font-family: "Share Tech Mono", monospace;
-  font-size: 32px;
-  line-height: 1;
-}
-
-.overview-grid-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 20px;
-  border-radius: 22px;
-}
-
-.overview-grid-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 420px);
-  gap: 18px;
-  align-items: end;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(166, 205, 238, 0.14);
-}
-
-.grid-kicker {
-  margin-bottom: 10px;
-}
-
-.overview-grid-head h2 {
-  font-size: clamp(24px, 3vw, 34px);
-  line-height: 1;
-}
-
-.overview-grid-head p {
-  text-align: right;
+.overview-head p {
+  margin-top: var(--space-1);
+  font-size: var(--text-base);
 }
 
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  align-items: stretch;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
 }
 
-.overview-empty {
-  display: none;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 24px;
-  border-radius: 20px;
-}
+/* ------------------------------------------------------------- cartao */
 
-.overview-empty.visible {
+.session-card {
   display: flex;
-}
-
-.overview-empty h2 {
-  font-size: 26px;
-  line-height: 1.08;
-}
-
-.timer-card {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  min-height: 258px;
   flex-direction: column;
-  gap: 16px;
-  padding: 18px;
-  border-radius: 18px;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
-.timer-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--line-strong);
-  box-shadow: 0 26px 52px rgba(0, 0, 0, 0.42);
-}
-
-.timer-card::before {
-  content: "";
-  position: absolute;
-  inset: auto -22% -42% 18%;
-  height: 170px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-.timer-card.is-running::before,
-.timer-card.is-warning::before,
-.timer-card.is-danger::before,
-.timer-card.is-finished::before {
-  opacity: 1;
-}
-
-.timer-card.is-running::before {
-  background: radial-gradient(circle, rgba(87, 219, 200, 0.18), transparent 70%);
-}
-
-.timer-card.is-warning::before {
-  background: radial-gradient(circle, rgba(255, 200, 106, 0.2), transparent 70%);
-}
-
-.timer-card.is-danger::before,
-.timer-card.is-finished::before {
-  background: radial-gradient(circle, rgba(255, 95, 100, 0.2), transparent 70%);
-}
-
-.card-top {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: start;
-}
-
-.card-id {
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-  text-transform: uppercase;
-}
-
-.card-created {
-  margin-top: 6px;
-  color: var(--ink-faint);
-  font-size: 12px;
-}
-
-.card-status {
-  display: inline-flex;
+.session-card-top {
+  display: flex;
   align-items: center;
-  min-height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(6, 12, 22, 0.72);
-  color: var(--ink);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.card-status[data-state="running"] {
-  color: var(--accent);
-}
-
-.card-status[data-state="paused"] {
-  color: var(--warn);
-}
-
-.card-status[data-state="stopped"] {
-  color: var(--accent-blue);
-}
-
-.card-status[data-state="finished"],
-.card-status[data-state="offline"] {
-  color: var(--danger);
-}
-
-.card-timer {
-  position: relative;
-  z-index: 1;
-  color: var(--ink);
-  font-family: "Share Tech Mono", monospace;
-  font-size: clamp(38px, 5vw, 56px);
-  letter-spacing: 0.02em;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.card-primary-label {
-  position: relative;
-  z-index: 1;
-  color: var(--ink-soft);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.card-timer-list {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.card-timer-row {
-  display: flex;
-  align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
-  padding: 5px 10px;
-  border-radius: 10px;
-  background: rgba(23, 50, 77, 0.05);
+  gap: var(--space-3);
 }
 
-.card-timer-row[data-status="running"] {
-  background: rgba(63, 201, 177, 0.14);
-}
-
-.card-timer-row[data-status="finished"] {
-  background: rgba(239, 111, 143, 0.14);
-}
-
-.card-timer-row-label {
-  overflow: hidden;
-  color: var(--ink-soft);
-  font-size: 12px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card-timer-row-value {
-  flex-shrink: 0;
-  color: var(--ink);
-  font-family: "Share Tech Mono", monospace;
-  font-size: 15px;
+.session-id {
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
 }
 
-.card-meta {
-  position: relative;
-  z-index: 1;
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.45;
+.session-primary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.card-actions {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+.session-primary-label {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.session-time {
+  font-size: 2rem;
+}
+
+/* Um cronometro parado esta cheio, e uma barra inteira acesa chamava mais
+   atencao que o proprio numero. Acesa mesmo, so quando ha contagem. */
+.session-primary .progress {
+  margin-top: var(--space-1);
+}
+
+.session-card:not([data-active="true"]) .progress-fill {
+  opacity: 0.4;
+}
+
+/* Lista dos demais cronometros: rotulo a esquerda, tempo a direita, alinhados
+   por uma coluna so - e a leitura de tabela, sem virar uma tabela. */
+.session-others {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--separator);
+}
+
+.session-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.session-row-label {
+  overflow: hidden;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.session-row-value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-row[data-status="stopped"] {
+  opacity: 0.55;
+}
+
+.session-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid rgba(166, 205, 238, 0.14);
+  padding-top: var(--space-3);
+  border-top: var(--hairline) solid var(--separator);
 }
 
-.card-action-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+.session-note {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
 }
 
-.card-link {
-  width: 100%;
-  min-width: 0;
-  padding: 0 10px;
+.session-actions {
+  display: flex;
+  gap: var(--space-1);
 }
 
-.card-end-button {
-  color: #ffd6d8;
-  background:
-    linear-gradient(180deg, rgba(110, 34, 43, 0.88), rgba(42, 11, 17, 0.96)),
-    rgba(56, 14, 22, 0.88);
+/* ------------------------------------------------------------- vazio */
+
+.overview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-16) var(--space-6);
+  text-align: center;
 }
 
-.card-end-button:disabled {
-  cursor: wait;
-  opacity: 0.58;
+.overview-empty .btn {
+  margin-top: var(--space-2);
 }
 
-.card-note {
-  color: var(--ink-faint);
-  font-size: 12px;
-  line-height: 1.3;
-}
-
-@media (max-width: 1020px) {
-  .overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
-  .overview-shell {
-    width: min(100%, calc(100% - 24px));
-    padding: 22px 0 34px;
+@media (max-width: 640px) {
+  .overview {
+    padding: var(--space-6) 0 var(--space-10);
   }
 
-  .overview-hero,
-  .overview-grid-head {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-
-  .overview-grid-head p {
-    text-align: left;
-  }
-
-  .hero-actions,
-  .hero-link {
-    width: 100%;
-  }
-
-  .overview-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .overview-grid-shell {
-    padding: 14px;
-    border-radius: 18px;
+  .overview-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-4);
   }
 
   .overview-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
   }
-
-  .timer-card {
-    min-height: 0;
-    gap: 13px;
-    padding: 14px;
-    border-radius: 16px;
-  }
-
-  .card-top {
-    grid-template-columns: 1fr;
-  }
-
-  .card-status {
-    width: fit-content;
-  }
-}
-
-@media (max-width: 420px) {
-  .overview-shell {
-    width: min(100%, calc(100% - 16px));
-    padding-top: 16px;
-  }
-
-  h1 {
-    font-size: 32px;
-  }
-
-  .overview-stats {
-    gap: 8px;
-  }
-
-  .stat-card {
-    padding: 13px;
-  }
-
-  .stat-value {
-    font-size: 28px;
-  }
-
-  .overview-grid-head h2 {
-    font-size: 24px;
-  }
-
-  .hero-badge,
-  .empty-badge,
-  .grid-kicker {
-    max-width: 100%;
-    font-size: 9px;
-    letter-spacing: 0.12em;
-  }
-
-  .card-timer {
-    font-size: clamp(34px, 14vw, 46px);
-  }
-
-  .card-action-buttons {
-    gap: 6px;
-  }
-
-  .card-link {
-    min-height: 40px;
-    padding: 0 8px;
-    font-size: 10px;
-    letter-spacing: 0.06em;
-  }
-}
-
-/* Tres acoes numa grade de duas colunas deixavam o "Finalizar" sozinho e pela
-   metade na linha de baixo. As duas acoes de abrir ficam lado a lado e a
-   destrutiva ocupa a linha inteira, separada e em estilo discreto - ela nao
-   precisa disputar atencao com o resto. */
-.card-action-buttons .card-end-button {
-  grid-column: 1 / -1;
-  border-color: rgba(255, 138, 154, 0.28);
-  background: rgba(110, 34, 43, 0.22);
-  color: #ffb3bd;
-}
-
-.card-action-buttons .card-end-button:hover:not(:disabled) {
-  border-color: rgba(255, 138, 154, 0.5);
-  background: linear-gradient(
-      180deg,
-      rgba(110, 34, 43, 0.88),
-      rgba(42, 11, 17, 0.96)
-    ),
-    rgba(56, 14, 22, 0.88);
-  color: #ffd6d8;
 }

@@ -7,6 +7,7 @@ const rateLimit = require("express-rate-limit");
 const { Server } = require("socket.io");
 
 const config = require("./src/config");
+const { createAssetManifest } = require("./src/assets");
 const { triggerDeploy } = require("./src/deploy-client");
 const {
   formatTimerMs,
@@ -64,6 +65,16 @@ const sessionStore = createSessionStore({
 const snapshotStore = createSnapshotStore({
   filePath: config.STATE_FILE,
   intervalMs: config.STATE_SAVE_MS,
+  logEvent,
+});
+
+// As paginas pedem os arquivos estaticos por `__ASSET:css/base.css__` e
+// recebem o caminho com o hash do conteudo. Em producao o hash e calculado
+// uma vez, no boot; fora dela, a cada pagina servida, para editar um CSS nao
+// exigir reiniciar o servidor.
+const assets = createAssetManifest({
+  assetsDir: path.join(config.PUBLIC_DIR, "assets"),
+  watch: process.env.NODE_ENV !== "production",
   logEvent,
 });
 
@@ -186,13 +197,16 @@ app.post(
 
 app.use(express.json({ limit: "16kb" }));
 
+// Com o hash do conteudo na URL, o arquivo daquele endereco nunca muda: o
+// navegador pode guardar por um ano sem revalidar. Uma alteracao gera outro
+// hash, e portanto outro endereco.
 app.use(
   "/assets",
   express.static(path.join(config.PUBLIC_DIR, "assets"), {
     fallthrough: false,
     etag: true,
-    immutable: false,
-    maxAge: 0,
+    immutable: true,
+    maxAge: "365d",
   }),
 );
 
@@ -308,26 +322,6 @@ app.post("/api/session/:id/login", loginLimiter, async (request, response) => {
 app.get("/api/sessions/active", activeSessionsLimiter, (_request, response) => {
   sessionStore.cleanupExpiredSessions();
   response.json({ sessions: sessionStore.listActiveSessions() });
-});
-
-app.delete("/api/sessions/:id", activeSessionsLimiter, (request, response) => {
-  const sessionId = request.params.id;
-  if (!sessionStore.isValidSessionId(sessionId)) {
-    return response.status(404).json({ error: "session_not_found" });
-  }
-
-  const closed = sessionStore.closeSession(sessionId);
-  if (!closed) {
-    return response.status(404).json({ error: "session_not_found" });
-  }
-
-  logEvent("session_closed", {
-    sessionId,
-    ip: getRequestIp(request),
-    userAgent: request.get("user-agent") || "unknown",
-  });
-
-  return response.json({ success: true });
 });
 
 app.get("/health", (_request, response) => {
@@ -459,6 +453,29 @@ io.on("connection", (socket) => {
     return responder({ success: true, hasAuth: true });
   });
 
+  /**
+   * Encerra a sessao.
+   *
+   * Antes isso era `DELETE /api/sessions/:id`, sem credencial nenhuma - e como
+   * `/api/sessions/active` publica o id de todas as sessoes, bastava listar e
+   * apagar para derrubar o servidor inteiro, inclusive contagens em andamento.
+   * Aqui o socket ja provou ter o token de admin daquela sessao.
+   */
+  socket.on("session:close", () => {
+    const session = sessionStore.getAdminSession(socket);
+    if (!session) return;
+
+    const sessionId = session.id;
+    sessionStore.closeSession(sessionId);
+    logEvent(
+      "session_closed",
+      buildSocketLogDetails(socket, {
+        sessionId,
+        userAgent: getSocketUserAgent(socket),
+      }),
+    );
+  });
+
   socket.on("timer:add", (payload, callback) => {
     const session = sessionStore.getAdminSession(socket);
     if (!session) {
@@ -539,16 +556,6 @@ io.on("connection", (socket) => {
       sessionStore.resetSessionTimer(session, resolveTimerId(session, timerId)),
     );
   });
-
-  // Evento do formato antigo (um cronometro por sessao): aplica o tempo ao
-  // cronometro em destaque para nao quebrar abas abertas antes do deploy.
-  socket.on("timer:setTime", (ms) => {
-    withAdminSession(socket, (session) =>
-      sessionStore.updateTimer(session, resolveTimerId(session), {
-        totalTime: ms,
-      }),
-    );
-  });
 });
 
 setInterval(
@@ -582,9 +589,11 @@ function sendHtmlPage(request, response, fileName, pagePath) {
 
     response.setHeader("Cache-Control", "no-cache");
     response.type("html").send(
-      html
-        .replaceAll("__CANONICAL_URL__", escapeHtmlAttribute(canonicalUrl))
-        .replaceAll("__OG_IMAGE_URL__", escapeHtmlAttribute(ogImageUrl)),
+      assets.apply(
+        html
+          .replaceAll("__CANONICAL_URL__", escapeHtmlAttribute(canonicalUrl))
+          .replaceAll("__OG_IMAGE_URL__", escapeHtmlAttribute(ogImageUrl)),
+      ),
     );
   });
 }
@@ -610,14 +619,18 @@ function escapeHtmlAttribute(value) {
 }
 
 function buildCspDirectives(nodeEnv, allowedOrigin) {
+  // Nada e carregado de fora da propria origem: as fontes agora sao as do
+  // sistema, entao o Google Fonts saiu de `styleSrc` e `fontSrc`. `frameSrc`
+  // liberava https://open.spotify.com para um embed que nao existe em pagina
+  // nenhuma do projeto.
   const directives = {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'"],
-    styleSrc: ["'self'", "https://fonts.googleapis.com"],
-    fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+    styleSrc: ["'self'"],
+    fontSrc: ["'self'"],
     connectSrc: buildConnectSrc(allowedOrigin),
     imgSrc: ["'self'", "data:"],
-    frameSrc: ["'self'", "https://open.spotify.com"],
+    frameSrc: ["'none'"],
     objectSrc: ["'none'"],
     baseUri: ["'self'"],
     formAction: ["'self'"],

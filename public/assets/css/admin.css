@@ -1,2339 +1,468 @@
-﻿*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-button,
-input {
-  font: inherit;
-}
-
-:root {
-  --bg-top: #eef6ff;
-  --bg-bottom: #dfeeff;
-  --ink: #17324d;
-  --ink-soft: rgba(23, 50, 77, 0.72);
-  --ink-faint: rgba(23, 50, 77, 0.52);
-  --glass: rgba(255, 255, 255, 0.5);
-  --glass-strong: rgba(255, 255, 255, 0.68);
-  --glass-line: rgba(255, 255, 255, 0.74);
-  --shadow: 0 22px 60px rgba(67, 104, 142, 0.16);
-  --shadow-soft: 0 14px 32px rgba(67, 104, 142, 0.12);
-  --accent: #3fc9b1;
-  --accent2: #55aef6;
-  --warn: #f7ba52;
-  --danger: #ef6f8f;
-}
-
-html,
-body {
-  min-height: 100%;
-}
+/**
+ * Painel de administracao.
+ *
+ * Uma coluna: barra de acoes no topo, o cronometro em destaque no centro, os
+ * demais em cartoes abaixo e o rodape com o aviso e o link do viewer. Os dois
+ * modais - ajustes do cronometro e configuracoes da sessao - usam o componente
+ * de `base.css`, sem estilo proprio de janela.
+ *
+ * O arquivo anterior tinha 2338 linhas porque era um tema claro inteiro
+ * seguido de um tema escuro que o sobrescrevia, mais uma camada de layout que
+ * anulava a anterior com `!important`. Aqui nada e definido duas vezes: a cor
+ * vem dos tokens e o tema escuro nao precisa de uma unica regra nesta folha.
+ */
 
 body {
+  background: var(--bg-sunken);
+}
+
+/* ================================================================= login */
+
+.login {
+  display: flex;
   min-height: 100dvh;
-  display: flex;
   align-items: center;
   justify-content: center;
-  overflow-x: hidden;
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(85, 174, 246, 0.24),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 78% 14%,
-      rgba(63, 201, 177, 0.2),
-      transparent 26%
-    ),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
-  color: var(--ink);
-  font-family: "Barlow", sans-serif;
-  position: relative;
-}
-
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(10px);
-}
-
-body::before {
-  width: 360px;
-  height: 360px;
-  top: -100px;
-  left: -90px;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.88),
-    transparent 68%
-  );
-  animation: floatA 15s ease-in-out infinite;
-}
-
-body::after {
-  width: 320px;
-  height: 320px;
-  right: -80px;
-  bottom: -100px;
-  background: radial-gradient(
-    circle,
-    rgba(174, 229, 255, 0.72),
-    transparent 70%
-  );
-  animation: floatB 18s ease-in-out infinite;
-}
-
-body.message-mode {
-  padding: 24px;
-}
-
-#admin-panel {
-  display: none;
-  width: 100%;
-  position: relative;
-  z-index: 1;
-}
-
-.screen-message {
-  width: min(100%, 560px);
-  padding: 28px 24px;
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.86),
-      rgba(255, 255, 255, 0.62)
-    ),
-    rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  box-shadow: var(--shadow);
-  color: var(--danger);
-  text-align: center;
-  font-family: "Share Tech Mono", monospace;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.desktop-layout {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  width: min(100%, 860px);
-  margin: 0 auto;
-  padding: 34px 28px 40px;
-  border-radius: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.74);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.76),
-      rgba(255, 255, 255, 0.48)
-    ),
-    rgba(255, 255, 255, 0.42);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
-  animation: panelIn 0.5s ease;
-}
-
-.desktop-layout::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(130deg, rgba(255, 255, 255, 0.5), transparent 34%),
-    radial-gradient(
-      circle at top right,
-      rgba(85, 174, 246, 0.14),
-      transparent 28%
-    );
-  pointer-events: none;
-}
-
-.badge {
-  position: relative;
-  overflow: hidden;
-}
-
-.badge::after {
-  content: "";
-  position: absolute;
-  inset: -20% auto -20% -40%;
-  width: 36%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.8),
-    transparent
-  );
-  transform: skewX(-18deg);
-  animation: sheen 7s linear infinite;
-}
-
-.badge {
-  align-self: flex-start;
-  padding: 7px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.86);
-  background: rgba(255, 255, 255, 0.56);
-  color: var(--accent2);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
-}
-
-.desktop-presets-bar {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  min-width: 0;
-  padding: 16px 18px;
-  border-radius: 22px;
-  border: 1px solid var(--glass-line);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.66),
-      rgba(255, 255, 255, 0.38)
-    ),
-    rgba(255, 255, 255, 0.34);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.desktop-presets-label,
-.section-label,
-.modal-title {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.desktop-presets-chips {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  flex: 1;
-  min-width: 0;
-  align-items: center;
-}
-
-.desktop-presets-actions {
-  display: flex;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.preset-chip-d {
-  appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 999px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.9),
-      rgba(255, 255, 255, 0.62)
-    ),
-    rgba(255, 255, 255, 0.54);
-  color: var(--ink);
-  font-family: "Barlow", sans-serif;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: var(--shadow-soft);
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    color 0.2s ease;
-}
-
-.preset-chip-d {
-  padding: 10px 16px;
-  font-size: 13px;
-}
-
-.preset-chip-d:hover {
-  transform: translateY(-2px);
-  border-color: rgba(85, 174, 246, 0.56);
-  color: var(--accent2);
-}
-
-.presets-empty-d,
-.presets-empty {
-  color: var(--ink-faint);
-  font-style: italic;
-}
-
-.presets-empty-d,
-.presets-empty {
-  font-size: 12px;
-}
-
-.timer-display {
-  font-family: "Share Tech Mono", monospace;
-  letter-spacing: 0.05em;
-  color: var(--ink);
-  user-select: none;
-  transition:
-    color 0.35s ease,
-    text-shadow 0.35s ease;
-}
-
-.timer-display-d {
-  font-size: clamp(72px, 11vw, 118px);
-  line-height: 0.95;
-  text-shadow: 0 0 24px rgba(85, 174, 246, 0.12);
-}
-
-.timer-display.green {
-  color: #1db89d;
-  text-shadow: 0 0 26px rgba(63, 201, 177, 0.26);
-}
-
-.timer-display.yellow {
-  color: #d99929;
-  text-shadow: 0 0 28px rgba(247, 186, 82, 0.28);
-}
-
-.timer-display.red {
-  color: #d85f7e;
-  text-shadow: 0 0 28px rgba(239, 111, 143, 0.28);
-}
-
-.timer-display.blink {
-  color: #d85f7e;
-  animation: timerBlink 0.58s infinite;
-}
-
-.progress-wrap {
-  width: 100%;
-  height: 12px;
-  padding: 2px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.4)),
-    rgba(255, 255, 255, 0.34);
-  overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-}
-
-.progress-fill {
-  height: 100%;
-  width: 100%;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    rgba(63, 201, 177, 0.94),
-    rgba(85, 174, 246, 0.94)
-  );
-  position: relative;
-  overflow: hidden;
-  transition:
-    width 0.12s linear,
-    background 0.35s ease;
-}
-
-.progress-fill::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.68),
-    transparent
-  );
-  transform: translateX(-100%);
-  animation: shine 2.8s linear infinite;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--ink-soft);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-}
-
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(23, 50, 77, 0.24);
-  transition:
-    background 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-.status-dot.running {
-  background: var(--accent);
-  box-shadow: 0 0 12px rgba(63, 201, 177, 0.55);
-  animation: pulse 1.5s infinite;
-}
-
-.status-dot.paused {
-  background: var(--warn);
-  box-shadow: 0 0 12px rgba(247, 186, 82, 0.45);
-}
-
-.status-dot.finished {
-  background: var(--danger);
-  box-shadow: 0 0 12px rgba(239, 111, 143, 0.45);
-}
-
-.controls-d,
-.viewer-link-d,
-.setter-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.controls-d {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: 100%;
-}
-
-.controls-d {
-  max-width: 560px;
-  margin-inline: auto;
-}
-
-.btn-d,
-.btn-set,
-.shortcut-link {
-  appearance: none;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.92),
-      rgba(255, 255, 255, 0.62)
-    ),
-    rgba(255, 255, 255, 0.48);
-  color: var(--ink);
-  box-shadow: var(--shadow-soft);
-  transition:
-    transform 0.22s ease,
-    border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    background 0.22s ease,
-    opacity 0.22s ease;
-}
-
-.btn-d:hover,
-.btn-set:hover,
-.shortcut-link:hover {
-  transform: translateY(-2px);
-  border-color: rgba(85, 174, 246, 0.52);
-  box-shadow: 0 18px 34px rgba(67, 104, 142, 0.16);
-}
-
-.btn-d:active,
-.btn-set:active {
-  transform: translateY(0) scale(0.985);
-}
-
-.btn-d:disabled {
-  opacity: 0.34;
-  pointer-events: none;
-}
-
-.btn-d {
-  width: 100%;
-  min-width: 0;
-  min-height: 54px;
-  padding: 0 18px;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.btn-start-d,
-.btn-set {
-  background:
-    linear-gradient(135deg, rgba(63, 201, 177, 0.56), rgba(85, 174, 246, 0.34)),
-    rgba(255, 255, 255, 0.62);
-  color: #09253d;
-}
-
-.btn-pause-d,
-.btn-set.secondary {
-  background:
-    linear-gradient(135deg, rgba(247, 186, 82, 0.54), rgba(255, 213, 143, 0.3)),
-    rgba(255, 255, 255, 0.62);
-  color: #4a3208;
-}
-
-.btn-reset-d {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(239, 111, 143, 0.28),
-      rgba(255, 255, 255, 0.6)
-    ),
-    rgba(255, 255, 255, 0.52);
-  color: #8a3350;
-  border-color: rgba(255, 190, 208, 0.84);
-}
-
-.btn-reset-d:hover {
-  border-color: rgba(239, 111, 143, 0.42);
-}
-
-.btn-icon-d,
-.btn-close-modal,
-.preset-del-btn {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(255, 255, 255, 0.64)
-    ),
-    rgba(255, 255, 255, 0.5);
-  color: var(--ink);
-  box-shadow: var(--shadow-soft);
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-  cursor: pointer;
-}
-
-.btn-icon-d {
-  width: 46px;
-  height: 46px;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.btn-icon-glyph {
-  width: 20px;
-  height: 20px;
-  display: block;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.btn-icon-d:hover,
-.btn-close-modal:hover,
-.preset-del-btn:hover {
-  transform: translateY(-1px);
-  border-color: rgba(85, 174, 246, 0.52);
-}
-
-.btn-close-modal:hover,
-.preset-del-btn:hover {
-  color: var(--danger);
-}
-
-.btn-set {
-  padding: 12px 20px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.shortcut-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 12px 18px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink);
-  text-decoration: none;
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  flex: 0 0 auto;
-}
-
-.settings-link {
-  align-self: flex-start;
-}
-
-.settings-shortcuts {
-  position: relative;
-}
-
-.presets-panel-copy {
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.settings-shortcuts {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-content: center;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.time-inputs {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.time-input-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.time-input-group label {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.time-input-group input {
-  border: 1px solid rgba(255, 255, 255, 0.76);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(255, 255, 255, 0.72)
-    ),
-    rgba(255, 255, 255, 0.62);
-  color: var(--ink);
-  outline: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-.time-input-group input {
-  font-family: "Share Tech Mono", monospace;
-  text-align: center;
-}
-
-.time-input-group input {
-  width: 74px;
-  padding: 12px 10px;
-  border-radius: 14px;
-  font-size: 22px;
-}
-
-.time-input-group input:focus {
-  border-color: rgba(85, 174, 246, 0.56);
-  box-shadow:
-    0 0 0 4px rgba(85, 174, 246, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  transform: translateY(-1px);
-}
-
-.time-sep {
-  font-family: "Share Tech Mono", monospace;
-  color: rgba(23, 50, 77, 0.36);
-}
-
-.time-sep {
-  font-size: 24px;
-  margin-top: 14px;
-}
-
-.presets-manage-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  min-width: 0;
-  padding: 12px;
-  border-radius: 20px;
-}
-
-.presets-manage-list {
-  max-height: clamp(240px, 34dvh, 360px);
-  min-height: 204px;
-  overflow-y: auto;
-}
-
-.preset-manage-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-  overflow: hidden;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.88),
-      rgba(255, 255, 255, 0.64)
-    ),
-    rgba(255, 255, 255, 0.158);
-  box-shadow: 0 12px 24px rgba(67, 104, 142, 0.1);
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.preset-manage-row {
-  padding: 12px 14px;
-}
-
-.preset-manage-row:hover {
-  transform: translateY(-2px);
-  border-color: rgba(85, 174, 246, 0.48);
-}
-
-.preset-manage-info {
-  min-width: 0;
-  flex: 1;
-}
-
-.preset-manage-name {
-  color: var(--ink);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.preset-manage-name {
-  font-size: 13px;
-}
-
-.preset-manage-time {
-  margin-top: 6px;
-  font-family: "Share Tech Mono", monospace;
-  color: var(--ink-faint);
-}
-
-.preset-manage-time {
-  font-size: 11px;
-}
-
-.preset-del-btn {
-  padding: 8px 10px;
-  flex: 0 0 auto;
-}
-
-.preset-del-btn {
-  font-size: 14px;
-}
-
-.modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-  padding: 26px;
-  background: rgba(224, 237, 251, 0.46);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
-.modal-overlay.open {
-  display: flex;
-  animation: fadeIn 0.22s ease;
-}
-
-.modal {
-  width: 100%;
-  max-width: min(980px, calc(100vw - 42px));
-  max-height: min(88dvh, 760px);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.82) 0%,
-      rgba(255, 255, 255, 0.56) 100%
-    ),
-    rgba(255, 255, 255, 0.48);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  box-shadow: var(--shadow);
-  animation: modalIn 0.26s ease;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: rgb(51 51 51 / 10%);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
-.modal-header {
-  padding: 24px 28px 18px;
-}
-
-.btn-close-modal {
-  width: 38px;
-  height: 38px;
-  font-size: 18px;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes panelIn {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes timerBlink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.24;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.42;
-  }
-}
-
-@keyframes sheen {
-  0% {
-    transform: translateX(-220%) skewX(-18deg);
-  }
-
-  100% {
-    transform: translateX(420%) skewX(-18deg);
-  }
-}
-
-@keyframes shine {
-  from {
-    transform: translateX(-100%);
-  }
-
-  to {
-    transform: translateX(180%);
-  }
-}
-
-@keyframes floatA {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-
-  50% {
-    transform: translate3d(30px, 26px, 0);
-  }
-}
-
-@keyframes floatB {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-
-  50% {
-    transform: translate3d(-32px, -18px, 0);
-  }
-}
-
-:fullscreen body,
-:-webkit-full-screen body,
-:-moz-full-screen body {
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(85, 174, 246, 0.18),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 78% 14%,
-      rgba(63, 201, 177, 0.16),
-      transparent 26%
-    ),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
-}
-
-@media (min-width: 768px) {
-  .desktop-layout {
-    display: flex;
-  }}
-
-@media (max-width: 1100px) {
-  .modal {
-    max-width: 700px;
-  }}
-
-@media (max-width: 980px) {
-  .desktop-presets-actions {
-    width: 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-  }}
-
-@media (max-width: 860px) {
-
-  .modal-header {
-    padding: 20px 20px 16px;
-  }}
-
-@media (max-width: 767px) {
-  body {
-    align-items: flex-start;
-  }
-
-  .desktop-layout {
-    display: none !important;
-  }
-
-  .modal-overlay {
-    display: none !important;
-  }}
-
-:root {
-  --bg-top: #040812;
-  --bg-bottom: #0a1322;
-  --ink: #edf5ff;
-  --ink-soft: rgba(237, 245, 255, 0.74);
-  --ink-faint: rgba(188, 208, 229, 0.56);
-  --glass: rgba(9, 17, 31, 0.72);
-  --glass-strong: rgba(13, 25, 44, 0.86);
-  --glass-line: rgba(169, 214, 255, 0.18);
-  --shadow: 0 28px 72px rgba(0, 0, 0, 0.42);
-  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.28);
-  --accent: #58ead0;
-  --accent2: #7abfff;
-  --warn: #ffc76b;
-  --danger: #ff3b30;
-}
-
-body,
-:fullscreen body,
-:-webkit-full-screen body,
-:-moz-full-screen body {
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(95, 177, 255, 0.18),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 78% 14%,
-      rgba(88, 234, 208, 0.12),
-      transparent 26%
-    ),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
-  color: var(--ink);
-}
-
-body::before {
-  background: radial-gradient(
-    circle,
-    rgba(122, 191, 255, 0.18),
-    transparent 68%
-  );
-}
-
-body::after {
-  background: radial-gradient(
-    circle,
-    rgba(88, 234, 208, 0.12),
-    transparent 70%
-  );
-}
-
-.screen-message,
-.desktop-layout,
-.desktop-presets-bar,
-.progress-wrap,
-.status-row,
-.settings-shortcuts,
-.modal {
-  border-color: var(--glass-line);
-  background:
-    linear-gradient(180deg, rgba(24, 39, 65, 0.78), rgba(8, 16, 29, 0.84)),
-    var(--glass);
-  box-shadow: var(--shadow);
-}
-
-.desktop-layout::before {
-  background:
-    linear-gradient(130deg, rgba(255, 255, 255, 0.08), transparent 34%),
-    radial-gradient(
-      circle at top right,
-      rgba(122, 191, 255, 0.1),
-      transparent 28%
-    );
-}
-
-.badge {
-  border-color: rgba(122, 191, 255, 0.22);
-  background: rgba(12, 22, 38, 0.78);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: var(--accent2);
-}
-
-.badge::after {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.18),
-    transparent
-  );
-}
-
-.preset-chip-d,
-.btn-d,
-.btn-set,
-.shortcut-link,
-.btn-icon-d,
-.btn-close-modal,
-.preset-del-btn {
-  border-color: var(--glass-line);
-  background:
-    linear-gradient(180deg, rgba(26, 41, 67, 0.82), rgba(10, 18, 33, 0.9)),
-    var(--glass-strong);
-  color: var(--ink);
-  box-shadow: var(--shadow-soft);
-}
-
-.preset-manage-row {
-  border-color: rgba(169, 214, 255, 0.14);
-  background:
-    linear-gradient(180deg, rgba(21, 34, 57, 0.92), rgba(8, 16, 29, 0.96)),
-    rgba(10, 18, 33, 0.88);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
-}
-
-.preset-chip-d:hover,
-.btn-d:hover,
-.btn-set:hover,
-.shortcut-link:hover,
-.btn-icon-d:hover,
-.btn-close-modal:hover,
-.preset-del-btn:hover {
-  border-color: rgba(122, 191, 255, 0.38);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
-}
-
-.btn-start-d,
-.btn-set {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(88, 234, 208, 0.76),
-      rgba(122, 191, 255, 0.42)
-    ),
-    rgba(13, 25, 44, 0.88);
-  color: #03111d;
-}
-
-.btn-pause-d,
-.btn-set.secondary {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 199, 107, 0.76),
-      rgba(255, 224, 170, 0.34)
-    ),
-    rgba(34, 24, 10, 0.82);
-  color: #221200;
-}
-
-.btn-reset-d {
-  border-color: rgba(255, 59, 48, 0.28);
-  background:
-    linear-gradient(135deg, rgba(255, 59, 48, 0.28), rgba(54, 6, 6, 0.94)),
-    rgba(24, 6, 6, 0.82);
-  color: #ffe5e2;
-}
-
-.time-input-group input {
-  border-color: var(--glass-line);
-  background:
-    linear-gradient(180deg, rgba(19, 31, 53, 0.92), rgba(8, 16, 29, 0.96)),
-    rgba(8, 16, 29, 0.88);
-  color: var(--ink);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.time-input-group input:focus {
-  border-color: rgba(122, 191, 255, 0.42);
-  box-shadow:
-    0 0 0 4px rgba(122, 191, 255, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.progress-wrap,
-.status-row {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.progress-fill {
-  background: linear-gradient(
-    90deg,
-    rgba(88, 234, 208, 0.94),
-    rgba(122, 191, 255, 0.94)
-  );
-}
-
-.modal-overlay {
-  background: rgba(2, 7, 14, 0.58);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.modal-header,
-.settings-shortcuts {
-  border-color: rgba(169, 214, 255, 0.14);
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.timer-display.red,
-.timer-display.blink {
-  color: var(--danger);
-  text-shadow:
-    0 0 24px rgba(255, 59, 48, 0.44),
-    0 0 56px rgba(255, 24, 24, 0.18);
-}
-
-.status-dot.finished {
-  background: var(--danger);
-  box-shadow: 0 0 14px rgba(255, 59, 48, 0.58);
-}
-
-@media (max-width: 767px) {
-
-  .presets-empty {
-    padding: 8px 4px;
-    font-size: 12px;
-  }}/* ==========================================================================
-   Multiplos cronometros
-
-   Tudo acima deste ponto e o CSS original, preservado sem alteracao. Daqui
-   para baixo entram apenas as pecas novas, e elas usam somente as variaveis
-   de tema ja definidas (--glass, --glass-line, --ink...), para acompanharem
-   o mesmo visual sem precisar repetir cores.
-   ========================================================================== *//* Layout unico: com N cronometros, manter as duas arvores de DOM (desktop e
-   mobile) significaria duplicar cada bloco. O painel do desktop passa a valer
-   em qualquer largura e recebe, mais abaixo, o dimensionamento do mobile. */
-
-#admin-panel .desktop-layout {
-  display: flex !important;
-}
-
-[hidden] {
-  display: none !important;
-}/* ------------------------------------------------------------- destaque */
-
-.primary-block {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.primary-name {
-  color: var(--ink-soft);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.3em;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.primary-meta {
-  color: var(--ink-faint);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-align: center;
-}
-
-.bonus-tag {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 2px 10px;
-  border: 1px solid var(--glass-line);
-  border-radius: 999px;
-  background: rgba(88, 234, 208, 0.14);
-  color: var(--accent);
-  font-weight: 800;
-}/* --------------------------------------------------------- secundarios */
-
-.timer-strip {
-  display: grid;
-  width: 100%;
-  grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
-  gap: 12px;
-}
-
-.timer-mini {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid var(--glass-line);
-  border-radius: 22px;
-  background: var(--glass);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transition: border-color 0.25s ease;
-}
-
-.timer-mini-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.timer-mini-name {
-  overflow: hidden;
-  flex: 1 1 auto;
-  color: var(--ink-soft);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.timer-mini-dot {
-  width: 8px;
-  height: 8px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: rgba(188, 208, 229, 0.32);
-}
-
-.timer-mini-dot.running {
-  background: var(--accent);
-  box-shadow: 0 0 0 4px rgba(88, 234, 208, 0.18);
-}
-
-.timer-mini-dot.paused {
-  background: var(--warn);
-}
-
-.timer-mini-dot.finished {
-  background: var(--danger);
-}
-
-.timer-mini-time {
-  color: var(--ink);
-  font-family: "Share Tech Mono", monospace;
-  font-size: clamp(30px, 7vw, 44px);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  transition: color 0.35s ease;
-}
-
-.timer-mini-meta {
-  min-height: 15px;
-  color: var(--ink-faint);
-  font-size: 11px;
-}
-
-.timer-mini .progress-wrap {
-  height: 8px;
-}
-
-.timer-mini-controls {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.btn-mini {
-  min-height: 38px;
-  padding: 0 6px;
-  border: 1px solid var(--glass-line);
-  border-radius: 12px;
-  background: var(--glass-strong);
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition:
-    transform 0.15s ease,
-    opacity 0.2s ease;
-}
-
-.btn-mini:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.btn-mini:disabled {
-  cursor: not-allowed;
-  opacity: 0.38;
-}
-
-.btn-mini-start {
-  border-color: transparent;
-  background: linear-gradient(120deg, var(--accent), #7ff0dd);
-  color: #06342c;
-}
-
-.btn-mini-pause {
-  border-color: transparent;
-  background: linear-gradient(120deg, var(--warn), #ffd79a);
-  color: #4a3308;
-}/* Fases de cor, iguais as do cronometro grande. */
-
-.timer-display.green,
-.timer-mini-time.green {
-  color: var(--accent);
-}
-
-.timer-display.yellow,
-.timer-mini-time.yellow {
-  color: var(--warn);
-}
-
-.timer-display.red,
-.timer-mini-time.red,
-.timer-display.blink,
-.timer-mini-time.blink {
-  color: var(--danger);
-}
-
-.timer-display.blink,
-.timer-mini-time.blink {
-  animation: timerBlink 0.56s infinite;
-}
-
-.timer-display.paused,
-.timer-mini-time.paused {
-  opacity: 0.55;
-}
-
-@keyframes timerBlink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.28;
-  }
-}/* O CSS nao interpola entre dois `linear-gradient`: trocar o fundo da barra
-   fazia a cor PULAR de verde para amarelo e para vermelho.
-   A fase passa a viver em `background-color`, que interpola, e o brilho do
-   gradiente vira `background-image` semitransparente por cima - some a troca
-   seca sem perder o acabamento. Sao propriedades separadas, entao a imagem
-   fica parada enquanto so a cor por baixo muda. */
-
-.progress-fill {
-  background-color: var(--accent);
-  background-image: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.14),
-    rgba(122, 191, 255, 0.32)
-  );
-  transition:
-    width 0.12s linear,
-    background-color 0.55s ease;
-}
-
-.progress-fill[data-phase="yellow"] {
-  background-color: var(--warn);
-}
-
-.progress-fill[data-phase="red"],
-.progress-fill[data-phase="blink"] {
-  background-color: var(--danger);
-}
-
-.board-empty {
-  padding: 18px;
-  color: var(--ink-faint);
-  font-size: 14px;
-  text-align: center;
-}
-
-.board-feedback {
-  min-height: 18px;
-  color: var(--ink-faint);
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.board-feedback[data-state="error"] {
-  color: var(--danger);
-}/* ------------------------------------------------- modal de configuracao *//* O modal original tinha altura suficiente para um cronometro so. Com a lista
-   e o formulario completo o conteudo passa da altura maxima, entao ele precisa
-   rolar - sem isso as acoes e os modelos ficam inalcancaveis. */
-
-#modal-overlay .modal {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.config-grid {
-  display: grid;
-  grid-template-columns: minmax(190px, 250px) minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.config-column {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.config-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 12px;
-  border: 1px solid var(--glass-line);
-  border-radius: 14px;
-  background: var(--glass);
-  color: var(--ink);
-  cursor: pointer;
-  text-align: left;
-}
-
-.config-item[aria-selected="true"] {
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.config-item-name {
-  overflow: hidden;
-  flex: 1 1 auto;
-  font-size: 13px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.config-item-time {
-  color: var(--ink-faint);
-  font-family: "Share Tech Mono", monospace;
-  font-size: 12px;
-}
-
-.config-item-star {
-  color: var(--accent);
-  font-size: 12px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.field-hint {
-  color: var(--ink-faint);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.field input[type="text"],
-.field input[type="number"],
-.field select {
-  width: 100%;
-  padding: 11px 12px;
-  border: 1px solid var(--glass-line);
-  border-radius: 12px;
-  background: var(--glass-strong);
-  color: var(--ink);
-  font-size: 14px;
-}
-
-.field input:focus,
-.field select:focus {
-  border-color: var(--accent);
-  outline: none;
-}
-
-.segmented {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 4px;
-  border: 1px solid var(--glass-line);
-  border-radius: 14px;
-  background: var(--glass);
-}
-
-.segmented button {
-  padding: 9px 6px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.segmented button[aria-pressed="true"] {
-  background: linear-gradient(
-    120deg,
-    rgba(88, 234, 208, 0.26),
-    rgba(122, 191, 255, 0.26)
-  );
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}/* A regra de bonus e escrita como uma frase, para caber na cabeca sem
-   precisar de legenda: "a cada 1h de Aula, somar 5 min". */
-
-.accrual-sentence {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 14px;
-  border: 1px solid var(--glass-line);
-  border-radius: 16px;
-  background: var(--glass);
-  color: var(--ink-soft);
-  font-size: 13px;
-}
-
-.accrual-sentence input[type="number"] {
-  width: 72px;
-  padding: 8px 6px;
-  border: 1px solid var(--glass-line);
-  border-radius: 10px;
-  background: var(--glass-strong);
-  color: var(--ink);
-  font-family: "Share Tech Mono", monospace;
-  font-size: 14px;
-  text-align: center;
-}
-
-.accrual-sentence select {
-  padding: 8px 10px;
-  border: 1px solid var(--glass-line);
-  border-radius: 10px;
-  background: var(--glass-strong);
-  color: var(--ink);
-  font-size: 13px;
-}
-
-.accrual-sentence[data-enabled="false"] {
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-.accrual-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.accrual-toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-
-.accrual-status {
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.config-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.btn-danger {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid rgba(255, 59, 48, 0.4);
-  border-radius: 14px;
-  background: rgba(255, 59, 48, 0.12);
-  color: var(--danger);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.btn-danger:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-}/* ------------------------------------------------------------- responsivo *//* Abaixo de 768px o painel unico assume o dimensionamento que era do layout
-   mobile original, e o modal vira folha inferior, como o antigo drawer. */@media (max-width: 767px) {
-  #admin-panel .desktop-layout {
-    width: 100%;
-    gap: 16px;
-    padding: 20px 14px 26px;
-    border-radius: 26px;
-  }
-
-  .timer-display-d {
-    font-size: clamp(52px, 16vw, 88px);
-  }
-
-  .controls-d {
-    gap: 8px;
-  }
-
-  .btn-d {
-    min-height: 50px;
-    padding: 0 8px;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-  }
-
-  .timer-strip {
-    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
-  }
-
-  .config-grid {
-    grid-template-columns: 1fr;
-  }
-
-  #modal-overlay .modal {
-    max-height: 88dvh;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  #modal-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }}/* ------------------------------------------------ painel de ajustes inline */
-
-.config-toggle {
-  align-self: center;
-  padding: 6px 14px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-faint);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-decoration: underline;
-  text-transform: uppercase;
-  transition: color 0.2s ease;
-}
-
-.config-toggle:hover {
-  color: var(--ink);
-}
-
-.timer-mini .config-toggle {
-  padding: 4px 8px;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-}
-
-.timer-config {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 4px;
-  padding: 18px;
-  border: 1px solid var(--glass-line);
-  border-radius: 20px;
-  background: var(--glass);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  text-align: left;
-  animation: panelIn 0.28s ease;
-}
-
-.timer-config-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.config-close {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  place-items: center;
-  border: 1px solid var(--glass-line);
-  border-radius: 50%;
-  background: var(--glass-strong);
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.config-close:hover {
-  color: var(--ink);
-}/* Um secundario aberto ocupa a faixa inteira: no espaco de uma coluna os
-   campos ficariam espremidos a ponto de nao dar para usar. */
-
-.timer-mini:has(> .timer-config:not([hidden])) {
-  grid-column: 1 / -1;
-}/* Em telas onde `:has` nao esta disponivel o painel apenas empilha dentro da
-   coluna, o que continua utilizavel. */@supports not selector(:has(*)) {
-  .timer-mini .timer-config {
-    padding: 14px;
-  }}/* ------------------------------------------------ fluxo de ajuste rapido *//* Titulo e modo dividem a linha quando ha largura; empilham quando nao ha. */
-
-.config-top {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  gap: 14px;
-}/* Cada tarefa (definir duracao, informar o ja corrido, regra de ganho) fica
-   em seu proprio cartao, com o botao principal junto do campo. Antes eles
-   corriam soltos e era preciso caçar o botao certo. */
-
-.config-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--glass-line);
-  border-radius: 16px;
-  background: var(--glass-strong);
-}
-
-.time-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.time-row .time-inputs {
-  flex: 1 1 200px;
-}
-
-.steppers {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.steppers button {
-  min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid var(--glass-line);
-  border-radius: 10px;
-  background: var(--glass);
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-family: "Share Tech Mono", monospace;
-  font-size: 13px;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.steppers button:hover {
-  background: var(--glass-strong);
-  color: var(--ink);
-}/* Registro rapido de consumo: "acabei de usar mais 10 minutos" e o gesto
-   real de quem controla um intervalo, e ele nao deve exigir recalcular o
-   valor absoluto no campo acima. */
-
-.spend-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 10px 12px;
-  border: 1px dashed var(--glass-line);
-  border-radius: 12px;
-}
-
-.spend-label {
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}/* Extrato do saldo: duracao + ganhos - usados = disponiveis. */
-
-.cfg-ledger {
-  margin: 0;
-  padding: 9px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--glass-line);
-  background: var(--glass);
-  color: var(--ink-soft);
-  font-family: "Share Tech Mono", monospace;
-  font-size: 12.5px;
-  line-height: 1.6;
-}
-
-.cfg-ledger[data-state="over"] {
-  border-color: rgba(255, 199, 107, 0.5);
-  color: var(--warn);
-}
-
-.clock-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 10px 12px;
-  border: 1px dashed var(--glass-line);
-  border-radius: 12px;
-  color: var(--ink-soft);
-  font-size: 13px;
-}
-
-.clock-row input[type="time"] {
-  padding: 8px 10px;
-  border: 1px solid var(--glass-line);
-  border-radius: 10px;
-  background: var(--glass-strong);
-  color: var(--ink);
-  font-family: "Share Tech Mono", monospace;
-  font-size: 14px;
-}
-
-.clock-row .field-hint {
-  flex-basis: 100%;
-}/* O caminho mais comum ganha destaque: definir e ja iniciar. */
-
-.btn-go {
-  border-color: transparent !important;
-  background: linear-gradient(120deg, var(--accent), var(--accent2)) !important;
-  color: #04222c !important;
-  font-weight: 900;
-}
-
-.setter-actions {
-  flex-wrap: wrap;
-}
-
-.setter-actions .btn-set {
-  flex: 1 1 auto;
-}/* Estado desabilitado visivel. Sem isso o botao mais chamativo da tela
-   ("Aplicar e iniciar") continuava parecendo clicavel com o cronometro
-   rodando, e o clique simplesmente nao fazia nada. */
-
-.btn-set:disabled,
-.btn-go:disabled,
-.btn-danger:disabled,
-.btn-d:disabled,
-.btn-mini:disabled,
-.steppers button:disabled,
-.accrual-toggle input:disabled {
-  cursor: not-allowed;
-  filter: saturate(0.35);
-  opacity: 0.4;
-}/* Alvos de toque. O "Ajustar" tinha 20px de altura e e um dos controles mais
-   usados; no celular virava uma loteria. Minimo de 40px em tudo que se
-   clica dentro do painel. */
-
-.config-toggle {
-  min-height: 40px;
-  padding: 10px 18px;
-}
-
-.timer-mini .config-toggle {
-  min-height: 38px;
-  padding: 8px 12px;
-}
-
-.config-close {
-  width: 38px;
-  height: 38px;
-}
-
-.segmented button {
-  min-height: 42px;
-}
-
-.accrual-sentence input[type="number"],
-.clock-row input[type="time"],
-.clock-row .btn-set {
-  min-height: 40px;
-}
-
-.accrual-toggle {
-  min-height: 40px;
-}
-
-.accrual-toggle input {
-  width: 20px;
-  height: 20px;
-}/* Quem decide o empilhamento e a largura do PAINEL, nao a da janela: o painel
-   fica dentro de um bloco secundario e pode estar estreito com a janela larga.
-   Foi exatamente esse engano que deixou os campos de tempo quebrando ao meio,
-   com um ":" orfao e o SEG numa linha sozinha. */@supports (container-type: inline-size) {
-  .timer-config {
-    container-type: inline-size;
-    container-name: cfg;
-  }
-
-  @container cfg (max-width: 520px) {
-    .time-row .time-inputs {
-      flex-basis: 100%;
-    }
-
-    .time-inputs {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .time-sep {
-      display: none;
-    }
-
-    .time-input-group {
-      min-width: 0;
-    }
-
-    .time-input-group input {
-      width: 100%;
-    }
-
-    .steppers {
-      width: 100%;
-    }
-
-    .steppers button {
-      flex: 1 1 0;
-      padding: 0 6px;
-    }
-
-    .setter-actions .btn-set {
-      flex-basis: 100%;
-    }
-
-    .config-actions .btn-set,
-    .config-actions .btn-danger {
-      flex: 1 1 100%;
-    }
-  }}/* Sem suporte a container query, cai no criterio de janela. */@supports not (container-type: inline-size) {@media (max-width: 560px) {
-    .time-inputs {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .time-sep {
-      display: none;
-    }
-
-    .setter-actions .btn-set {
-      flex-basis: 100%;
-    }}}/* ------------------------------------------------------- tela de login */
-
-body.login-mode {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.login-shell {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 100%;
-  justify-content: center;
+  padding: var(--space-6);
 }
 
 .login-card {
   display: flex;
-  width: min(100%, 420px);
+  width: min(400px, 100%);
   flex-direction: column;
-  gap: 14px;
-  padding: 28px 24px;
-  border: 1px solid var(--glass-line);
-  border-radius: 28px;
-  background: var(--glass-strong);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  gap: var(--space-4);
+  padding: var(--space-8);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.login-title {
-  color: var(--ink);
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: 0.01em;
+.login-card h1 {
+  font-size: var(--text-xl);
 }
 
-.login-copy {
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.55;
+.login-card a {
+  align-self: center;
+  font-size: var(--text-sm);
 }
 
-.login-card .field input {
-  width: 100%;
-  min-height: 44px;
-  padding: 11px 12px;
-  border: 1px solid var(--glass-line);
-  border-radius: 12px;
-  background: var(--glass);
-  color: var(--ink);
-  font-size: 15px;
+/* ================================================================ painel */
+
+/* O painel nasce com `hidden` e o JS o revela ao entrar na sessao. Usar o
+   atributo em vez de `style.display` deixa a regra de tela cheia abaixo
+   funcionar - um `display` inline venceria qualquer folha. */
+.admin {
+  width: min(960px, calc(100% - var(--space-6)));
+  margin: 0 auto;
+  padding: var(--space-5) 0 var(--space-10);
 }
 
-.login-card .field input:focus {
-  border-color: var(--accent);
-  outline: none;
+/* ---------------------------------------------------------------- barra */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--hairline) solid var(--separator);
+  flex-wrap: wrap;
 }
 
-.login-card .btn-set {
-  min-height: 48px;
+.toolbar-models {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 320px;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.login-feedback {
-  min-height: 18px;
-  color: var(--warn);
-  font-size: 13px;
-  font-weight: 600;
+.models-chips {
+  display: flex;
+  overflow-x: auto;
+  min-width: 0;
+  gap: var(--space-2);
+  scrollbar-width: none;
+}
+
+.models-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.model-chip {
+  min-height: 28px;
+  padding: 0 var(--space-3);
+  flex: none;
+  border: var(--hairline) solid var(--separator-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.model-chip:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------------------- destaque */
+
+.primary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-10) var(--space-6);
+}
+
+.primary-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.primary-name {
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+}
+
+.primary-time {
+  font-size: clamp(3.5rem, 13vw, 7rem);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.035em;
+}
+
+/* Estreita e afastada do numero, pelo mesmo motivo do viewer: colada, ela
+   parecia um sublinhado dos digitos. */
+.primary-bar {
+  max-width: 340px;
+  height: 4px;
+  margin-top: var(--space-2);
+}
+
+.primary-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Selo do tempo ganho/consumido, ao lado da legenda do total. */
+.bonus-tag {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+}
+
+.primary-controls {
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+/* ---------------------------------------------------------- secundarios */
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+}
+
+.mini {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.mini-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.mini-name {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mini-time {
+  font-size: 2rem;
+}
+
+.mini-meta {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.mini-controls {
+  margin-top: auto;
+  gap: var(--space-1);
+}
+
+/* ---------------------------------------------------------------- rodape */
+
+.empty-note {
+  padding: var(--space-10) var(--space-6);
+  color: var(--text-tertiary);
+  font-size: var(--text-base);
   text-align: center;
 }
 
-.login-card .settings-link {
-  align-self: center;
-}/* Aviso de conexao: discreto e sem empurrar o layout. Antes uma queda do
-   socket nao dava sinal nenhum - a tela simplesmente parava. */
+.admin-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: var(--hairline) solid var(--separator);
+}
 
-.link-status {
-  position: fixed;
-  z-index: 60;
-  bottom: 16px;
-  left: 50%;
-  padding: 9px 18px;
-  border: 1px solid var(--glass-line, rgba(169, 214, 255, 0.18));
-  border-radius: 999px;
-  background: var(--glass-strong, rgba(13, 25, 44, 0.92));
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
-  color: var(--warn, #ffc76b);
-  font-family: "Barlow", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transform: translateX(-50%);
-  pointer-events: none;
-}/* Sincronizacao pelo horario: uma linha para o instante e outra para as
-   acoes, senao vira uma fileira longa que quebra feio em painel estreito. */
+.viewer-direct-link {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
 
-.clock-row {
+/* ================================================== conteudo dos ajustes */
+
+.modal-body {
+  gap: var(--space-5);
+}
+
+.config-row {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.config-row .field {
+  flex: 1 1 200px;
+}
+
+.config-section {
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: var(--hairline) solid var(--separator);
+}
+
+.config-section:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Campos de tempo: tres caixas curtas com a unidade abaixo, em vez dos
+   dois-pontos decorativos que ocupavam uma coluna inteira do grid. */
+.time-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.time-inputs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.time-unit {
+  display: flex;
+  width: 68px;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.spend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Extrato da conta (base + ganho − usado). Vermelho quando ha divida. */
+.ledger {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.ledger[data-state="over"] {
+  background: var(--red-soft);
+  color: var(--red-text);
+}
+
+.clock summary {
+  color: var(--accent);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.clock[open] summary {
+  margin-bottom: var(--space-3);
 }
 
 .clock-line {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
   flex-wrap: wrap;
 }
 
-.clock-line input[type="datetime-local"] {
-  min-height: 42px;
-  flex: 1 1 220px;
-  padding: 8px 12px;
-  border: 1px solid var(--glass-line);
-  border-radius: 10px;
-  background: var(--glass-strong);
-  color: var(--ink);
-  font-family: "Share Tech Mono", monospace;
-  font-size: 14px;
+.clock-line .input {
+  width: auto;
+  flex: 1 1 200px;
 }
 
-.clock-line input[type="datetime-local"]:focus {
-  border-color: var(--accent);
-  outline: none;
-}
-
-.clock-actions {
+/* Frase da regra de ganho: os campos ficam embutidos no texto, para a regra
+   ser lida como uma frase e nao preenchida como um formulario. */
+.accrual {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
   flex-wrap: wrap;
 }
 
-.clock-actions .btn-set {
-  min-height: 44px;
-  flex: 1 1 auto;
+.accrual[data-enabled="false"] {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
-@supports (container-type: inline-size) {
-  @container cfg (max-width: 520px) {
-    .clock-line input[type="datetime-local"] {
-      flex-basis: 100%;
-    }
+.accrual .input--number {
+  width: 56px;
+}
 
-    .clock-actions .btn-set {
-      flex-basis: 100%;
-    }
-  }}/* ------------------------------------------------------------------ foco
+.accrual select.input {
+  width: auto;
+  max-width: 180px;
+}
 
-   O painel e quase todo botao, e os campos trocavam `outline` por uma
-   mudanca de cor de borda - sutil demais para dizer onde o teclado esta, e
-   nada indicava foco nos botoes. `:focus-visible` devolve um anel nitido sem
-   aparecer no clique de mouse. */
+.config-footer {
+  padding-top: var(--space-5);
+  border-top: var(--hairline) solid var(--separator);
+}
 
-.desktop-layout :focus-visible,
-.timer-config :focus-visible,
-.modal :focus-visible,
-.login-card :focus-visible {
-  outline: 2px solid var(--accent2);
-  outline-offset: 2px;
-  border-radius: 8px;
-}/* --------------------------------------------------- movimento reduzido
+/* ------------------------------------------------------ modelos salvos */
 
-   O painel tem brilho, flutuacao e um cronometro que pisca no fim. Para quem
-   pediu menos movimento no sistema, so o piscar sobrevive - e ele vira uma
-   troca de opacidade lenta, porque avisar que o tempo acabou e informacao,
-   nao enfeite. */@media (prefers-reduced-motion: reduce) {
-  .desktop-layout,
-  .modal,
-  .modal-overlay,
-  .badge::after,
-  body::before,
-  body::after,
-  .progress-fill,
-  .status-dot {
-    animation: none !important;
+.models-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.model-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: var(--hairline) solid var(--separator);
+}
+
+.model-row:last-child {
+  border-bottom: none;
+}
+
+.model-name {
+  font-size: var(--text-base);
+}
+
+.model-detail {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+}
+
+/* ============================================================ responsivo */
+
+@media (max-width: 640px) {
+  .admin {
+    width: calc(100% - var(--space-4));
+    padding: var(--space-4) 0 var(--space-8);
   }
 
-  .timer-display.blink,
-  .timer-mini-time.blink {
-    animation: timerBlink 2s ease-in-out infinite;
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--space-3);
   }
 
-  * {
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }}/* ------------------------------------------------- semantica dos botoes
+  /* Em coluna, o `flex-basis: 320px` da barra passa a valer como ALTURA e
+     abria um vao de 320px entre os modelos e os botoes. */
+  .toolbar-models {
+    flex: none;
+  }
 
-   Os botoes do painel de ajustes herdavam a paleta do Start/Pause: `.btn-set`
-   dividia o gradiente verde com `.btn-start-d` e `.btn-set.secondary` dividia
-   o ambar com `.btn-pause-d`. O resultado era que TODO botao de configuracao
-   parecia a acao principal, e o ambar significava ao mesmo tempo "secundario"
-   (Salvar modelo, Agora, Mover) e "descarta" (Zerar) - deixando o Zerar mais
-   chamativo que o Aplicar ao lado dele.
+  .toolbar-actions {
+    justify-content: flex-end;
+  }
 
-   A escala agora tem tres degraus e uma unica leitura:
+  .primary {
+    padding: var(--space-6) 0;
+  }
 
-     .btn-go     acao recomendada do cartao (verde), no maximo uma por cartao
-     .btn-set    acao alternativa (vidro neutro)
-     .discard    descarta algo (vermelho discreto, sem gritar como o Remover)
+  .primary-controls .btn {
+    flex: 1 1 auto;
+  }
 
-   O ambar volta a ser exclusivo do Pause, que e estado e nao acao. */
+  .strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-.btn-set,
-.btn-set.secondary {
-  background:
-    linear-gradient(180deg, rgba(26, 41, 67, 0.82), rgba(10, 18, 33, 0.9)),
-    var(--glass-strong);
-  color: var(--ink);
+  .admin-foot {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .time-unit {
+    width: 60px;
+  }
 }
 
-.btn-set.secondary {
-  color: var(--ink-soft);
+/* Tela cheia: o painel usa a altura toda e o numero cresce, que e o motivo
+   de alguem entrar em tela cheia. */
+:fullscreen .admin {
+  display: flex;
+  width: min(1200px, calc(100% - var(--space-8)));
+  min-height: 100dvh;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.btn-set:hover:not(:disabled) {
-  border-color: rgba(122, 191, 255, 0.38);
-  color: var(--ink);
-}/* Zerar/limpar: o vermelho avisa que algo e jogado fora, mas fica em contorno
-   para nao competir com o Remover, que apaga o cronometro inteiro. */
-
-.btn-set.discard {
-  border-color: rgba(255, 59, 48, 0.32);
-  background:
-    linear-gradient(180deg, rgba(46, 16, 18, 0.82), rgba(24, 8, 10, 0.9)),
-    var(--glass-strong);
-  color: #ffc9c4;
-}
-
-.btn-set.discard:hover:not(:disabled) {
-  border-color: rgba(255, 59, 48, 0.55);
-  color: #ffe5e2;
-}/* ------------------------------------------- cartao de consumo simplificado
-
-   Calcular pelo horario de inicio e uma tarefa diferente de registrar consumo,
-   e ficava aberta o tempo todo competindo com o caminho principal. Vira uma
-   secao que so abre quando pedida. */
-
-.clock-details {
-  margin-top: 2px;
-  border: 1px dashed var(--glass-line);
-  border-radius: 12px;
-  background: rgba(8, 16, 29, 0.42);
-}
-
-.clock-details > summary {
-  padding: 9px 12px;
-  color: var(--ink-faint);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  list-style: none;
-}
-
-.clock-details > summary::-webkit-details-marker {
-  display: none;
-}
-
-.clock-details > summary::before {
-  content: "+ ";
-  color: var(--accent2);
-  font-weight: 900;
-}
-
-.clock-details[open] > summary::before {
-  content: "− ";
-}
-
-.clock-details > summary:hover {
-  color: var(--ink-soft);
-}
-
-.clock-details[open] > summary {
-  border-bottom: 1px dashed var(--glass-line);
-  color: var(--ink-soft);
-}
-
-.clock-details > *:not(summary) {
-  margin: 10px 12px;
-}/* O extrato e a resposta que o cartao existe para dar ("quanto me resta"),
-   entao para de parecer uma nota de rodape. */
-
-.cfg-ledger {
-  border-color: rgba(88, 234, 208, 0.28);
-  color: var(--ink);
-  font-size: 13px;
+:fullscreen .primary-time {
+  font-size: clamp(4rem, 17vw, 11rem);
 }

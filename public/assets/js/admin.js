@@ -1,20 +1,24 @@
 /**
  * Painel de administracao.
  *
- * A tela mantem o desenho original: o cronometro em destaque ocupa o bloco
- * grande de sempre e os demais aparecem em blocos compactos logo abaixo. Toda
- * a configuracao vive no modal, para a tela principal seguir limpa.
+ * O cronometro em destaque ocupa o centro da tela e os demais aparecem em
+ * cartoes abaixo. Toda a configuracao vive em dois modais: ajustes do
+ * cronometro selecionado e configuracoes da sessao.
+ *
+ * Os ajustes eram um painel unico que o JS movia para dentro do bloco aberto,
+ * o que reordenava a grade a cada abertura e obrigava a reposicionar o painel
+ * a cada estado recebido. Agora e um modal fixo: muda o conteudo, nao o lugar.
  *
  * O DOM dos secundarios so e reconstruido quando a lista muda; nos ticks de
- * 250ms apenas textos, classes e larguras sao atualizados. O formulario do
- * modal, por sua vez, so e preenchido ao trocar de selecao ou ao abrir - se
- * fosse a cada tick, apagaria o que estivesse sendo digitado.
+ * 250ms apenas textos, atributos e larguras sao atualizados. O formulario do
+ * modal so e preenchido ao abrir ou ao trocar de selecao - se fosse a cada
+ * tick, apagaria o que estivesse sendo digitado.
  */
 (() => {
   const {
     MAX_TIMERS_PER_SESSION,
-    advanceTimer,
     MAX_TIMER_MS,
+    advanceTimer,
     formatCompactDuration,
     formatTime,
     getAccrualLabel,
@@ -37,6 +41,7 @@
   const MIN_ACCRUAL_EVERY_MS = 60 * 1000;
   const RESET_CONFIRM_MS = 60 * 1000;
   const FEEDBACK_MS = 2600;
+  const ATRASO_SUSPEITO_MS = 4000;
 
   const socket = io();
   const sessionId = window.location.pathname.split("/").pop();
@@ -55,6 +60,7 @@
     primaryProgress: el("primary-progress"),
     primaryDot: el("primary-dot"),
     primaryStatus: el("primary-status"),
+    primaryStatusText: el("primary-status-text"),
     primaryStart: el("primary-start"),
     primaryPause: el("primary-pause"),
     primaryReset: el("primary-reset"),
@@ -68,9 +74,17 @@
     addTimer: el("btn-add-timer"),
     fullscreen: el("btn-fs"),
     openModal: el("btn-open-modal"),
-    // modal
+    // modal de configuracoes da sessao
     overlay: el("modal-overlay"),
     closeModal: el("btn-close-modal"),
+    modelsManage: el("models-manage"),
+    authUser: el("auth-user"),
+    authPass: el("auth-pass"),
+    saveAuth: el("btn-save-auth"),
+    clearAuth: el("btn-clear-auth"),
+    authFeedback: el("auth-feedback"),
+    endSession: el("btn-end-session"),
+    // modal de ajustes do cronometro
     config: el("timer-config"),
     configTitle: el("timer-config-title"),
     closeConfig: el("btn-close-config"),
@@ -81,16 +95,10 @@
     cfgS: el("cfg-s"),
     cfgTimeLabel: el("cfg-time-label"),
     cfgTimeHint: el("cfg-time-hint"),
+    applyTime: el("btn-apply-time"),
     applyStart: el("btn-apply-start"),
-    offsetStart: el("btn-offset-start"),
+    saveModel: el("btn-save-model"),
     cfgOffsetLabel: el("cfg-offset-label"),
-    clockRow: el("clock-row"),
-    clockLabel: el("clock-label"),
-    clockHint: el("clock-hint"),
-    cfgClock: el("cfg-clock"),
-    fromClock: el("btn-from-clock"),
-    clockNow: el("btn-clock-now"),
-    clockSync: el("btn-clock-sync"),
     cfgOffH: el("cfg-off-h"),
     cfgOffM: el("cfg-off-m"),
     cfgOffS: el("cfg-off-s"),
@@ -98,9 +106,15 @@
     cfgLedger: el("cfg-ledger"),
     spendRow: el("cfg-spend-row"),
     applyOffset: el("btn-apply-offset"),
+    offsetStart: el("btn-offset-start"),
     clearOffset: el("btn-clear-offset"),
-    applyTime: el("btn-apply-time"),
-    saveModel: el("btn-save-model"),
+    clockRow: el("clock-row"),
+    clockLabel: el("clock-label"),
+    clockHint: el("clock-hint"),
+    cfgClock: el("cfg-clock"),
+    fromClock: el("btn-from-clock"),
+    clockNow: el("btn-clock-now"),
+    clockSync: el("btn-clock-sync"),
     accrualEnabled: el("accrual-enabled"),
     accrualSentence: el("accrual-sentence"),
     accrualEveryH: el("accrual-every-h"),
@@ -112,18 +126,14 @@
     moveUp: el("btn-move-up"),
     moveDown: el("btn-move-down"),
     removeTimer: el("btn-remove-timer"),
-    modelsManage: el("models-manage"),
+    // apoio
     linkStatus: el("link-status"),
     loginShell: el("login-shell"),
     loginForm: el("login-form"),
     loginUser: el("login-user"),
     loginPass: el("login-pass"),
     loginFeedback: el("login-feedback"),
-    authUser: el("auth-user"),
-    authPass: el("auth-pass"),
-    saveAuth: el("btn-save-auth"),
-    clearAuth: el("btn-clear-auth"),
-    authFeedback: el("auth-feedback"),
+    loginButton: el("btn-login"),
     viewerLinks: document.querySelectorAll(".viewer-direct-link"),
   };
 
@@ -132,8 +142,6 @@
 
   let state = { timers: [], primaryTimerId: null };
   let stripSignature = null;
-  // Um unico painel de ajustes, movido para dentro do bloco aberto. Manter um
-  // formulario por cronometro duplicaria os campos e os listeners.
   let openTimerId = null;
   let selectedTimerId = null;
   let feedbackTimer = 0;
@@ -141,7 +149,6 @@
   let tentativasDeEntrada = 0;
   let estadoBase = null;
   let recebidoEm = 0;
-  const ATRASO_SUSPEITO_MS = 4000;
 
   if (!ui.panel || !ui.strip || !ui.miniTemplate || !isValidSessionId(sessionId)) {
     return showError("Sessão não encontrada.");
@@ -169,11 +176,12 @@
       const username = ui.loginUser.value.trim();
       const password = ui.loginPass.value;
       if (!username || !password) {
-        return setLoginFeedback("Informe usuário e senha.");
+        return setLoginFeedback("Informe usuário e senha.", "error");
       }
 
-      ui.loginForm.querySelector("button").disabled = true;
-      setLoginFeedback("Entrando...");
+      const botao = ui.loginButton;
+      if (botao) botao.disabled = true;
+      setLoginFeedback("Entrando…");
 
       try {
         const response = await fetch(`/api/session/${sessionId}/login`, {
@@ -188,15 +196,16 @@
         if (response.status === 429) {
           return setLoginFeedback(
             "Muitas tentativas. Espere alguns minutos e tente de novo.",
+            "error",
           );
         }
         if (!response.ok) {
-          return setLoginFeedback("Usuário ou senha inválidos.");
+          return setLoginFeedback("Usuário ou senha inválidos.", "error");
         }
 
         const data = await response.json();
         if (!isValidAdminToken(data?.adminToken)) {
-          return setLoginFeedback("Resposta inválida do servidor.");
+          return setLoginFeedback("Resposta inválida do servidor.", "error");
         }
 
         // Guarda o token no hash para recarregar sem pedir login de novo.
@@ -209,9 +218,8 @@
         bindEvents();
         connect();
       } catch {
-        setLoginFeedback("Não foi possível falar com o servidor.");
+        setLoginFeedback("Não foi possível falar com o servidor.", "error");
       } finally {
-        const botao = ui.loginForm.querySelector("button");
         if (botao) botao.disabled = false;
       }
     });
@@ -222,13 +230,14 @@
       return showError("Acesso de admin inválido ou expirado.");
     }
 
-    document.body.classList.add("login-mode");
     ui.loginShell.hidden = false;
     ui.loginUser?.focus();
   }
 
-  function setLoginFeedback(message) {
-    if (ui.loginFeedback) ui.loginFeedback.textContent = message;
+  function setLoginFeedback(message, kind) {
+    if (!ui.loginFeedback) return;
+    ui.loginFeedback.textContent = message;
+    ui.loginFeedback.dataset.state = kind || "";
   }
 
   // --------------------------------------------------------------- conexao
@@ -242,7 +251,7 @@
    */
   function connect() {
     socket.on("connect", entrarNaSessao);
-    socket.on("disconnect", () => setConexao("Reconectando..."));
+    socket.on("disconnect", () => setConexao("Reconectando…"));
 
     if (socket.connected) entrarNaSessao();
   }
@@ -256,7 +265,7 @@
         if (entrou) return;
         entrou = true;
 
-        ui.panel.style.display = "block";
+        ui.panel.hidden = false;
         for (const link of ui.viewerLinks) link.href = `/view/${sessionId}`;
         renderModels();
         syncFullscreen();
@@ -272,7 +281,7 @@
       // tela do usuario, que so teria a opcao de recarregar na mao.
       if (tentativasDeEntrada < 6) {
         tentativasDeEntrada += 1;
-        setConexao(`Reconectando... (${tentativasDeEntrada}/6)`);
+        setConexao(`Reconectando… (${tentativasDeEntrada}/6)`);
         window.setTimeout(entrarNaSessao, 2000);
         return;
       }
@@ -287,12 +296,14 @@
     ui.linkStatus.hidden = !mensagem;
   }
 
+  // --------------------------------------------------------------- eventos
+
   function bindEvents() {
     socket.on("session:state", applyState);
     // Falha de conexao nao e fatal: o Socket.IO segue tentando sozinho, e
     // derrubar a tela aqui apagaria um painel que volta a funcionar em
     // segundos.
-    socket.on("connect_error", () => setConexao("Sem conexão. Tentando..."));
+    socket.on("connect_error", () => setConexao("Sem conexão. Tentando…"));
     socket.on("session:closed", () => showError("Sessão encerrada."));
 
     for (const root of [ui.primaryBlock, ui.strip]) {
@@ -306,16 +317,24 @@
       });
     }
 
-    ui.closeConfig?.addEventListener("click", closeConfig);
     ui.addTimer?.addEventListener("click", () => addTimer());
     ui.fullscreen?.addEventListener("click", toggleFullscreen);
     document.addEventListener("fullscreenchange", syncFullscreen);
 
+    // Os dois modais fecham do mesmo jeito: botao, clique no fundo ou Esc.
     ui.openModal?.addEventListener("click", openModal);
     ui.closeModal?.addEventListener("click", closeModal);
-    ui.overlay?.addEventListener("click", (event) => {
-      if (event.target === ui.overlay) closeModal();
-    });
+    ui.closeConfig?.addEventListener("click", closeConfig);
+
+    for (const [overlay, fechar] of [
+      [ui.overlay, closeModal],
+      [ui.config, closeConfig],
+    ]) {
+      overlay?.addEventListener("click", (event) => {
+        if (event.target === overlay) fechar();
+      });
+    }
+
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       closeModal();
@@ -328,38 +347,40 @@
       ui.cfgName.value = name;
       emitUpdate({ name });
     });
+
     ui.config?.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-direction]");
-      if (!button) return;
-      emitUpdate({ direction: button.dataset.direction });
+      const direcao = event.target.closest("[data-direction]");
+      if (direcao) return emitUpdate({ direction: direcao.dataset.direction });
+
+      // Ajuste rapido da duracao: mexer nos campos de hora um a um para somar
+      // 5 minutos e o tipo de atrito que faz a tela parecer ruim de usar. O
+      // passo so edita o campo - quem aplica e o botao do cartao.
+      const passo = event.target.closest("[data-step]");
+      if (passo) {
+        return fillTimeInputs(
+          Math.max(0, readTimeMs() + Number(passo.dataset.step)),
+        );
+      }
+
+      // Registro rapido: soma ao que o servidor ja tem e aplica num clique.
+      const consumo = event.target.closest("[data-spend-step]");
+      if (consumo) registrarConsumo(Number(consumo.dataset.spendStep));
     });
 
     ui.applyTime?.addEventListener("click", () => applyTime(false));
     ui.applyStart?.addEventListener("click", () => applyTime(true));
-    ui.applyOffset?.addEventListener("click", () => applyOffset(readOffsetMs(), false));
-    ui.offsetStart?.addEventListener("click", () => applyOffset(readOffsetMs(), true));
+    ui.applyOffset?.addEventListener("click", () =>
+      applyOffset(readOffsetMs(), false),
+    );
+    ui.offsetStart?.addEventListener("click", () =>
+      applyOffset(readOffsetMs(), true),
+    );
     ui.clearOffset?.addEventListener("click", () => applyOffset(0, false));
     ui.fromClock?.addEventListener("click", () => sincronizarPeloRelogio(false));
     ui.clockSync?.addEventListener("click", () => sincronizarPeloRelogio(true));
     ui.clockNow?.addEventListener("click", preencherAgora);
-
-    // Ajuste rapido da duracao: mexer nos campos de hora um a um para somar 5
-    // minutos e o tipo de atrito que faz a tela parecer ruim de usar. Aqui o
-    // passo so edita o campo - quem aplica e o botao do cartao.
-    ui.config?.addEventListener("click", (event) => {
-      const passo = event.target.closest("[data-step]");
-      if (!passo) return;
-
-      fillTimeInputs(Math.max(0, readTimeMs() + Number(passo.dataset.step)));
-    });
-
-    // Registro rapido: soma ao que o servidor ja tem e aplica num clique.
-    ui.config?.addEventListener("click", (event) => {
-      const botao = event.target.closest("[data-spend-step]");
-      if (!botao) return;
-      registrarConsumo(Number(botao.dataset.spendStep));
-    });
     ui.saveModel?.addEventListener("click", saveModelFromSelected);
+
     ui.setPrimary?.addEventListener("click", () => {
       if (selectedTimerId) socket.emit("timer:setPrimary", selectedTimerId);
     });
@@ -367,12 +388,22 @@
     ui.moveDown?.addEventListener("click", () => moveSelected(1));
     ui.removeTimer?.addEventListener("click", removeSelected);
 
+    ui.accrualEnabled?.addEventListener("change", applyAccrual);
+    for (const field of [
+      ui.accrualEveryH,
+      ui.accrualEveryM,
+      ui.accrualSource,
+      ui.accrualAddM,
+    ]) {
+      field?.addEventListener("change", applyAccrual);
+    }
+
     ui.saveAuth?.addEventListener("click", () => {
       const username = ui.authUser.value.trim();
       const password = ui.authPass.value;
 
       if (!username || !password) {
-        return setAuthFeedback("Informe usuário e senha.");
+        return setAuthFeedback("Informe usuário e senha.", "error");
       }
 
       socket.emit("session:setAuth", { username, password }, (resposta) => {
@@ -381,6 +412,7 @@
           resposta?.success
             ? `Acesso salvo. Entre com "${username}" se perder o link.`
             : "Não foi possível salvar o acesso.",
+          resposta?.success ? "success" : "error",
         );
       });
     });
@@ -395,20 +427,27 @@
           resposta?.success
             ? "Acesso removido. Só o link controla esta sessão agora."
             : "Não foi possível remover o acesso.",
+          resposta?.success ? "success" : "error",
         );
       });
     });
 
-    ui.accrualEnabled?.addEventListener("change", applyAccrual);
-    for (const field of [
-      ui.accrualEveryH,
-      ui.accrualEveryM,
-      ui.accrualSource,
-      ui.accrualAddM,
-    ]) {
-      field?.addEventListener("change", applyAccrual);
-    }
+    // Encerrar a sessao vive aqui, e nao na visao geral: o socket ja provou
+    // ter o token de admin, entao o servidor nao precisa confiar em quem
+    // apenas conhece o id da sessao.
+    ui.endSession?.addEventListener("click", () => {
+      if (
+        !window.confirm(
+          "Encerrar esta sessão? Os viewers são desconectados e os cronômetros apagados.",
+        )
+      ) {
+        return;
+      }
+      socket.emit("session:close");
+    });
   }
+
+  // ------------------------------------------------------------- desenho
 
   function applyState(raw) {
     estadoBase = sanitizeSessionState(raw);
@@ -440,11 +479,8 @@
     );
 
     if (entrou && socket.connected) {
-      // O aviso so aparece com tick pendente e so sai quando um estado fresco
-      // chega - limpar em qualquer outra condicao apagaria um "Reconectando..."
-      // ainda valido.
       if (esperandoTick && atraso > ATRASO_SUSPEITO_MS) {
-        setConexao("Sem resposta do servidor...");
+        setConexao("Sem resposta do servidor…");
       } else if (atraso <= ATRASO_SUSPEITO_MS) {
         setConexao("");
       }
@@ -454,7 +490,6 @@
   }
 
   function renderizar() {
-
     if (!findTimer(selectedTimerId)) {
       selectedTimerId = state.primaryTimerId;
     }
@@ -462,7 +497,7 @@
     const primary = findTimer(state.primaryTimerId);
     renderPrimary(primary);
     renderStrip(state.timers.filter((timer) => timer !== primary));
-    placeConfig(false);
+    syncConfigModal();
     syncWatchers();
 
     ui.boardEmpty.hidden = state.timers.length > 0;
@@ -472,21 +507,14 @@
   // Mesmo ritmo do servidor, para o painel nunca ficar parado.
   window.setInterval(desenhar, 250);
 
-  // -------------------------------------------------------------- destaque
-
   function renderPrimary(timer) {
     if (!timer) return;
 
     ui.primaryBlock.dataset.timerId = timer.id;
 
-    const phase = getPhase(timer.pct);
-    const active = timer.status !== "stopped";
-
     ui.primaryName.textContent = getTimerLabel(timer);
     ui.primaryTime.textContent = formatTime(getDisplayMs(timer));
-    ui.primaryTime.className = `timer-display timer-display-d ${
-      active ? phase : "green"
-    }${timer.status === "paused" ? " paused" : ""}`;
+    applyTimerLook(ui.primaryTime, timer);
 
     ui.primaryMeta.replaceChildren(
       document.createTextNode(getTimerMetaLabel(timer)),
@@ -499,15 +527,16 @@
       ui.primaryMeta.appendChild(tag);
     }
 
-    setProgress(ui.primaryProgress, timer, phase);
-    ui.primaryDot.className = `status-dot ${timer.status}`;
-    ui.primaryStatus.textContent = statusLabel(timer.status);
-    ui.primaryStart.disabled = timer.status === "running" || timer.status === "finished";
+    setProgress(ui.primaryProgress, timer);
+    ui.primaryDot.dataset.status = timer.status;
+    ui.primaryStatus.dataset.state = timer.status;
+    ui.primaryStatusText.textContent = statusLabel(timer.status);
+
+    ui.primaryStart.disabled =
+      timer.status === "running" || timer.status === "finished";
     ui.primaryPause.disabled = timer.status !== "running";
     ui.primaryReset.disabled = timer.status === "stopped" && timer.elapsed === 0;
   }
-
-  // ----------------------------------------------------------- secundarios
 
   function renderStrip(timers) {
     const signature = timers.map((timer) => timer.id).join(",");
@@ -539,10 +568,10 @@
 
     return {
       root,
-      dot: root.querySelector(".timer-mini-dot"),
-      name: root.querySelector(".timer-mini-name"),
-      time: root.querySelector(".timer-mini-time"),
-      meta: root.querySelector(".timer-mini-meta"),
+      dot: root.querySelector(".dot"),
+      name: root.querySelector(".mini-name"),
+      time: root.querySelector(".mini-time"),
+      meta: root.querySelector(".mini-meta"),
       progress: root.querySelector(".progress-fill"),
       start: root.querySelector('[data-action="start"]'),
       pause: root.querySelector('[data-action="pause"]'),
@@ -553,30 +582,39 @@
   function updateMini(mini, timer) {
     if (!mini) return;
 
-    const phase = getPhase(timer.pct);
-    const active = timer.status !== "stopped";
     const bonus = getBonusLabel(timer);
 
-    mini.dot.className = `timer-mini-dot ${timer.status}`;
+    mini.dot.dataset.status = timer.status;
     mini.name.textContent = getTimerLabel(timer);
     mini.time.textContent = formatTime(getDisplayMs(timer));
-    mini.time.className = `timer-mini-time ${active ? phase : "green"}${
-      timer.status === "paused" ? " paused" : ""
-    }`;
+    applyTimerLook(mini.time, timer);
     mini.meta.textContent = bonus
       ? `${formatCompactDuration(timer.baseTotalTime)} · ${bonus}`
       : formatCompactDuration(timer.totalTime);
-    setProgress(mini.progress, timer, phase);
+    setProgress(mini.progress, timer);
 
-    mini.start.disabled = timer.status === "running" || timer.status === "finished";
+    mini.start.disabled =
+      timer.status === "running" || timer.status === "finished";
     mini.pause.disabled = timer.status !== "running";
     mini.reset.disabled = timer.status === "stopped" && timer.elapsed === 0;
   }
 
-  function setProgress(element, timer, phase) {
+  /**
+   * Fase e estado viram atributos, e o CSS decide a cor. Antes a classe era
+   * remontada a cada tick, o que apagava qualquer outra classe do elemento e
+   * espalhava a tabela de cores pelo JS.
+   */
+  function applyTimerLook(element, timer) {
+    element.dataset.status = timer.status;
+    element.dataset.phase =
+      timer.status === "stopped" ? "green" : getPhase(timer.pct);
+  }
+
+  function setProgress(element, timer) {
     const fill = timer.direction === "up" ? 1 - timer.pct : timer.pct;
     element.style.width = `${Math.round(fill * 1000) / 10}%`;
-    element.dataset.phase = phase;
+    element.dataset.phase =
+      timer.status === "stopped" ? "green" : getPhase(timer.pct);
   }
 
   // ------------------------------------------------------------------ acoes
@@ -586,7 +624,7 @@
     if (!timer) return;
 
     if (action === "config") {
-      return toggleConfig(timer.id);
+      return openConfig(timer.id);
     }
 
     if (action === "reset") {
@@ -608,7 +646,11 @@
     socket.emit(
       "timer:add",
       model
-        ? { name: model.name, direction: model.direction, totalTime: model.secs * 1000 }
+        ? {
+            name: model.name,
+            direction: model.direction,
+            totalTime: model.secs * 1000,
+          }
         : {},
       (response) => {
         if (!response?.success) {
@@ -621,8 +663,7 @@
         }
 
         // Abre os ajustes do recem-criado, que e o proximo passo obvio.
-        openTimerId = response.timerId;
-        selectedTimerId = response.timerId;
+        openConfig(response.timerId);
       },
     );
   }
@@ -636,11 +677,18 @@
     if (!timer) return;
     if (!window.confirm(`Remover "${getTimerLabel(timer)}" da sessão?`)) return;
     socket.emit("timer:remove", timer.id);
+    closeConfig();
   }
 
   function emitUpdate(payload) {
     if (selectedTimerId) socket.emit("timer:update", selectedTimerId, payload);
   }
+
+  function startSelected() {
+    if (selectedTimerId) socket.emit("timer:start", selectedTimerId);
+  }
+
+  // ------------------------------------------------------ leitura dos campos
 
   function readTimeMs() {
     return (
@@ -651,14 +699,6 @@
     );
   }
 
-  /**
-   * Le o consumo digitado nos campos h/min/seg.
-   *
-   * Estava sendo chamada por "Registrar", "Registrar e iniciar" e pelos
-   * steppers sem nunca ter sido definida: cada clique morria num
-   * `ReferenceError` antes de emitir qualquer coisa, e a tela nao dava sinal
-   * nenhum - era esta a causa de o tempo ja consumido "nao ser respeitado".
-   */
   function readOffsetMs() {
     return (
       (readNumber(ui.cfgOffH, 0, MAX_TIMER_HOURS) * 3600 +
@@ -704,108 +744,13 @@
     );
   }
 
-  function startSelected() {
-    if (selectedTimerId) socket.emit("timer:start", selectedTimerId);
-  }
-
-  const doisDigitos = (valor) => String(valor).padStart(2, "0");
-
-  /** Monta o valor de um `datetime-local` a partir de uma data local. */
-  function paraCampoDeData(data) {
-    return (
-      `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}` +
-      `-${doisDigitos(data.getDate())}T${doisDigitos(data.getHours())}` +
-      `:${doisDigitos(data.getMinutes())}:${doisDigitos(data.getSeconds())}`
-    );
-  }
-
-  function preencherAgora() {
-    if (ui.cfgClock) ui.cfgClock.value = paraCampoDeData(new Date());
-  }
-
-  /**
-   * Calcula sozinho quanto ja correu desde o instante informado.
-   *
-   * O campo carrega data alem de hora, minuto e segundo porque uma contagem
-   * de 80 horas atravessa dias: so "08:00" nao diz se foi hoje, ontem ou
-   * anteontem. Vale igual para progressivo e regressivo - nos dois o que
-   * importa e quanto tempo passou desde o inicio.
-   *
-   * @param {boolean} iniciar aplica e ja da Start, sem passo intermediario.
-   */
-  function sincronizarPeloRelogio(iniciar) {
-    const valor = ui.cfgClock?.value;
-    if (!valor) {
-      return showFeedback("Informe a data e a hora em que começou.", "error");
-    }
-
-    const inicio = new Date(valor);
-    if (Number.isNaN(inicio.getTime())) {
-      return showFeedback("Data e hora inválidas.", "error");
-    }
-
-    const decorrido = Date.now() - inicio.getTime();
-    if (decorrido < 0) {
-      return showFeedback("Esse instante ainda não chegou.", "error");
-    }
-
-    const timer = findTimer(selectedTimerId);
-    if (!timer) return;
-
-    // Valida contra a duracao que esta NO FORMULARIO, nao contra a do
-    // servidor: quem digita 80h e a data de inicio espera que as duas coisas
-    // valham juntas. Antes o botao recusava dizendo "aumente o tempo" com o
-    // tempo ja preenchido logo acima.
-    const totalDoFormulario = readTimeMs();
-    if (totalDoFormulario < 1000 || totalDoFormulario > MAX_TIMER_MS) {
-      return showFeedback(
-        `Informe uma duração entre 1 segundo e ${MAX_TIMER_HOURS} horas.`,
-        "error",
-      );
-    }
-
-    // Mede contra o total EFETIVO (duracao do formulario + o que ja foi ganho
-    // por regra), senao um cronometro com bonus era recusado por estourar uma
-    // duracao que nao e mais a que vale.
-    const totalEfetivo = totalDoFormulario + timer.bonusMs;
-    if (decorrido > totalEfetivo) {
-      return showFeedback(
-        `Começou há ${formatTime(decorrido)}, mais que os ${formatTime(totalEfetivo)} disponíveis.`,
-        "error",
-      );
-    }
-
-    fillOffsetInputs(decorrido);
-    ui.clockHint.textContent = `Corre há ${formatTime(decorrido)}.`;
-
-    if (!iniciar) return;
-
-    // Duracao e ponto de partida vao juntos numa unica atualizacao: o
-    // servidor aplica o total primeiro e depois posiciona a contagem.
-    // So mandamos o total quando ele realmente mudou, porque trocar o total
-    // zera o tempo ganho por regra.
-    const mudouDuracao = totalDoFormulario !== timer.baseTotalTime;
-    emitUpdate(
-      mudouDuracao
-        ? { totalTime: totalDoFormulario, offsetMs: decorrido }
-        : { offsetMs: decorrido },
-    );
-    startSelected();
-
-    showFeedback(
-      `Sincronizado: corre há ${formatTime(decorrido)} de ${formatTime(totalDoFormulario)}.`,
-      "success",
-    );
-  }
-
   /**
    * Registra quanto ja foi consumido/decorrido fora do cronometro.
    *
-   * Nao recusa mais valores acima do total: um intervalo que ganha tempo por
-   * regra pode ter sido usado alem do que ja foi concedido, e era exatamente
-   * esse caso que ficava sem saida - o valor era rejeitado e nao havia como
-   * descontar o que ja tinha sido gasto. O excesso vira divida, abatida
-   * sozinha conforme a regra concede mais tempo.
+   * Nao recusa valores acima do total: um intervalo que ganha tempo por regra
+   * pode ter sido usado alem do que ja foi concedido, e era exatamente esse
+   * caso que ficava sem saida. O excesso vira divida, abatida sozinha conforme
+   * a regra concede mais tempo.
    */
   function applyOffset(ms, iniciar) {
     const timer = findTimer(selectedTimerId);
@@ -848,15 +793,99 @@
     if (!timer) return;
 
     if (timer.status === "running") {
-      return showFeedback(
-        "Pause o cronômetro para registrar consumo.",
-        "error",
-      );
+      return showFeedback("Pause o cronômetro para registrar consumo.", "error");
     }
 
     const alvo = Math.max(0, timer.offsetMs + delta);
     fillOffsetInputs(alvo);
     applyOffset(alvo, false);
+  }
+
+  const doisDigitos = (valor) => String(valor).padStart(2, "0");
+
+  /** Monta o valor de um `datetime-local` a partir de uma data local. */
+  function paraCampoDeData(data) {
+    return (
+      `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}` +
+      `-${doisDigitos(data.getDate())}T${doisDigitos(data.getHours())}` +
+      `:${doisDigitos(data.getMinutes())}:${doisDigitos(data.getSeconds())}`
+    );
+  }
+
+  function preencherAgora() {
+    if (ui.cfgClock) ui.cfgClock.value = paraCampoDeData(new Date());
+  }
+
+  /**
+   * Calcula sozinho quanto ja correu desde o instante informado.
+   *
+   * O campo carrega data alem de hora porque uma contagem de 80 horas
+   * atravessa dias: so "08:00" nao diz se foi hoje, ontem ou anteontem.
+   *
+   * @param {boolean} iniciar aplica e ja da Start, sem passo intermediario.
+   */
+  function sincronizarPeloRelogio(iniciar) {
+    const valor = ui.cfgClock?.value;
+    if (!valor) {
+      return showFeedback("Informe a data e a hora em que começou.", "error");
+    }
+
+    const inicio = new Date(valor);
+    if (Number.isNaN(inicio.getTime())) {
+      return showFeedback("Data e hora inválidas.", "error");
+    }
+
+    const decorrido = Date.now() - inicio.getTime();
+    if (decorrido < 0) {
+      return showFeedback("Esse instante ainda não chegou.", "error");
+    }
+
+    const timer = findTimer(selectedTimerId);
+    if (!timer) return;
+
+    // Valida contra a duracao que esta NO FORMULARIO, nao contra a do
+    // servidor: quem digita 80h e a data de inicio espera que as duas coisas
+    // valham juntas.
+    const totalDoFormulario = readTimeMs();
+    if (totalDoFormulario < 1000 || totalDoFormulario > MAX_TIMER_MS) {
+      return showFeedback(
+        `Informe uma duração entre 1 segundo e ${MAX_TIMER_HOURS} horas.`,
+        "error",
+      );
+    }
+
+    // Mede contra o total EFETIVO (duracao do formulario + o que ja foi ganho
+    // por regra), senao um cronometro com bonus era recusado por estourar uma
+    // duracao que nao e mais a que vale.
+    const totalEfetivo = totalDoFormulario + timer.bonusMs;
+    if (decorrido > totalEfetivo) {
+      return showFeedback(
+        `Começou há ${formatTime(decorrido)}, mais que os ${formatTime(totalEfetivo)} disponíveis.`,
+        "error",
+      );
+    }
+
+    fillOffsetInputs(decorrido);
+    ui.clockHint.textContent = `Corre há ${formatTime(decorrido)}.`;
+
+    if (!iniciar) return;
+
+    // Duracao e ponto de partida vao juntos numa unica atualizacao: o servidor
+    // aplica o total primeiro e depois posiciona a contagem. So mandamos o
+    // total quando ele realmente mudou, porque trocar o total zera o tempo
+    // ganho por regra.
+    const mudouDuracao = totalDoFormulario !== timer.baseTotalTime;
+    emitUpdate(
+      mudouDuracao
+        ? { totalTime: totalDoFormulario, offsetMs: decorrido }
+        : { offsetMs: decorrido },
+    );
+    startSelected();
+
+    showFeedback(
+      `Sincronizado: corre há ${formatTime(decorrido)} de ${formatTime(totalDoFormulario)}.`,
+      "success",
+    );
   }
 
   function applyAccrual() {
@@ -875,7 +904,10 @@
     const sourceTimerId = ui.accrualSource.value;
 
     if (everyMs < MIN_ACCRUAL_EVERY_MS) {
-      return showFeedback("O intervalo da regra precisa ser de ao menos 1 minuto.", "error");
+      return showFeedback(
+        "O intervalo da regra precisa ser de ao menos 1 minuto.",
+        "error",
+      );
     }
     if (addMs < 1000) {
       return showFeedback("Informe quantos minutos somar.", "error");
@@ -887,59 +919,35 @@
     emitUpdate({ accrual: { sourceTimerId, everyMs, addMs } });
   }
 
-  // ------------------------------------------------------ modal de config
+  // ------------------------------------------------------ modal de ajustes
 
-  function toggleConfig(timerId) {
-    if (openTimerId === timerId) return closeConfig();
+  function openConfig(timerId) {
+    const timer = findTimer(timerId);
+    if (!timer) return;
 
     openTimerId = timerId;
     selectedTimerId = timerId;
-    placeConfig(true);
+
+    fillConfigForm(timer);
+    syncConfigLive(timer);
+    ui.configTitle.textContent = `Ajustes · ${getTimerLabel(timer)}`;
+    ui.config.classList.add("open");
   }
 
   function closeConfig() {
     openTimerId = null;
-    ui.config.hidden = true;
-    // Fora dos blocos o painel nao interfere no grid dos secundarios.
-    document.body.appendChild(ui.config);
-    syncConfigToggles();
+    ui.config.classList.remove("open");
   }
 
-  /**
-   * Move o painel para dentro do bloco aberto. Quando a faixa de secundarios
-   * e reconstruida o bloco anfitriao some junto, entao a cada estado o painel
-   * e reposicionado.
-   */
-  function placeConfig(selectionChanged) {
+  /** Mantem o modal aberto em dia a cada estado, sem reposicionar nada. */
+  function syncConfigModal() {
+    if (!openTimerId) return;
+
     const timer = findTimer(openTimerId);
-    if (!timer) {
-      if (openTimerId) closeConfig();
-      return;
-    }
+    if (!timer) return closeConfig();
 
-    const host =
-      timer.id === state.primaryTimerId
-        ? ui.primaryBlock
-        : minis.get(timer.id)?.root;
-
-    if (!host) return;
-
-    if (ui.config.parentElement !== host) host.appendChild(ui.config);
-    ui.config.hidden = false;
     ui.configTitle.textContent = `Ajustes · ${getTimerLabel(timer)}`;
-
-    if (selectionChanged) fillConfigForm(timer);
     syncConfigLive(timer);
-    syncConfigToggles();
-  }
-
-  function syncConfigToggles() {
-    for (const button of document.querySelectorAll('[data-action="config"]')) {
-      const id = button.closest("[data-timer-id]")?.dataset.timerId;
-      const aberto = Boolean(id) && id === openTimerId;
-      button.setAttribute("aria-expanded", String(aberto));
-      button.textContent = aberto ? "Fechar ajustes" : "Ajustar";
-    }
   }
 
   function fillConfigForm(timer) {
@@ -1001,8 +1009,8 @@
     const isPrimary = timer.id === state.primaryTimerId;
     const running = timer.status === "running";
 
-    // Os mesmos campos servem aos dois modos, mas o nome muda o sentido:
-    // num progressivo o valor e o que ja correu; num regressivo, o que ja foi
+    // Os mesmos campos servem aos dois modos, mas o nome muda o sentido: num
+    // progressivo o valor e o que ja correu; num regressivo, o que ja foi
     // gasto. Chamar os dois de "comecar em" era o que confundia.
     const progressivo = timer.direction === "up";
 
@@ -1011,11 +1019,8 @@
       : "Conta para baixo e mostra quanto falta. O tempo abaixo é a duração.";
 
     ui.cfgTimeLabel.textContent = progressivo ? "Meta" : "Duração";
-    ui.cfgOffsetLabel.textContent = progressivo
-      ? "Já decorrido"
-      : "Já consumido";
+    ui.cfgOffsetLabel.textContent = progressivo ? "Já decorrido" : "Já consumido";
     ui.clockLabel.textContent = "Começou em";
-    ui.clockRow.hidden = false;
     ui.clockSync.disabled = running;
     ui.clockNow.disabled = running;
     ui.fromClock.disabled = running;
@@ -1035,7 +1040,7 @@
       : timer.overspentMs > 0
         ? `${formatTime(timer.offsetMs)} usados de ${formatTime(timer.totalTime)} disponíveis: ${formatTime(timer.overspentMs)} saem do próximo ganho.`
         : timer.offsetMs > 0
-          ? `Parte de ${formatTime(timer.offsetMs)}. O Reset volta para cá, não para zero.`
+          ? `Parte de ${formatTime(timer.offsetMs)}. O Zerar volta para cá, não para zero.`
           : progressivo
             ? "Use quando a contagem já vem de antes — ex.: a aula corre há 05:15:00."
             : "Use para registrar o que já foi gasto sem o cronômetro rodando.";
@@ -1048,17 +1053,16 @@
     }
 
     ui.setPrimary.disabled = isPrimary;
-    ui.setPrimary.textContent = isPrimary
-      ? "Já é o destaque"
-      : "Destacar no viewer";
+    ui.setPrimary.textContent = isPrimary ? "Já é o destaque" : "Destacar no viewer";
     ui.moveUp.disabled = timer.index === 0;
     ui.moveDown.disabled = timer.index === state.timers.length - 1;
 
     const rule = timer.accrual;
     if (!rule) {
-      ui.accrualStatus.textContent = state.timers.length < 2
-        ? "Adicione outro cronômetro para poder usar esta regra."
-        : "";
+      ui.accrualStatus.textContent =
+        state.timers.length < 2
+          ? "Adicione outro cronômetro para poder usar esta regra."
+          : "";
       return;
     }
 
@@ -1068,6 +1072,8 @@
       ? `${frase} · já somou ${formatCompactDuration(timer.bonusMs)} em ${rule.grantedCount}x`
       : frase;
   }
+
+  // ------------------------------------------ modal de config da sessao
 
   function openModal() {
     ui.overlay.classList.add("open");
@@ -1147,20 +1153,19 @@
   function renderModels() {
     const models = loadModels();
 
+    // Chips da barra: um clique cria um cronometro a partir do modelo.
     ui.modelsChips.replaceChildren();
     if (!models.length) {
       const vazio = document.createElement("span");
-      vazio.className = "presets-empty-d";
-      vazio.textContent = "Salve um cronômetro como modelo nas configurações";
+      vazio.className = "hint";
+      vazio.textContent = "Salve um cronômetro como modelo nos ajustes";
       ui.modelsChips.appendChild(vazio);
     } else {
       for (const model of models) {
         const chip = document.createElement("button");
-        chip.className = "preset-chip-d";
+        chip.className = "model-chip";
         chip.type = "button";
-        chip.textContent = `${model.name} · ${formatCompactDuration(model.secs * 1000)} ${
-          model.direction === "up" ? "↑" : "↓"
-        }`;
+        chip.textContent = `${model.name} · ${formatCompactDuration(model.secs * 1000)}`;
         chip.title = `Adicionar cronômetro a partir de "${model.name}"`;
         chip.addEventListener("click", () => addTimer(model));
         ui.modelsChips.appendChild(chip);
@@ -1171,8 +1176,8 @@
     ui.modelsManage.replaceChildren();
 
     if (!models.length) {
-      const vazio = document.createElement("div");
-      vazio.className = "presets-empty";
+      const vazio = document.createElement("p");
+      vazio.className = "hint";
       vazio.textContent = "Nenhum modelo salvo ainda.";
       ui.modelsManage.appendChild(vazio);
       return;
@@ -1180,29 +1185,28 @@
 
     models.forEach((model, index) => {
       const row = document.createElement("div");
-      row.className = "preset-manage-row";
+      row.className = "model-row";
 
       const info = document.createElement("div");
-      info.className = "preset-manage-info";
 
       const name = document.createElement("div");
-      name.className = "preset-manage-name";
+      name.className = "model-name";
       name.textContent = model.name;
 
-      const time = document.createElement("div");
-      time.className = "preset-manage-time";
-      time.textContent = `${formatCompactDuration(model.secs * 1000)} · ${
+      const detail = document.createElement("div");
+      detail.className = "model-detail";
+      detail.textContent = `${formatCompactDuration(model.secs * 1000)} · ${
         model.direction === "up" ? "progressivo" : "regressivo"
       }`;
 
       const del = document.createElement("button");
-      del.className = "preset-del-btn";
+      del.className = "btn btn--danger btn--small";
       del.type = "button";
-      del.textContent = "✕";
+      del.textContent = "Excluir";
       del.setAttribute("aria-label", `Excluir modelo ${model.name}`);
       del.addEventListener("click", () => deleteModel(index));
 
-      info.append(name, time);
+      info.append(name, detail);
       row.append(info, del);
       ui.modelsManage.appendChild(row);
     });
@@ -1225,10 +1229,13 @@
   }
 
   function statusLabel(status) {
-    if (status === "running") return "RODANDO";
-    if (status === "paused") return "PAUSADO";
-    if (status === "finished") return "FINALIZADO";
-    return "PARADO";
+    return (
+      {
+        running: "Rodando",
+        paused: "Pausado",
+        finished: "Finalizado",
+      }[status] || "Parado"
+    );
   }
 
   function syncWatchers() {
@@ -1248,8 +1255,10 @@
     }
   }
 
-  function setAuthFeedback(message) {
-    if (ui.authFeedback) ui.authFeedback.textContent = message;
+  function setAuthFeedback(message, kind) {
+    if (!ui.authFeedback) return;
+    ui.authFeedback.textContent = message;
+    ui.authFeedback.dataset.state = kind || "";
   }
 
   function showFeedback(message, kind) {
@@ -1273,12 +1282,16 @@
 
   function syncFullscreen() {
     if (!ui.fullscreen) return;
-    ui.fullscreen.textContent = document.fullscreenElement ? "✕" : "FS";
+    const cheia = Boolean(document.fullscreenElement);
+    ui.fullscreen.setAttribute(
+      "aria-label",
+      cheia ? "Sair da tela cheia" : "Entrar em tela cheia",
+    );
+    ui.fullscreen.title = cheia ? "Sair da tela cheia" : "Tela cheia";
   }
 
   function showError(message) {
     socket.disconnect();
-    document.body.classList.add("message-mode");
     const box = document.createElement("div");
     box.className = "screen-message";
     box.textContent = message;

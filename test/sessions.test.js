@@ -291,7 +291,7 @@ describe("tick da sessao", () => {
 });
 
 describe("broadcastSession", () => {
-  it("marca como finished quando o tempo acaba e emite os dois eventos", () => {
+  it("marca como finished quando o tempo acaba e emite o estado", () => {
     const { store, io } = createStore();
     const session = store.createSession();
     const timer = session.timers[0];
@@ -307,10 +307,21 @@ describe("broadcastSession", () => {
     const state = io.emissions.findLast((e) => e.event === "session:state");
     assert.equal(state.payload.timers[0].remaining, 0);
     assert.equal(state.payload.timers[0].status, "finished");
+  });
 
-    const legacy = io.emissions.findLast((e) => e.event === "timer:tick");
-    assert.equal(legacy.payload.remaining, 0);
-    assert.equal(legacy.payload.status, "finished");
+  // O `timer:tick` era o payload do formato antigo (um cronometro por sessao),
+  // mantido para abas abertas antes de um deploy que ja passou faz tempo.
+  // Nenhuma tela o escutava, e ele dobrava o trafego de cada broadcast.
+  it("nao emite mais o payload legado timer:tick", () => {
+    const { store, io } = createStore();
+    const session = store.createSession();
+
+    store.broadcastSession(session.id);
+
+    assert.equal(
+      io.emissions.some((e) => e.event === "timer:tick"),
+      false,
+    );
   });
 
   it("nao derruba um cronometro pelo termino de outro", () => {

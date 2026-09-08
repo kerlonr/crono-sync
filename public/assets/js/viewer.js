@@ -17,24 +17,10 @@
     sanitizeSessionState,
   } = window.CronoUtils;
 
-  const GLOWS = {
-    green:
-      "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,245,160,0.05) 0%, transparent 70%)",
-    yellow:
-      "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,184,0,0.07) 0%, transparent 70%)",
-    red: "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.08) 0%, transparent 70%)",
-    blink:
-      "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.12) 0%, transparent 70%)",
-    finished:
-      "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,62,62,0.25) 0%, transparent 70%)",
-  };
-
   const socket = io();
   const sessionId = window.location.pathname.split("/").pop();
 
   const elements = {
-    board: document.getElementById("viewer-board"),
-    glowBg: document.getElementById("glow-bg"),
     message: document.getElementById("viewer-message"),
     primary: document.getElementById("viewer-primary"),
     primaryLabel: document.getElementById("viewer-primary-label"),
@@ -52,7 +38,7 @@
 
   let secondarySignature = null;
 
-  if (!elements.board || !elements.primary || !elements.cardTemplate) {
+  if (!elements.primary || !elements.cardTemplate) {
     return;
   }
 
@@ -140,35 +126,14 @@
       elements.message.hidden = hasPrimary;
     }
 
-    if (!hasPrimary) {
-      document.body.classList.remove("flash-red", "finished");
-      elements.glowBg.style.background = "none";
-      return;
-    }
-
-    const phase = getPhase(timer.pct);
-    const isFinished = timer.status === "finished" || timer.remaining <= 0;
+    if (!hasPrimary) return;
 
     elements.primaryLabel.textContent = getTimerLabel(timer);
     setEstado(timer);
     elements.primaryMeta.textContent = getTimerMetaLabel(timer);
     elements.primaryTime.textContent = formatTime(getDisplayMs(timer));
-    elements.primaryTime.className = `timer-display ${buildTimerClass(
-      timer,
-      phase,
-    )}`;
-    setProgress(elements.primaryProgress, timer, phase);
-
-    document.body.classList.toggle("flash-red", isFinished);
-    document.body.classList.toggle("finished", isFinished);
-
-    if (isFinished) {
-      elements.glowBg.style.background = GLOWS.finished;
-      return;
-    }
-
-    elements.glowBg.style.background =
-      timer.status === "running" ? (GLOWS[phase] ?? GLOWS.green) : "none";
+    applyTimerLook(elements.primaryTime, timer);
+    setProgress(elements.primaryProgress, timer, getPhase(timer.pct));
   }
 
   /**
@@ -186,7 +151,7 @@
     }[timer.status];
 
     elements.state.textContent = rotulo || "";
-    elements.state.dataset.status = timer.status;
+    elements.state.dataset.state = timer.status;
     elements.state.hidden = !rotulo;
   }
 
@@ -236,26 +201,35 @@
       root,
       label: root.querySelector(".viewer-card-label"),
       time: root.querySelector(".viewer-card-time"),
-      progress: root.querySelector(".viewer-progress-fill"),
+      progress: root.querySelector(".progress-fill"),
     };
   }
 
   function updateSecondary(card, timer) {
-    const phase = getPhase(timer.pct);
-
     card.root.dataset.status = timer.status;
     card.label.textContent = getTimerLabel(timer);
     card.time.textContent = formatTime(getDisplayMs(timer));
-    card.time.className = `viewer-card-time ${buildTimerClass(timer, phase)}`;
-    setProgress(card.progress, timer, phase);
+    applyTimerLook(card.time, timer);
+    setProgress(card.progress, timer, getPhase(timer.pct));
   }
 
-  /** Cor pela fase quando ativo; parado fica neutro, pausado fica esmaecido. */
-  function buildTimerClass(timer, phase) {
-    if (timer.status === "finished" || timer.remaining <= 0) return "red";
-    if (timer.status === "running") return phase;
-    if (timer.status === "paused") return `${phase} paused`;
-    return "green";
+  /**
+   * Fase e estado viram atributos, e o CSS decide a cor. Antes a classe era
+   * remontada a cada tick (`viewer-card-time red paused`), o que apagava
+   * qualquer outra classe do elemento e espalhava a regra de cor pelo JS.
+   *
+   * Parado fica neutro; pausado mantem a cor da fase, esmaecida; terminado e
+   * sempre vermelho.
+   */
+  function applyTimerLook(element, timer) {
+    const encerrado = timer.status === "finished" || timer.remaining <= 0;
+
+    element.dataset.status = timer.status;
+    element.dataset.phase = encerrado
+      ? "red"
+      : timer.status === "stopped"
+        ? "green"
+        : getPhase(timer.pct);
   }
 
   function setProgress(element, timer, phase) {
@@ -289,7 +263,6 @@
 
   function showError(message) {
     socket.disconnect();
-    document.body.classList.add("message-mode");
     document.body.replaceChildren(createMessage(message));
   }
 

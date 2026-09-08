@@ -334,27 +334,25 @@
     return typeof value === "string" && TIMER_ID_PATTERN.test(value);
   }
 
+  // So o que as telas realmente consomem. `sanitizeMs`, `sanitizePct`,
+  // `isValidTimerId` e `MAX_TIMER_NAME_LENGTH` continuam servindo as funcoes
+  // acima, mas nao precisam estar na superficie publica.
   window.CronoUtils = Object.freeze({
     MAX_TIMERS_PER_SESSION,
     MAX_TIMER_MS,
     advanceTimer,
-    MAX_TIMER_NAME_LENGTH,
     formatCompactDuration,
     formatTime,
     getAccrualLabel,
     getBonusLabel,
-    getLedgerLabel,
     getDisplayMs,
+    getLedgerLabel,
     getPhase,
     getTimerLabel,
     getTimerMetaLabel,
     isValidAdminToken,
     isValidSessionId,
-    isValidTimerId,
-    sanitizeMs,
-    sanitizePct,
     sanitizeSessionState,
-    sanitizeTimer,
     sanitizeTimerName,
     splitDuration,
   });

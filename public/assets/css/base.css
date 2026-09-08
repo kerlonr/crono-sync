@@ -1,0 +1,568 @@
+/**
+ * Reset e componentes compartilhados pelas quatro telas.
+ *
+ * Tudo que aparece em mais de uma pagina vive aqui: botao, campo, cartao,
+ * modal, barra de progresso e os digitos do cronometro. As folhas por pagina
+ * cuidam so do arranjo, nunca de redefinir cor ou tipografia.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--bg-sunken);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+h1 {
+  font-size: var(--text-xl);
+}
+
+h2 {
+  font-size: var(--text-lg);
+}
+
+h3 {
+  font-size: var(--text-md);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Um anel unico de foco para o teclado, em todo controle interativo. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================== superficie */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================================================================== texto */
+
+.eyebrow {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+
+.hint {
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+/* ================================================================ botoes */
+
+/* O botao neutro tambem leva contorno: `--surface-sunken` coincide com o
+   fundo de algumas telas, e sem a linha ele deixava de parecer um botao. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-normal);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease),
+    opacity var(--duration-fast) var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  text-decoration: none;
+}
+
+.btn:active:not(:disabled) {
+  opacity: 0.7;
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  border-color: transparent;
+  background: var(--accent-fill);
+  color: var(--text-on-accent);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn--outline {
+  border-color: var(--separator-strong);
+  background: transparent;
+}
+
+.btn--outline:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.btn--plain {
+  padding: 0 var(--space-2);
+  border-color: transparent;
+  background: transparent;
+  color: var(--accent);
+}
+
+.btn--plain:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.btn--danger {
+  border-color: transparent;
+  background: transparent;
+  color: var(--red-text);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--red-soft);
+}
+
+.btn--pill {
+  min-height: 44px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-md);
+}
+
+.btn--small {
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+}
+
+/* Botao apenas com icone ou sigla, quadrado. */
+.btn--icon {
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.btn--icon svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ================================================================ campos */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field-label {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: var(--hairline) solid var(--separator-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--text-base);
+  transition: border-color var(--duration-fast) var(--ease);
+}
+
+.input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Campo numerico curto (horas, minutos, segundos). As setas nativas roubam
+   espaco de um campo de duas casas e o valor ja e ajustado pelos steppers. */
+.input--number {
+  width: 100%;
+  padding: 0 var(--space-2);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.input--number::-webkit-outer-spin-button,
+.input--number::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select.input {
+  padding-right: var(--space-2);
+  cursor: pointer;
+}
+
+/* Controle segmentado: a escolha entre duas ou tres opcoes exclusivas. */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.segmented button {
+  min-height: 30px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ============================================================ cronometro */
+
+/* Os digitos sao o elemento central do produto. Largura tabular mantem o
+   numero imovel enquanto conta - sem isso a linha inteira treme a cada
+   segundo, porque "1" e mais estreito que "8". */
+.timer-digits {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text);
+  transition: color var(--duration) var(--ease);
+}
+
+/* As fases sao comunicadas pela cor do numero. Sem brilho: a mudanca de cor
+   ja e o sinal, e o texto continua legivel nos dois temas. */
+.timer-digits[data-phase="yellow"] {
+  color: var(--orange);
+}
+
+.timer-digits[data-phase="red"],
+.timer-digits[data-phase="blink"] {
+  color: var(--red);
+}
+
+/* Pausado esmaece o numero, mas o rotulo de estado e que diz o que houve -
+   opacidade sozinha nao se explica para quem chega com a tela ja parada. */
+.timer-digits[data-status="paused"] {
+  opacity: 0.45;
+}
+
+.progress {
+  overflow: hidden;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--track);
+}
+
+.progress-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition:
+    width var(--duration) linear,
+    background var(--duration) var(--ease);
+}
+
+.progress-fill[data-phase="yellow"] {
+  background: var(--orange);
+}
+
+.progress-fill[data-phase="red"],
+.progress-fill[data-phase="blink"] {
+  background: var(--red);
+}
+
+/* Ponto de estado, do tamanho de um sinal e nao de um enfeite. */
+.dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+}
+
+.dot[data-status="running"] {
+  background: var(--green);
+}
+
+.dot[data-status="paused"] {
+  background: var(--orange);
+}
+
+.dot[data-status="finished"] {
+  background: var(--red);
+}
+
+/* Etiqueta de estado em texto.
+   A borda existe porque o estado neutro usa `--surface-sunken`, que em algumas
+   telas coincide com o fundo atras dela - sem contorno, a capsula sumia. Os
+   estados com cor se sustentam pelo proprio fundo. */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 3px var(--space-3);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+}
+
+.status-pill[data-state="running"],
+.status-pill[data-state="paused"],
+.status-pill[data-state="finished"] {
+  border-color: transparent;
+}
+
+.status-pill[data-state="running"] {
+  background: var(--green-soft);
+  color: var(--green-text);
+}
+
+.status-pill[data-state="paused"] {
+  background: var(--orange-soft);
+  color: var(--orange-text);
+}
+
+.status-pill[data-state="finished"] {
+  background: var(--red-soft);
+  color: var(--red-text);
+}
+
+/* ================================================================= modal */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--scrim);
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  max-width: 620px;
+  max-height: min(86dvh, 720px);
+  flex-direction: column;
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: var(--hairline) solid var(--separator);
+}
+
+.modal-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.modal-body {
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+
+/* No celular o modal vira folha inferior, como em iOS.
+
+   Aqui ficava `.modal-overlay { display: none !important }`, que vencia o
+   `.modal-overlay.open { display: flex }` por causa do `!important` - o
+   modal de configuracoes simplesmente nao abria no telefone, embora estes
+   estilos de folha existissem para ele. */
+@media (max-width: 640px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    max-width: none;
+    max-height: 88dvh;
+    border-right: none;
+    border-bottom: none;
+    border-left: none;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+}
+
+/* ============================================================== avisos */
+
+/* Faixa de conexao, ancorada no topo e fora do fluxo. */
+.link-status {
+  position: fixed;
+  top: var(--space-3);
+  left: 50%;
+  z-index: 200;
+  padding: var(--space-2) var(--space-4);
+  transform: translateX(-50%);
+  border: var(--hairline) solid var(--separator);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-raised);
+}
+
+/* Tela inteira ocupada por uma unica mensagem (sessao encerrada, erro). */
+.screen-message {
+  display: flex;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+  text-align: center;
+}
+
+.feedback {
+  min-height: 20px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.feedback[data-state="success"] {
+  color: var(--green-text);
+}
+
+.feedback[data-state="error"] {
+  color: var(--red-text);
+}

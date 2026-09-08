@@ -41,6 +41,8 @@ O projeto permite:
 |       |-- audio/
 |       |   `-- trompeta.mp3
 |       |-- css/
+|       |   |-- tokens.css
+|       |   |-- base.css
 |       |   |-- index.css
 |       |   |-- admin.css
 |       |   |-- overview.css
@@ -53,6 +55,7 @@ O projeto permite:
 |           |-- overview.js
 |           `-- viewer.js
 |-- scripts/
+|   |-- check.js
 |   |-- deployer.js
 |   `-- webhook-deploy.sh
 |-- test/
@@ -99,14 +102,27 @@ O projeto permite:
 
 ### CSS
 
-Cada tela possui um CSS próprio para evitar acoplamento visual excessivo:
+Duas folhas compartilhadas mais uma por tela:
 
-- `index.css`: tela inicial.
-- `admin.css`: painel de controle e drawer mobile.
-- `viewer.css`: tela pública de contagem.
-- `overview.css`: painel geral de sessões.
+- `tokens.css`: as variáveis do sistema — cor, tipografia, espaço, forma e movimento.
+- `base.css`: reset e componentes usados em mais de uma tela (botão, campo, cartão,
+  modal, barra de progresso, dígitos do cronômetro).
+- `index.css`, `admin.css`, `viewer.css`, `overview.css`: apenas o arranjo de cada tela.
 
-O padrão visual atual é dark glass: fundos escuros, bordas translúcidas, blur e acentos em verde/azul.
+O padrão visual segue a linguagem de sistema da Apple: superfícies opacas, uma linha de 1px
+no lugar de sombras pesadas, um único azul de acento e a tipografia carregando a hierarquia.
+Nenhuma fonte é baixada — `-apple-system` entrega a San Francisco no Mac e no iPhone, a Segoe UI
+no Windows e a Roboto no Android — e os dígitos usam algarismos de largura fixa para o número
+não tremer a cada segundo.
+
+O tema claro é o padrão e vive no `:root`; o escuro apenas redefine as mesmas variáveis dentro
+de `prefers-color-scheme`, acompanhando a preferência do sistema sem nenhum controle na tela.
+Nenhuma cor é definida só no bloco escuro, então nada fica sem valor no claro.
+
+Antes disso, cada folha trazia o seu próprio `:root` e a mesma ideia aparecia com valores
+diferentes (`--accent` era `#58ead0`, `#57dbc8` e `#3fc9b1` conforme a tela), e o `admin.css`
+tinha 2338 linhas porque empilhava um tema claro, um tema escuro que o sobrescrevia inteiro e
+uma camada de layout que anulava a anterior com `!important`.
 
 Duas garantias valem para todas as telas:
 
@@ -246,7 +262,17 @@ recuperá-lo: define-se um par em Configurações → Acesso do admin, dentro do
 abrir `/admin/:id` sem token vê um formulário de login. `/overview` traz um botão **Admin** em cada card,
 que é o caminho de volta quando o link se perde.
 
-Como é tratado:
+### Encerrar uma sessão
+
+Encerrar é ação de admin e acontece no painel, em **Configurações da sessão → Encerrar esta sessão**,
+por um evento de socket que só é aceito de quem já provou ter o token.
+
+Antes isso era um `DELETE /api/sessions/:id` sem credencial nenhuma. Como `/api/sessions/active`
+publica o id de todas as sessões, bastava listar e apagar para derrubar o servidor inteiro — inclusive
+uma contagem de 80 horas em andamento. A visão geral passou a ser somente leitura; quem precisa
+encerrar entra pelo **Admin** do card.
+
+Como o acesso é tratado:
 
 - a senha nunca é armazenada — fica só o `scrypt` com sal aleatório por senha (`src/auth.js`), sem
   dependência nova nem compilação nativa
@@ -351,7 +377,7 @@ Todos os eventos de escrita exigem que o socket tenha entrado na sessão com o p
 | `timer:start` / `timer:pause` / `timer:reset` | admin → servidor | Controla um cronômetro pelo id |
 | `timers:bulk` | admin → servidor | Aplica `start`, `pause` ou `reset` em todos |
 | `session:setAuth` | admin → servidor | Define ou remove usuário e senha da sessão |
-| `timer:tick` | servidor → cliente | Formato antigo (um cronômetro), mantido por compatibilidade |
+| `session:close` | admin → servidor | Encerra a sessão e desconecta os viewers |
 
 Limites aplicados no servidor: até 12 cronômetros por sessão, título de até 24 caracteres e tempo total
 entre 1 segundo e 100 horas. A regra de ganho exige intervalo de no mínimo 1 minuto, recusa auto-referência
@@ -364,8 +390,7 @@ e nunca deixa o total efetivo passar do máximo.
 | `GET` | `/` | Página inicial |
 | `POST` | `/api/session/new` | Cria uma nova sessão (aceita `username`/`password` opcionais, sem uso na interface) |
 | `POST` | `/api/session/:id/login` | Recupera o token de admin com usuário e senha |
-| `GET` | `/api/sessions/active` | Lista sessões ativas |
-| `DELETE` | `/api/sessions/:id` | Finaliza uma sessão |
+| `GET` | `/api/sessions/active` | Lista sessões ativas (somente leitura) |
 | `GET` | `/admin/:id` | Painel de admin |
 | `GET` | `/overview` | Painel com todos os cronômetros ativos |
 | `GET` | `/view/:id` | Tela de viewer |

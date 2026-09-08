@@ -4,86 +4,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sessões ativas</title>
   <meta name="description"
-    content="Veja as sess&#245;es online do Cron&#244;metro Sync e acompanhe quais cron&#244;metros est&#227;o ativos." />
-  <meta name="theme-color" content="#040812" />
+    content="Veja as sess&#245;es ativas do Cron&#244;metro Sync e acompanhe quais cron&#244;metros est&#227;o rodando." />
   <meta name="application-name" content="Cron&#244;metro Sync" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
   <link rel="canonical" href="__CANONICAL_URL__" />
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png" />
-  <meta property="og:locale" content="pt_BR" />
   <meta property="og:type" content="website" />
+  <meta property="og:locale" content="pt_BR" />
   <meta property="og:site_name" content="Cron&#244;metro Sync" />
-  <meta property="og:title" content="Cron&#244;metros Online - Cron&#244;metro Sync" />
-  <meta property="og:description"
-    content="Painel geral para ver sess&#245;es ativas e cron&#244;metros rodando em tempo real." />
+  <meta property="og:title" content="Sess&#245;es ativas - Cron&#244;metro Sync" />
+  <meta property="og:description" content="Painel geral das sess&#245;es e cron&#244;metros em tempo real." />
   <meta property="og:url" content="__CANONICAL_URL__" />
   <meta property="og:image" content="__OG_IMAGE_URL__" />
-  <meta property="og:image:secure_url" content="__OG_IMAGE_URL__" />
-  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
-  <meta property="og:image:alt" content="&#205;cone do Cron&#244;metro Sync" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Cron&#244;metros Online - Cron&#244;metro Sync" />
-  <meta name="twitter:description"
-    content="Veja sess&#245;es ativas e cron&#244;metros rodando em tempo real." />
-  <meta name="twitter:image" content="__OG_IMAGE_URL__" />
-  <title>Cronômetros Online</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;600;900&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/overview.css?v=20260905i" />
+
+  <link rel="stylesheet" href="__ASSET:css/tokens.css__" />
+  <link rel="stylesheet" href="__ASSET:css/base.css__" />
+  <link rel="stylesheet" href="__ASSET:css/overview.css__" />
 </head>
 
 <body>
-  <main class="overview-shell">
-    <header class="overview-hero">
-      <div class="hero-copy">
-        <span class="hero-badge">● Monitoramento</span>
-        <h1>Cronômetros online</h1>
-        <p>Veja todas as sessões ativas do servidor em modo viewer, sem controles de administração.</p>
+  <main class="overview">
+    <header class="overview-head">
+      <div>
+        <h1>Sessões ativas</h1>
+        <p class="muted" id="overview-summary">Carregando…</p>
       </div>
-      <div class="hero-actions">
-        <a class="hero-link ghost" href="/">Criar novo cronômetro</a>
-      </div>
+      <a class="btn btn--primary" href="/">Criar cronômetro</a>
     </header>
 
-    <section class="overview-board">
-      <section class="overview-stats" aria-label="Resumo">
-        <article class="stat-card">
-          <span class="stat-label">Online</span>
-          <strong class="stat-value" id="stat-online">0</strong>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Rodando</span>
-          <strong class="stat-value" id="stat-running">0</strong>
-        </article>
-      </section>
+    <section class="overview-grid" id="overview-grid" aria-live="polite" aria-label="Sessões"></section>
 
-      <section class="overview-grid-shell">
-        <div class="overview-grid-head">
-          <div>
-            <span class="grid-kicker">Painel Global</span>
-            <h2>Sessões em tempo real</h2>
-          </div>
-          <p>Abra qualquer card em modo viewer para acompanhar o cronômetro sem acesso de administração.</p>
-        </div>
-
-        <section class="overview-grid" id="overview-grid" aria-live="polite"></section>
-      </section>
-
-      <section class="overview-empty" id="overview-empty">
-        <div class="empty-badge">Sem cronômetros online</div>
-        <h2>Nenhum cronômetro online agora.</h2>
-        <p>Quando uma nova sessão for criada no servidor, ela vai aparecer aqui automaticamente.</p>
-        <a class="hero-link" href="/">Criar cronômetro</a>
-      </section>
+    <section class="overview-empty" id="overview-empty" hidden>
+      <h2>Nenhuma sessão ativa</h2>
+      <p class="muted">Assim que uma sessão for criada, ela aparece aqui automaticamente.</p>
+      <a class="btn btn--primary btn--pill" href="/">Criar cronômetro</a>
     </section>
   </main>
 
-  <script src="/assets/js/crono-utils.js?v=20260906a"></script>
-  <script src="/assets/js/overview.js?v=20260905i"></script>
+  <script src="__ASSET:js/crono-utils.js__"></script>
+  <script src="__ASSET:js/overview.js__"></script>
 </body>
 
 </html>

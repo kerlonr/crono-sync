@@ -1,0 +1,191 @@
+/**
+ * Tokens do design system.
+ *
+ * Um unico conjunto de variaveis para as quatro telas. Antes cada folha tinha
+ * o seu proprio `:root` e a mesma ideia aparecia com valores diferentes -
+ * `--accent` era #58ead0 no viewer, #57dbc8 na visao geral e #3fc9b1 no admin.
+ *
+ * O tema claro e o padrao e vive no `:root` puro; o escuro apenas redefine as
+ * mesmas variaveis dentro do `prefers-color-scheme`. Nenhuma cor e definida
+ * somente no bloco escuro, entao nada fica sem valor no tema claro.
+ *
+ * A paleta segue a linguagem de sistema da Apple: cinzas neutros, um unico
+ * azul de acento e as cores semanticas de status. Nada de transparencia
+ * empilhada nem brilho - profundidade aqui vem de superficie sobre fundo e de
+ * uma linha de 1px, nao de blur.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* ---------------------------------------------------------------- cor */
+
+  /* Fundo da pagina e superficie dos cartoes. No claro o cartao e branco
+     sobre um cinza levissimo; no escuro a relacao se inverte. */
+  --bg: #ffffff;
+  --bg-sunken: #f5f5f7;
+  --surface: #ffffff;
+  --surface-hover: #f5f5f7;
+  /* Preenchimento discreto DENTRO de um cartao (botao neutro, etiqueta de
+     estado, trilho do segmentado). Precisa se distinguir de `--surface`, ou o
+     elemento desaparece sobre o proprio cartao. */
+  --surface-sunken: #f5f5f7;
+  /* O item escolhido do segmentado, que sobe sobre o trilho. */
+  --surface-raised: #ffffff;
+
+  /* Tres niveis de texto bastam: conteudo, apoio e legenda. Os valores foram
+     escolhidos para que os TRES passem em 4.5:1 sobre `--bg` e sobre
+     `--bg-sunken` - o cinza claro habitual (#86868b) so alcanca 3.3:1 e
+     reprova como legenda. */
+  --text: #1d1d1f;
+  --text-secondary: #515154;
+  --text-tertiary: #6e6e73;
+  --text-on-accent: #ffffff;
+
+  --separator: rgba(0, 0, 0, 0.08);
+  --separator-strong: rgba(0, 0, 0, 0.16);
+
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-soft: rgba(0, 113, 227, 0.1);
+  /* Preenchimento do botao primario, separado de `--accent` porque precisa
+     sustentar texto branco por cima (4.7:1). */
+  --accent-fill: #0071e3;
+
+  /* Status em duas variantes: a viva preenche barras e pontos (elemento
+     grafico, 3:1 basta) e a de texto e legivel sobre o proprio fundo `soft`,
+     onde a viva ficaria em 3.1:1. */
+  --green: #1d9c4a;
+  --orange: #c2650a;
+  --red: #d70015;
+  --green-text: #157a39;
+  --orange-text: #a85607;
+  --red-text: #c00013;
+  --green-soft: rgba(29, 156, 74, 0.12);
+  --orange-soft: rgba(194, 101, 10, 0.12);
+  --red-soft: rgba(215, 0, 21, 0.12);
+
+  /* Trilho da barra de progresso: precisa aparecer sobre a superficie sem
+     competir com o preenchimento. */
+  --track: rgba(0, 0, 0, 0.09);
+
+  /* Sombra quase imperceptivel. Um cartao se distingue pela borda; a sombra
+     so evita que ele pareca colado no fundo. */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.12);
+
+  /* Scrim do modal: um veu escuro simples, sem desfoque. */
+  --scrim: rgba(0, 0, 0, 0.32);
+
+  /* -------------------------------------------------------- tipografia */
+
+  /* Em Mac e iOS `-apple-system` entrega a San Francisco de verdade; no
+     Windows cai para a Segoe UI e no Android para a Roboto. Nenhuma fonte
+     externa e baixada, o que tambem tira o Google Fonts do caminho critico
+     e da CSP. */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable",
+    "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Os digitos do cronometro usam a MESMA familia, apenas com algarismos de
+     largura fixa. Uma fonte monoespacada "tecnologica" era justamente o que
+     dava ao projeto a cara de painel de controle. */
+  --font-numeric: var(--font);
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.3125rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.47;
+
+  /* Titulos grandes fecham o espacamento; textos pequenos abrem. */
+  --tracking-tight: -0.022em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.01em;
+
+  /* ------------------------------------------------------------ espaco */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-16: 64px;
+
+  /* ------------------------------------------------------------- forma */
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 980px;
+
+  --hairline: 1px;
+
+  /* ---------------------------------------------------------- movimento */
+
+  /* Curvas curtas e discretas. A animacao confirma a acao, nao a anuncia. */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.15s;
+  --duration: 0.25s;
+
+  --focus-ring: 0 0 0 4px var(--accent-soft);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --bg-sunken: #000000;
+    --surface: #1c1c1e;
+    --surface-hover: #2c2c2e;
+    /* Um degrau ACIMA de `--surface`: com os dois em #1c1c1e, a etiqueta de
+       estado sumia dentro dos cartoes da visao geral. */
+    --surface-sunken: #2c2c2e;
+    --surface-raised: #48484a;
+
+    --text: #f5f5f7;
+    --text-secondary: #98989d;
+    --text-tertiary: #6e6e73;
+    --text-on-accent: #ffffff;
+
+    --separator: rgba(255, 255, 255, 0.1);
+    --separator-strong: rgba(255, 255, 255, 0.2);
+
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --accent-soft: rgba(10, 132, 255, 0.18);
+    /* O azul claro do escuro so alcanca 3.6:1 com texto branco; o
+       preenchimento do botao mantem o azul do tema claro. */
+    --accent-fill: #0071e3;
+
+    --green: #30d158;
+    --orange: #ff9f0a;
+    --red: #ff453a;
+    --green-text: #30d158;
+    --orange-text: #ff9f0a;
+    --red-text: #ff6961;
+    --green-soft: rgba(48, 209, 88, 0.16);
+    --orange-soft: rgba(255, 159, 10, 0.16);
+    --red-soft: rgba(255, 69, 58, 0.16);
+
+    --track: rgba(255, 255, 255, 0.14);
+
+    /* No escuro a sombra some contra o preto; a borda faz o trabalho. */
+    --shadow: none;
+    --shadow-raised: 0 8px 28px rgba(0, 0, 0, 0.6);
+
+    --scrim: rgba(0, 0, 0, 0.6);
+  }
+}

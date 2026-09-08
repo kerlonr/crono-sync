@@ -53,7 +53,6 @@ function createSessionStore({
     addTimer,
     applyAccruals,
     getSessionAuth,
-    hasAuth,
     setSessionAuth,
     broadcastSession,
     exportSessions,
@@ -70,7 +69,6 @@ function createSessionStore({
     getPrimaryTimer,
     getRemaining,
     getSession,
-    getTimer,
     isValidAdminToken,
     isValidRole,
     isValidSessionId,
@@ -80,7 +78,6 @@ function createSessionStore({
     pauseSessionTimer,
     removeTimer,
     resetSessionTimer,
-    sanitizeAccrual,
     sanitizeTimerMs,
     setPrimaryTimer,
     startSessionTimer,
@@ -400,20 +397,6 @@ function createSessionStore({
     );
   }
 
-  /**
-   * Payload no formato antigo (um unico cronometro). Mantido para que abas do
-   * viewer abertas antes do deploy continuem funcionando ate recarregarem.
-   */
-  function buildLegacyState(session) {
-    const primary = getPrimaryTimer(session);
-    if (!primary) {
-      return { status: "stopped", remaining: 0, totalTime: 0, pct: 1 };
-    }
-
-    const { status, remaining, totalTime, pct } = buildTimerState(primary);
-    return { status, remaining, totalTime, pct };
-  }
-
   function broadcastSession(sessionId) {
     const session = sessions.get(sessionId);
     if (!session) return;
@@ -429,13 +412,11 @@ function createSessionStore({
     touchSession(session);
 
     io.to(sessionId).emit("session:state", buildSessionState(session));
-    io.to(sessionId).emit("timer:tick", buildLegacyState(session));
   }
 
   function emitSessionState(target, session) {
     touchSession(session);
     target.emit("session:state", buildSessionState(session));
-    target.emit("timer:tick", buildLegacyState(session));
   }
 
   /**
