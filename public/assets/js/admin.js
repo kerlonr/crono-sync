@@ -71,6 +71,8 @@
     boardFeedback: el("board-feedback"),
     // barra superior
     modelsChips: el("models-chips"),
+    modelsGroup: el("models-group"),
+    quickChips: document.querySelector(".quick-chips"),
     addTimer: el("btn-add-timer"),
     fullscreen: el("btn-fs"),
     openModal: el("btn-open-modal"),
@@ -345,6 +347,14 @@
         if (alvo) beginEdit(alvo, digitos);
       });
     }
+
+    // Duracao pronta: um clique cria o cronometro ja com o tempo e comeca.
+    // O "+" (btn-add-timer) segue abrindo os ajustes para um valor qualquer.
+    ui.quickChips?.addEventListener("click", (event) => {
+      const chip = event.target.closest("[data-quick]");
+      if (!chip) return;
+      addTimer({ totalTime: Number(chip.dataset.quick) });
+    });
 
     ui.addTimer?.addEventListener("click", () => addTimer());
     ui.fullscreen?.addEventListener("click", toggleFullscreen);
@@ -843,30 +853,39 @@
     socket.emit(`timer:${action}`, timer.id);
   }
 
-  function addTimer(model) {
-    socket.emit(
-      "timer:add",
-      model
-        ? {
-            name: model.name,
-            direction: model.direction,
-            totalTime: model.secs * 1000,
-          }
-        : {},
-      (response) => {
-        if (!response?.success) {
-          return showFeedback(
-            response?.reason === "limit_reached"
-              ? `Limite de ${MAX_TIMERS_PER_SESSION} cronômetros por sessão.`
-              : "Não foi possível adicionar o cronômetro.",
-            "error",
-          );
-        }
+  /**
+   * Cria um cronometro.
+   *
+   * Sem argumento, nasce com a duracao padrao e ABRE os ajustes - e o caminho
+   * de quem quer um tempo qualquer. Com uma duracao pronta (os chips do
+   * cabecalho ou um modelo salvo), o cronometro ja nasce configurado e os
+   * ajustes NAO abrem: parar para fechar um modal anularia o ganho de tempo
+   * que os atalhos existem para dar.
+   *
+   * @param {{totalTime?: number, name?: string, direction?: string}} [payload]
+   */
+  function addTimer(payload) {
+    socket.emit("timer:add", payload ?? {}, (response) => {
+      if (!response?.success) {
+        return showFeedback(
+          response?.reason === "limit_reached"
+            ? `Limite de ${MAX_TIMERS_PER_SESSION} cronômetros por sessão.`
+            : "Não foi possível adicionar o cronômetro.",
+          "error",
+        );
+      }
 
-        // Abre os ajustes do recem-criado, que e o proximo passo obvio.
-        openConfig(response.timerId);
-      },
-    );
+      selectedTimerId = response.timerId;
+
+      if (!payload?.totalTime) {
+        return openConfig(response.timerId);
+      }
+
+      showFeedback(
+        `Cronômetro de ${formatCompactDuration(payload.totalTime)} criado.`,
+        "success",
+      );
+    });
   }
 
   function moveSelected(offset) {
@@ -1364,19 +1383,22 @@
 
     // Chips da barra: um clique cria um cronometro a partir do modelo.
     ui.modelsChips.replaceChildren();
-    if (!models.length) {
-      const vazio = document.createElement("span");
-      vazio.className = "hint";
-      vazio.textContent = "Salve um cronômetro como modelo nos ajustes";
-      ui.modelsChips.appendChild(vazio);
-    } else {
+    if (ui.modelsGroup) ui.modelsGroup.hidden = models.length === 0;
+
+    if (models.length) {
       for (const model of models) {
         const chip = document.createElement("button");
-        chip.className = "model-chip";
+        chip.className = "chip chip--model";
         chip.type = "button";
         chip.textContent = `${model.name} · ${formatCompactDuration(model.secs * 1000)}`;
         chip.title = `Adicionar cronômetro a partir de "${model.name}"`;
-        chip.addEventListener("click", () => addTimer(model));
+        chip.addEventListener("click", () =>
+          addTimer({
+            name: model.name,
+            direction: model.direction,
+            totalTime: model.secs * 1000,
+          }),
+        );
         ui.modelsChips.appendChild(chip);
       }
     }

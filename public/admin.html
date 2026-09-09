@@ -67,17 +67,36 @@
 
   <div class="admin" id="admin-panel" hidden>
     <header class="toolbar">
-      <div class="toolbar-models">
-        <span class="eyebrow">Modelos</span>
-        <div class="models-chips" id="models-chips">
-          <span class="hint">Salve um cronômetro como modelo nos ajustes</span>
+      <!-- Criar um cronometro era: Adicionar, esperar o modal, digitar o
+           tempo, aplicar. As duracoes usuais viram um clique so; o "+" segue
+           abrindo os ajustes para quem quer um valor qualquer. -->
+      <div class="toolbar-group">
+        <span class="eyebrow">Novo</span>
+        <div class="quick-chips" role="group" aria-label="Criar cronômetro com duração pronta">
+          <button class="chip" type="button" data-quick="300000">5m</button>
+          <button class="chip" type="button" data-quick="600000">10m</button>
+          <button class="chip" type="button" data-quick="900000">15m</button>
+          <button class="chip" type="button" data-quick="1500000">25m</button>
+          <button class="chip" type="button" data-quick="2700000">45m</button>
+          <button class="chip" type="button" data-quick="3600000">1h</button>
+          <button class="chip chip--ghost" id="btn-add-timer" type="button" title="Duração personalizada"
+            aria-label="Criar cronômetro com duração personalizada">+</button>
         </div>
       </div>
 
+      <div class="toolbar-group toolbar-models" id="models-group">
+        <span class="eyebrow">Modelos</span>
+        <div class="quick-chips" id="models-chips"></div>
+      </div>
+
       <div class="toolbar-actions">
-        <button class="btn btn--outline btn--small" id="btn-add-timer" type="button">
-          Adicionar
-        </button>
+        <a class="btn btn--outline btn--small viewer-direct-link" href="/viewer.html" target="_blank"
+          rel="noopener noreferrer" title="Abrir o viewer em outra aba">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 5c-5 0-9 4.5-9 7s4 7 9 7 9-4.5 9-7-4-7-9-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-6.2a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4z" />
+          </svg>
+          Viewer
+        </a>
         <button class="btn btn--outline btn--icon" id="btn-fs" type="button" title="Tela cheia"
           aria-label="Alternar tela cheia">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -134,10 +153,7 @@
       Nenhum cronômetro nesta sessão. Use <strong>Adicionar</strong> para criar o primeiro.
     </p>
 
-    <footer class="admin-foot">
-      <p class="feedback" id="board-feedback" aria-live="polite"></p>
-      <a class="viewer-direct-link" href="/viewer.html" target="_blank" rel="noopener noreferrer">Abrir viewer</a>
-    </footer>
+    <p class="feedback admin-feedback" id="board-feedback" aria-live="polite"></p>
   </div>
 
   <!-- ------------------------------------------------- ajustes do cronometro -->

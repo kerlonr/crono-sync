@@ -57,13 +57,16 @@
 
 /* ---------------------------------------------------------------- barra */
 
+/* Tres blocos: criar (duracoes prontas), modelos salvos e as acoes da tela.
+   O cabecalho passou a carregar a criacao inteira porque o caminho antigo -
+   Adicionar, esperar o modal, digitar o tempo, aplicar - custava quatro
+   passos para o gesto mais repetido do painel. */
 .toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3) var(--space-5);
   margin-bottom: var(--space-6);
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border: var(--hairline) solid var(--separator);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -71,28 +74,39 @@
   flex-wrap: wrap;
 }
 
-.toolbar-models {
+.toolbar-group {
   display: flex;
   min-width: 0;
-  flex: 1 1 320px;
+  max-width: 100%;
   align-items: center;
   gap: var(--space-3);
 }
 
-.models-chips {
+/* Os modelos cedem espaco primeiro: as duracoes prontas sao curtas e fixas,
+   enquanto um modelo pode ter nome comprido. */
+.toolbar-models {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.quick-chips {
   display: flex;
   overflow-x: auto;
   min-width: 0;
+  /* `flex: 1 1 0` e o que permite encolher abaixo do conteudo e passar a
+     rolar. Com a base em `auto`, a faixa impunha a largura dos chips ao grupo
+     e a barra inteira estourava a tela do celular. */
+  flex: 1 1 0;
   gap: var(--space-2);
   scrollbar-width: none;
 }
 
-.models-chips::-webkit-scrollbar {
+.quick-chips::-webkit-scrollbar {
   display: none;
 }
 
-.model-chip {
-  min-height: 28px;
+.chip {
+  min-height: 30px;
   padding: 0 var(--space-3);
   flex: none;
   border: var(--hairline) solid var(--separator-strong);
@@ -101,6 +115,8 @@
   box-shadow: var(--edge);
   color: var(--text-secondary);
   font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   cursor: pointer;
   transition:
@@ -109,15 +125,48 @@
     transform var(--duration-fast) var(--ease-spring);
 }
 
-.model-chip:hover {
+.chip:hover {
   transform: translateY(-1px);
   background: var(--surface-hover);
   color: var(--text);
 }
 
+.chip:active {
+  transform: translateY(0) scale(0.96);
+}
+
+/* O "+" abre os ajustes em vez de criar direto: e o caminho do tempo
+   personalizado, e nao mais uma duracao pronta. */
+.chip--ghost {
+  width: 30px;
+  padding: 0;
+  border-style: dashed;
+  background: transparent;
+  font-size: var(--text-md);
+  line-height: 1;
+}
+
+/* Modelo salvo se distingue por levar nome, nao so numero. */
+.chip--model {
+  border-color: var(--separator);
+  color: var(--text);
+}
+
 .toolbar-actions {
   display: flex;
+  margin-left: auto;
   gap: var(--space-2);
+}
+
+.toolbar-actions .viewer-direct-link {
+  gap: var(--space-2);
+  text-decoration: none;
+}
+
+.toolbar-actions .viewer-direct-link svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
 }
 
 /* ------------------------------------------------------------- destaque */
@@ -275,19 +324,9 @@
   text-align: center;
 }
 
-.admin-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-top: var(--space-8);
-  padding-top: var(--space-4);
-  border-top: var(--hairline) solid var(--separator);
-}
-
-.viewer-direct-link {
-  font-size: var(--text-sm);
-  white-space: nowrap;
+.admin-feedback {
+  margin-top: var(--space-5);
+  text-align: center;
 }
 
 /* ================================================== conteudo dos ajustes */
@@ -480,10 +519,6 @@
     flex: none;
   }
 
-  .toolbar-actions {
-    justify-content: flex-end;
-  }
-
   .primary {
     padding: var(--space-8) var(--space-4);
   }
@@ -496,10 +531,12 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .admin-foot {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--space-3);
+  /* No celular a barra empilha: as acoes perdem o `margin-left: auto`, se
+     alinham a direita e podem quebrar em duas linhas se preciso. */
+  .toolbar-actions {
+    margin-left: 0;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .time-unit {
