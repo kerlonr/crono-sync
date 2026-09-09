@@ -79,6 +79,12 @@
   --green-text: #46d369;
   --orange-text: #ffb224;
   --red-text: #ff5a5f;
+  /* Texto sobre cada cor de acao. Verde e ambar sao claros e pedem texto
+     escuro; o vermelho e escuro e pede branco. Medido nos dois temas. */
+  --on-green: #0a0a0a;
+  --on-orange: #0a0a0a;
+  --on-red: #ffffff;
+
   --green-soft: rgba(70, 211, 105, 0.14);
   --orange-soft: rgba(255, 160, 10, 0.14);
   --red-soft: rgba(229, 9, 20, 0.2);
@@ -230,6 +236,10 @@
     --green-text: #157a39;
     --orange-text: #a85607;
     --red-text: #a3000a;
+    --on-green: #141414;
+    --on-orange: #141414;
+    --on-red: #ffffff;
+
     --green-soft: rgba(29, 156, 74, 0.12);
     --orange-soft: rgba(194, 101, 10, 0.12);
     --red-soft: rgba(193, 0, 12, 0.12);

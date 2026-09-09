@@ -114,10 +114,16 @@
       <p class="primary-meta" id="primary-meta"></p>
 
       <div class="btn-row primary-controls">
-        <button class="btn btn--primary" id="primary-start" type="button" data-action="start">Iniciar</button>
-        <button class="btn btn--outline" id="primary-pause" type="button" data-action="pause" disabled>Pausar</button>
-        <button class="btn btn--outline" id="primary-reset" type="button" data-action="reset">Zerar</button>
-        <button class="btn btn--plain" type="button" data-action="config">Ajustar</button>
+        <button class="btn btn--start" id="primary-start" type="button" data-action="start">Iniciar</button>
+        <button class="btn btn--pause" id="primary-pause" type="button" data-action="pause" disabled>Pausar</button>
+        <button class="btn btn--reset" id="primary-reset" type="button" data-action="reset">Zerar</button>
+        <button class="btn btn--outline btn--icon" type="button" data-action="config" title="Editar cronômetro"
+          aria-label="Editar cronômetro">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+          </svg>
+        </button>
       </div>
     </section>
 
@@ -373,10 +379,16 @@
       </div>
       <p class="mini-meta"></p>
       <div class="btn-row mini-controls">
-        <button class="btn btn--small" type="button" data-action="start">Iniciar</button>
-        <button class="btn btn--small" type="button" data-action="pause">Pausar</button>
-        <button class="btn btn--small" type="button" data-action="reset">Zerar</button>
-        <button class="btn btn--plain btn--small" type="button" data-action="config">Ajustar</button>
+        <button class="btn btn--small btn--start" type="button" data-action="start">Iniciar</button>
+        <button class="btn btn--small btn--pause" type="button" data-action="pause">Pausar</button>
+        <button class="btn btn--small btn--reset" type="button" data-action="reset">Zerar</button>
+        <button class="btn btn--small btn--icon btn--outline" type="button" data-action="config"
+          title="Editar cronômetro" aria-label="Editar cronômetro">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+          </svg>
+        </button>
       </div>
     </article>
   </template>

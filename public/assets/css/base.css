@@ -249,6 +249,57 @@ textarea {
   background: var(--red-soft);
 }
 
+/* ---------------------------------------------- acoes do cronometro
+
+   Iniciar, pausar e zerar levam a cor do que fazem, na leitura de semaforo.
+   Sao as tres unicas acoes que a pessoa procura com pressa numa sala, e a cor
+   e o que permite acha-las sem ler.
+
+   A mesma trinca colore as fases da contagem, mas nao ha confusao: o numero
+   muda de cor, os botoes tem cor fixa. Verde no botao e sempre "iniciar",
+   nunca "sobra tempo". */
+
+.btn--start {
+  border-color: transparent;
+  background: var(--green);
+  box-shadow: none;
+  color: var(--on-green);
+  font-weight: var(--weight-semibold);
+}
+
+.btn--pause {
+  border-color: transparent;
+  background: var(--orange);
+  box-shadow: none;
+  color: var(--on-orange);
+  font-weight: var(--weight-semibold);
+}
+
+.btn--reset {
+  border-color: transparent;
+  background: var(--red);
+  box-shadow: none;
+  color: var(--on-red);
+  font-weight: var(--weight-semibold);
+}
+
+/* O hover so clareia um pouco; a cor ja e o sinal. */
+.btn--start:hover:not(:disabled),
+.btn--pause:hover:not(:disabled),
+.btn--reset:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+/* Desabilitados, perdem a cor por inteiro: um bloco verde a 38% ainda chama
+   mais atencao do que deveria numa fileira de botoes. */
+.btn--start:disabled,
+.btn--pause:disabled,
+.btn--reset:disabled {
+  background: var(--surface-sunken);
+  color: var(--text);
+  opacity: 0.32;
+}
+
 .btn--pill {
   min-height: 46px;
   padding: 0 var(--space-6);
@@ -271,10 +322,22 @@ textarea {
   font-size: var(--text-sm);
 }
 
+/* `.btn--icon` fixa 34px e `.btn--small` pede 30: juntos, o quadrado tem de
+   encolher junto, senao o botao de icone fica mais alto que os vizinhos. */
+.btn--icon.btn--small {
+  width: 30px;
+  min-height: 30px;
+}
+
 .btn--icon svg {
   width: 17px;
   height: 17px;
   fill: currentColor;
+}
+
+.btn--icon.btn--small svg {
+  width: 15px;
+  height: 15px;
 }
 
 .btn-row {
