@@ -50,17 +50,18 @@ body {
 
 .viewer-label {
   color: var(--text-secondary);
-  font-size: clamp(var(--text-md), 1.7vw, var(--text-lg));
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-tight);
+  font-size: clamp(var(--text-sm), 1.2vw, var(--text-md));
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
-/* O numero define o tamanho da tela: cresce com a largura ate encher a
-   janela, com um teto pela altura para nao estourar em telas baixas. */
+/* O numero define o tamanho da tela: cresce com a largura ate quase encher a
+   janela, com um teto pela altura para nao estourar em telas baixas. Os 19vw
+   deixam uma margem de respiro - encostado nas bordas, o numero parece cortado
+   mesmo quando cabe. */
 .viewer-time {
-  font-size: min(21vw, 34vh);
-  font-weight: var(--weight-bold);
-  letter-spacing: -0.035em;
+  font-size: min(19vw, 38vh);
 }
 
 /* Estreita e afastada do numero. Encostada e da largura dele, a barra virava
@@ -158,7 +159,7 @@ body {
    escasso, entao o numero volta a se medir por ela. */
 @media (orientation: portrait) {
   .viewer-time {
-    font-size: min(26vw, 22vh);
+    font-size: min(24vw, 24vh);
   }
 
   .viewer-others {

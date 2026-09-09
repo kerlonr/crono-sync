@@ -10,6 +10,18 @@
  * parecer recortado em vez de pintado.
  */
 
+/* A fonte dos digitos, servida do proprio servidor. `swap` para o numero
+   aparecer imediatamente com a monoespacada do sistema e trocar quando o
+   arquivo chegar - uma tela de cronometro nao pode ficar em branco esperando
+   fonte. */
+@font-face {
+  font-family: "Share Tech Mono";
+  src: url("/assets/fonts/share-tech-mono.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -179,30 +191,33 @@ textarea {
   cursor: not-allowed;
 }
 
-/* Primario: um gradiente curto de cima para baixo, o brilho de quina mais
-   forte e um halo discreto na cor. */
+/* O primario e um bloco claro: esmaece-lo apenas o transforma num cinza que
+   ainda chama mais atencao que os botoes ativos ao lado. Desabilitado, ele
+   perde o preenchimento e vira texto apagado. */
+.btn--primary:disabled {
+  background: var(--surface-sunken);
+  color: var(--text);
+  opacity: 0.32;
+}
+
+/* A acao principal e um bloco solido de maximo contraste - branco no escuro,
+   preto no claro - como o botao de assistir das plataformas de streaming.
+   Sem gradiente e sem halo: a forca vem do contraste, nao do efeito. */
 .btn--primary {
   border-color: transparent;
-  background: linear-gradient(
-    180deg,
-    var(--accent-fill-hover),
-    var(--accent-fill)
-  );
-  box-shadow: var(--edge-strong), var(--glow-accent);
+  background: var(--accent-fill);
+  box-shadow: none;
   color: var(--text-on-accent);
+  font-weight: var(--weight-semibold);
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: linear-gradient(
-    180deg,
-    var(--accent-hover),
-    var(--accent-fill-hover)
-  );
+  background: var(--accent-fill-hover);
 }
 
 .btn--outline {
-  border-color: var(--separator-strong);
-  background: transparent;
+  border-color: transparent;
+  background: var(--surface-sunken);
   box-shadow: none;
 }
 
@@ -389,15 +404,19 @@ select.input {
 
 /* ============================================================ cronometro */
 
-/* Os digitos sao o elemento central do produto. Largura tabular mantem o
-   numero imovel enquanto conta - sem isso a linha inteira treme a cada
-   segundo, porque "1" e mais estreito que "8". */
+/* Os digitos sao o elemento central do produto - o "cartaz" da tela. A
+   familia e monoespacada por natureza, entao o numero ja fica imovel enquanto
+   conta, sem depender de `tabular-nums`.
+
+   O espacamento e ABERTO, ao contrario dos titulos: numero de mostrador se le
+   melhor com ar entre os algarismos, e isso compensa em parte o traco fino da
+   familia (peso 400 unico). O branco puro fecha a conta do contraste. */
 .timer-digits {
   font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-regular);
   line-height: 1;
-  letter-spacing: var(--tracking-display);
+  letter-spacing: 0;
   color: var(--text);
   transition: color var(--duration) var(--ease);
 }
@@ -414,9 +433,12 @@ select.input {
 }
 
 /* Pausado esmaece o numero, mas o rotulo de estado e que diz o que houve -
-   opacidade sozinha nao se explica para quem chega com a tela ja parada. */
+   opacidade sozinha nao se explica para quem chega com a tela ja parada.
+
+   0.6, e nao menos: com um traco fino, esmaecer demais apaga o numero para
+   quem esta longe. */
 .timer-digits[data-status="paused"] {
-  opacity: 0.42;
+  opacity: 0.6;
 }
 
 /* ------------------------------------------------- edicao do tempo no lugar */
@@ -478,7 +500,7 @@ select.input {
   width: 0;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent-fill), var(--accent));
+  background: var(--brand);
   box-shadow: var(--glow-accent);
   transition:
     width var(--duration) linear,
@@ -486,14 +508,13 @@ select.input {
 }
 
 .progress-fill[data-phase="yellow"] {
-  background: linear-gradient(90deg, var(--orange), var(--orange-text));
-  box-shadow: 0 2px 10px rgba(255, 159, 10, 0.3);
+  background: var(--orange);
+  box-shadow: 0 2px 12px rgba(255, 160, 10, 0.35);
 }
 
 .progress-fill[data-phase="red"],
 .progress-fill[data-phase="blink"] {
-  background: linear-gradient(90deg, var(--red), var(--red-text));
-  box-shadow: 0 2px 10px rgba(255, 69, 58, 0.3);
+  background: var(--red);
 }
 
 /* Ponto de estado, do tamanho de um sinal e nao de um enfeite. O halo na cor

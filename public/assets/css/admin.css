@@ -173,7 +173,6 @@
 
 .primary-time {
   font-size: clamp(3.75rem, 14vw, 7.5rem);
-  font-weight: var(--weight-bold);
 }
 
 /* Estreita e afastada do numero: colada e da largura dele, a barra virava um

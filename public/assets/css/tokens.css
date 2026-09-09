@@ -5,8 +5,14 @@
  * o seu proprio `:root` e a mesma ideia aparecia com valores diferentes -
  * `--accent` era #58ead0 no viewer, #57dbc8 na visao geral e #3fc9b1 no admin.
  *
- * ESCURO PRIMEIRO. O tema escuro e o principal e o claro e a inversao, nao o
- * contrario: e a tela que fica horas projetada numa sala e aberta o dia todo.
+ * ESCURO PRIMEIRO, na logica de "sala de cinema": o fundo quase preto sai da
+ * frente para o conteudo aparecer. Aqui o conteudo e o NUMERO - ele e o
+ * cartaz, e todo o resto da interface se retrai para nao competir.
+ *
+ * A paleta segue a linguagem das plataformas de streaming: preto de sala
+ * escura, branco puro no conteudo, cinza para o apoio e um vermelho de marca
+ * usado com parcimonia. O botao principal e BRANCO, nao vermelho - o vermelho
+ * fica reservado a marca e ao fim da contagem, onde ele significa algo.
  *
  * Profundidade sem blur. Sombra escura sobre fundo escuro nao aparece, entao a
  * elevacao aqui vem de tres coisas empilhadas, na linha do que os produtos de
@@ -30,54 +36,55 @@
 
   /* Escada de superficies. `canvas` e o fundo da pagina; os demais sobem um
      degrau por nivel de elevacao. */
-  --canvas: #08080b;
-  --surface: #17171d;
-  --surface-2: #1e1e26;
-  --surface-hover: #22222a;
+  --canvas: #0a0a0a;
+  --surface: #181818;
+  --surface-2: #202020;
+  --surface-hover: #2f2f2f;
 
   /* Preenchimento discreto DENTRO de um cartao (botao neutro, etiqueta de
      estado, trilho do segmentado). */
-  --surface-sunken: #1c1c23;
+  --surface-sunken: #232323;
   /* O item escolhido do segmentado, que sobe sobre o trilho. */
-  --surface-raised: #2c2c36;
+  --surface-raised: #3a3a3a;
 
   /* Quatro niveis de texto: conteudo, apoio, legenda e rotulo. */
-  --text: #f7f8f8;
-  --text-secondary: #b4b8c5;
-  --text-tertiary: #8a8f9c;
-  --text-on-accent: #ffffff;
+  --text: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-tertiary: #8c8c8c;
+  --text-on-accent: #0a0a0a;
 
   /* A hairline e o elemento estrutural do sistema, nao um detalhe. */
-  --separator: #24242c;
-  --separator-strong: #33333d;
+  --separator: rgba(255, 255, 255, 0.1);
+  --separator-strong: rgba(255, 255, 255, 0.22);
 
-  /* Indigo: a cor propria do produto. Nao conflita com o verde/laranja/
-     vermelho que sinalizam as fases da contagem. */
-  --accent: #818cf8;
-  --accent-hover: #a5b0ff;
-  --accent-soft: rgba(99, 102, 241, 0.16);
-  /* Preenchimento do botao primario, separado de `--accent` porque precisa
-     sustentar texto branco por cima. */
-  --accent-fill: #5b5ee8;
-  /* O hover clareia pouco de proposito: mais claro que isto e o texto branco
-     por cima cai abaixo de 4.5:1. O brilho de `--glow-accent` completa a
-     resposta visual. */
-  --accent-fill-hover: #6165ec;
+  /* O vermelho de marca. Aparece na barra de progresso e em detalhes - nunca
+     como fundo de botao, para nao disputar significado com o vermelho que
+     avisa que o tempo esta acabando. */
+  --brand: #e50914;
+
+  /* A acao principal e BRANCA sobre o preto, como o botao de assistir das
+     plataformas de streaming: e o maior contraste possivel na tela, e deixa o
+     vermelho livre para significar urgencia. */
+  --accent: #ffffff;
+  --accent-hover: #ffffff;
+  --accent-soft: rgba(255, 255, 255, 0.12);
+  --accent-fill: #ffffff;
+  --accent-fill-hover: #e6e6e6;
 
   /* Status em duas variantes: a viva preenche barras e pontos (elemento
      grafico, 3:1 basta) e a de texto e legivel sobre o proprio fundo `soft`. */
-  --green: #30d158;
-  --orange: #ff9f0a;
-  --red: #ff453a;
-  --green-text: #4ade80;
-  --orange-text: #fbbf24;
-  --red-text: #ff7a70;
-  --green-soft: rgba(48, 209, 88, 0.14);
-  --orange-soft: rgba(255, 159, 10, 0.14);
-  --red-soft: rgba(255, 69, 58, 0.14);
+  --green: #46d369;
+  --orange: #ffa00a;
+  --red: #e50914;
+  --green-text: #46d369;
+  --orange-text: #ffb224;
+  --red-text: #ff5a5f;
+  --green-soft: rgba(70, 211, 105, 0.14);
+  --orange-soft: rgba(255, 160, 10, 0.14);
+  --red-soft: rgba(229, 9, 20, 0.2);
 
   /* Trilho da barra de progresso. */
-  --track: rgba(255, 255, 255, 0.09);
+  --track: rgba(255, 255, 255, 0.2);
 
   /* ------------------------------------------------------- profundidade */
 
@@ -92,18 +99,21 @@
 
   /* Halo do acento, para o botao primario e a barra em andamento. Discreto:
      acompanha a cor em vez de anuncia-la. */
-  --glow-accent: 0 2px 12px rgba(91, 94, 232, 0.35);
+  --glow-accent: 0 2px 14px rgba(229, 9, 20, 0.4);
 
   /* Veu do modal. */
   --scrim: rgba(4, 4, 8, 0.72);
 
   /* Luz ambiente do fundo: um clarao unico e amplo no alto da pagina, para o
      canvas nao ser preto chapado. Fica abaixo de 5% de opacidade. */
+  /* Vinheta de sala escura: o centro fica limpo e as bordas escurecem, o que
+     empurra o olho para o numero no meio da tela. */
   --ambient: radial-gradient(
-    1100px 520px at 50% -12%,
-    rgba(99, 102, 241, 0.1),
-    transparent 70%
-  );
+    120% 90% at 50% 0%,
+    rgba(255, 255, 255, 0.045),
+    transparent 55%
+  ),
+  radial-gradient(140% 110% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.55));
 
   /* -------------------------------------------------------- tipografia */
 
@@ -114,10 +124,16 @@
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable",
     "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Os digitos do cronometro usam a MESMA familia, apenas com algarismos de
-     largura fixa. Uma fonte monoespacada "tecnologica" era justamente o que
-     dava ao projeto a cara de painel de controle. */
-  --font-numeric: var(--font);
+  /* Os digitos tem familia propria: uma monoespacada de mostrador, que e o
+     que da ao cronometro a cara de painel em vez de texto de aplicativo.
+     Servida do proprio servidor (ver `public/assets/fonts/README.md`), entao
+     a CSP continua sem liberar host externo.
+
+     Limitacao assumida: a familia so existe no peso 400. Comparada as de
+     traco grosso, e a que menos se sustenta lida de longe - o desenho
+     compensa com corpo maior e branco puro, nao com peso. */
+  --font-numeric: "Share Tech Mono", ui-monospace, "SF Mono", "Cascadia Mono",
+    Consolas, monospace;
 
   --text-xs: 0.6875rem;
   --text-sm: 0.8125rem;
@@ -183,39 +199,42 @@
    ser branco quase opaco, imitando papel. */
 @media (prefers-color-scheme: light) {
   :root {
-    --canvas: #fbfbfd;
+    --canvas: #fafafa;
     --surface: #ffffff;
     --surface-2: #ffffff;
-    --surface-hover: #f4f4f7;
-    --surface-sunken: #f1f1f5;
+    --surface-hover: #f0f0f0;
+    --surface-sunken: #f0f0f0;
     --surface-raised: #ffffff;
 
-    --text: #0d0d12;
-    --text-secondary: #494954;
-    --text-tertiary: #6a6a78;
+    --text: #141414;
+    --text-secondary: #4d4d4d;
+    --text-tertiary: #6b6b6b;
     --text-on-accent: #ffffff;
 
-    --separator: rgba(13, 13, 18, 0.09);
-    --separator-strong: rgba(13, 13, 18, 0.18);
+    --separator: rgba(20, 20, 20, 0.1);
+    --separator-strong: rgba(20, 20, 20, 0.2);
 
-    /* Sobre branco o indigo precisa escurecer para sustentar 4.5:1. */
-    --accent: #4f46e5;
-    --accent-hover: #4338ca;
-    --accent-soft: rgba(79, 70, 229, 0.12);
-    --accent-fill: #4f46e5;
-    --accent-fill-hover: #4338ca;
+    --brand: #c1000c;
+
+    /* No claro a acao principal inverte: preto sobre branco, o mesmo maximo
+       de contraste que o branco sobre preto dá no escuro. */
+    --accent: #141414;
+    --accent-hover: #000000;
+    --accent-soft: rgba(20, 20, 20, 0.08);
+    --accent-fill: #141414;
+    --accent-fill-hover: #000000;
 
     --green: #1d9c4a;
     --orange: #c2650a;
-    --red: #d70015;
+    --red: #c1000c;
     --green-text: #157a39;
     --orange-text: #a85607;
-    --red-text: #c00013;
+    --red-text: #a3000a;
     --green-soft: rgba(29, 156, 74, 0.12);
     --orange-soft: rgba(194, 101, 10, 0.12);
-    --red-soft: rgba(215, 0, 21, 0.12);
+    --red-soft: rgba(193, 0, 12, 0.12);
 
-    --track: rgba(13, 13, 18, 0.1);
+    --track: rgba(20, 20, 20, 0.14);
 
     --edge: inset 0 1px 0 rgba(255, 255, 255, 0.9);
     --edge-strong: inset 0 1px 0 rgba(255, 255, 255, 1);
@@ -224,14 +243,10 @@
     --shadow-raised: 0 2px 8px rgba(13, 13, 18, 0.08),
       0 20px 56px rgba(13, 13, 18, 0.14);
 
-    --glow-accent: 0 2px 12px rgba(79, 70, 229, 0.25);
+    --glow-accent: 0 2px 12px rgba(193, 0, 12, 0.22);
 
-    --scrim: rgba(13, 13, 18, 0.32);
+    --scrim: rgba(20, 20, 20, 0.5);
 
-    --ambient: radial-gradient(
-      1100px 520px at 50% -12%,
-      rgba(79, 70, 229, 0.07),
-      transparent 70%
-    );
+    --ambient: none;
   }
 }
