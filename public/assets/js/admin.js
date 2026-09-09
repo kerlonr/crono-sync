@@ -1154,13 +1154,6 @@
   function fillConfigForm(timer) {
     ui.cfgName.value = timer.name;
 
-    for (const button of ui.config.querySelectorAll("[data-direction]")) {
-      button.setAttribute(
-        "aria-pressed",
-        String(button.dataset.direction === timer.direction),
-      );
-    }
-
     fillTimeInputs(timer.baseTotalTime);
     fillOffsetInputs(timer.offsetMs);
     if (ui.clockHint) ui.clockHint.textContent = "";
@@ -1209,6 +1202,21 @@
   function syncConfigLive(timer) {
     const isPrimary = timer.id === state.primaryTimerId;
     const running = timer.status === "running";
+
+    // O modo e sincronizado AQUI, e nao ao abrir o modal: o botao clicado
+    // apenas emitia o evento, e quem pinta o escolhido e o `aria-pressed`.
+    // Como so `fillConfigForm` o escrevia, a direcao mudava no servidor e a
+    // tela seguia marcando a antiga ate o modal ser reaberto.
+    //
+    // Diferente do titulo e dos campos de tempo, isto pode ser reescrito a
+    // cada tick sem risco: e um par de botoes, nao ha nada digitado para
+    // atropelar.
+    for (const button of ui.config.querySelectorAll("[data-direction]")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.direction === timer.direction),
+      );
+    }
 
     // Os mesmos campos servem aos dois modos, mas o nome muda o sentido: num
     // progressivo o valor e o que ja correu; num regressivo, o que ja foi
